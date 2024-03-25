@@ -7,6 +7,7 @@ export default {
       fontFamily: {
         noto: ["Noto Serif KR", "serif"],
         playfair: ["Playfair Display"],
+        work: ["Work Sans"]
       },
       maxWidth: {
         "custom-width": "min(calc(24 * 22), calc(100vw - 2 * 0))",
