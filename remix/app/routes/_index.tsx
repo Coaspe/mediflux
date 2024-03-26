@@ -1,8 +1,9 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
-import LoginModal, { LoginButton } from "~/components/landing";
+import { LoginButton } from "~/components/landing";
 import { useState } from "react";
-import { useActionData } from "@remix-run/react";
-import { badRequest } from "~/\butils/request.server";
+import { Form, Link, Outlet, useActionData } from "@remix-run/react";
+import { badRequest } from "~/utils/request.server";
+import Icon, { ICONS } from "~/components/icons";
 
 export const meta: MetaFunction = () => {
   return [
@@ -31,16 +32,12 @@ function validateUrl(url: string) {
   return "/";
 }
 
-export const action = async ({
-  request,
-}: ActionFunctionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const requestType = form.get("requestType");
   const password = form.get("password");
   const username = form.get("username");
-  const redirectTo = validateUrl(
-    (form.get("redirectTo") as string) || "/"
-  );
+  const redirectTo = validateUrl((form.get("redirectTo") as string) || "/");
   if (
     typeof requestType !== "string" ||
     typeof password !== "string" ||
@@ -70,7 +67,6 @@ export const action = async ({
     case "login": {
     }
     case "register": {
-
     }
     default: {
       return badRequest({
@@ -86,54 +82,81 @@ export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
   const actionData = useActionData<typeof action>();
-  console.log(typeof (actionData));
 
   return (
     <div className="min-h-screen">
-      <header className="min-h-24 font-playfair font-extrabold text-4xl flex items-center justify-between pl-12 pr-12">
-        MediFlux
-      </header>
       <div className="flex justify-center bg-gray-100">
         <div className="rounded-lg shadow-lg p-8 font-noto">
           <h2 className="text-9xl font-bold font-playfair mb-10">
             Efficient care,
           </h2>
-          <h2 className="text-9xl font-bold font-playfair mb-10">
-            Every time
-          </h2>
+          <h2 className="text-9xl font-bold font-playfair mb-10">Every time</h2>
           <LoginButton onClose={setIsModalOpenNot} name="Get started" />
         </div>
       </div>
+
+      {/* Login Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 font-work">
           <div className="relative bg-white p-8 rounded-md w-[400px] h-[400px] transition-all duration-100 transform">
+            <Icon
+              onClick={setIsModalOpenNot}
+              className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"}
+              iconName={ICONS.CLOSE}
+            />
             <div className="flex flex-col justify-center items-center h-full">
-              <span onClick={setIsModalOpenNot} className="material-symbols-outlined absolute right-0 top-0 pr-3 pt-3 cursor-pointer">close</span>
-              <form>
+              <Form method="post">
                 <div className="w-[300px] flex flex-col justify-center items-center mb-8 gap-3 text-sm ">
-                  <input
-                    className="shadow appearance-none border-2 border-black rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
-                    id="username-input"
-                    type="text"
-                    placeholder="Name"
-                    name="username"
-                  />
-                  <input
-                    className="shadow appearance-none border-2 border-black rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
-                    id="password"
-                    type="password"
-                    placeholder="Password"
-                    name="password"
-                  />
+                  <div className="w-full">
+                    <input
+                      className="shadow appearance-none border-2 border-black rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
+                      id="username-input"
+                      type="text"
+                      placeholder="Name"
+                      name="username"
+                      defaultValue={actionData?.fields?.username}
+                      aria-invalid={Boolean(actionData?.fieldErrors?.username)}
+                      aria-errormessage={
+                        actionData?.fieldErrors?.username
+                          ? "username-error"
+                          : undefined
+                      }
+                    />
+                    {actionData?.fieldErrors?.username && (
+                      <p role="alert">{actionData.fieldErrors.username}</p>
+                    )}
+                  </div>
+                  <div className="w-full">
+                    <input
+                      className="shadow appearance-none border-2 border-black rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
+                      id="password"
+                      type="password"
+                      placeholder="Password"
+                      name="password"
+                      defaultValue={actionData?.fields?.password}
+                      aria-invalid={Boolean(actionData?.fieldErrors?.password)}
+                      aria-errormessage={
+                        actionData?.fieldErrors?.password
+                          ? "password-error"
+                          : undefined
+                      }
+                    />
+                    {actionData?.fieldErrors?.password && (
+                      <p role="alert">{actionData.fieldErrors.password}</p>
+                    )}
+                  </div>
                 </div>
                 <button
                   className="bg-black text-gray-300 font-bold py-2.5 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full"
                   type="submit"
                 >
-                  Log in
+                  <Link to="dashboard">Log in</Link>
                 </button>
-              </form>
-              <p className="text-blue-500 hover:underline cursor-pointer pt-5" onClick={setIsModalOpenNot}>
+              </Form>
+              <p
+                className="text-blue-500 hover:underline cursor-pointer pt-5"
+                onClick={setIsModalOpenNot}
+              >
                 Create account
               </p>
             </div>
