@@ -1,16 +1,9 @@
-import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
+import type { ActionFunctionArgs } from "@remix-run/node";
 import { LoginButton } from "~/components/landing";
 import { useState } from "react";
-import { Form, Link, Outlet, useActionData } from "@remix-run/react";
+import { Form, Link, useActionData } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
 import Icon, { ICONS } from "~/components/icons";
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "MediFlux" },
-    { name: "description", content: "Welcome to MediFlux!" },
-  ];
-};
 
 function validateUsername(username: string) {
   if (username.length < 3) {
