@@ -1,7 +1,5 @@
 import {
   Links,
-  LiveReload,
-  Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
@@ -48,32 +46,19 @@ export const links: LinksFunction = () => [
   },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export default function App() {
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <Meta />
         <Links />
       </head>
       <body className="bg-gray-100">
-        <LiveReload />
-        {children}
+        <Outlet />
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
-  );
-}
-
-export default function App() {
-  return (
-    <div className="h-full">
-      <header className="min-h-24 font-playfair font-extrabold text-4xl flex items-center justify-between pl-12 pr-12">
-        MediFlux
-      </header>
-      <Outlet />
-    </div>
   );
 }
