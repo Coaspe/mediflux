@@ -1,8 +1,12 @@
 import { Link, Outlet } from "@remix-run/react";
+import { SIDE_MENU } from "~/constant";
 import { useState } from "react";
 import { Menu, MenuItem, Sidebar, SubMenu } from "react-pro-sidebar";
+import { SideMenu } from "~/type";
+import DashboardHeader from "~/components/dashboard_header";
 import Icon, { ICONS } from "~/components/icons";
-function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void, to: string, name: string, clickedMenu: MENU | undefined }) {
+
+function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void, to: string, name: string, clickedMenu: SideMenu | undefined }) {
   return (
     <li onClick={onClick} className={`w-full relative ${clickedMenu == to ? "bg-button text-white" : "hover:bg-gray-100"}`}>
       <Link className="flex items-center h-[50px] text-current cursor-pointer pr-[20px] pl-[40px]" to={to}>
@@ -12,41 +16,12 @@ function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void, t
   )
 }
 
-
-const MENU = {
-  SCHEDULING: 'scheduling',
-  MYWORKS: 'myworks'
-} as const;
-type MENU = typeof MENU[keyof typeof MENU];
-
-function getMenuName(menu: MENU | undefined): string {
-  switch (menu) {
-    case MENU.SCHEDULING:
-      return 'Scheduling';
-    case MENU.MYWORKS:
-      return 'My works';
-    default:
-      return ""
-  }
-}
-
-function Header({ selectedMenu }: { selectedMenu: MENU | undefined }) {
-  return <header className="min-h-24 font-playfair flex items-center pl-12 pr-12 w-full">
-    <h1 className="w-[250px] font-extrabold text-4xl">
-      MediFlux
-    </h1>
-    <h2 className="font-work text-xl font-bold">
-      {getMenuName(selectedMenu)}
-    </h2>
-  </header>
-}
-
 export default function Dashboard() {
-  const [clickedMenu, setClickedMenu] = useState<MENU>()
+  const [clickedMenu, setClickedMenu] = useState<SideMenu>()
 
   return (
     <div className="flex-col">
-      <Header selectedMenu={clickedMenu} />
+      <DashboardHeader selectedMenu={clickedMenu} />
       <div className="flex">
         <Sidebar className="font-work">
           <Menu>
@@ -56,8 +31,8 @@ export default function Dashboard() {
               }
               label="Schedule"
             >
-              <MenuItemLi onClick={() => setClickedMenu(MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
-              <MenuItemLi onClick={() => setClickedMenu(MENU.MYWORKS)} to={"myworks"} name={"My works"} clickedMenu={clickedMenu} />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MYWORKS)} to={"myworks"} name={"My works"} clickedMenu={clickedMenu} />
             </SubMenu>
             <MenuItem
               icon={
@@ -76,7 +51,7 @@ export default function Dashboard() {
             </MenuItem>
           </Menu>
         </Sidebar>
-        <div className="pl-5">
+        <div className="pl-5 w-full max-w-5xl ">
           <Outlet />
         </div>
       </div>

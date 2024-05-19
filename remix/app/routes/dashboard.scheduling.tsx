@@ -68,7 +68,6 @@ function Table() {
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
-  //call CREATE hook
   const { mutateAsync: createPRecord, isPending: isCreatingPRecord } =
     useCreatePRecord();
   const {

@@ -39,9 +39,22 @@ io.on("connection", (socket) => {
         socket.broadcast.to(roomId).emit("user-joined", userId);
       }
 
-      io.in(roomId).emit("connecte-users", Object.keys(roomUsers[roomId]));
+      io.in(roomId).emit("connected-users", Object.keys(roomUsers[roomId]));
+
     }
   );
+
+  socket.on('lock-record', ({ recordId, roomId, username }) => {
+    io.in(roomId).emit("lock-record", { recordId, username })
+  })
+
+  socket.on('create-record', ({ }) => {
+
+  })
+
+  socket.on('change-record', ({ delta, roomId, username }) => {
+
+  })
 });
 
 app.get("/", (req: Request, res: Response) => {

@@ -14,6 +14,8 @@ export default {
       },
       colors: {
         button: "#00143C",
+        alarmButtonBg: "#fffae8",
+        alarmButtonLine: "#febd32"
       },
     },
   },
