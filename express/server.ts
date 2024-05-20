@@ -48,7 +48,15 @@ io.on("connection", (socket) => {
     io.in(roomId).emit("lock-record", { recordId, username })
   })
 
+  socket.on('unlock-record', ({ recordId, roomId, username }) => {
+    io.in(roomId).emit("unlock-record", { recordId, username })
+  })
+
   socket.on('create-record', ({ }) => {
+
+  })
+
+  socket.on('delete-record', ({ recordId, roomId }) => {
 
   })
 
