@@ -1,10 +1,11 @@
-import express, { Express, Request, Response } from "express";
+import express, { Express } from "express";
 import { Server } from "socket.io";
 import http from "http";
+import { CHANGED_RECORD, CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED } from '../shared-constants/index'
 
 const app: Express = express();
 
-const port = 5000;
+const PORT = 5001;
 
 const server = http.createServer(app);
 
@@ -16,9 +17,9 @@ const io = new Server(server, {
 
 const roomUsers: { [key: string]: { [key: number]: string } } = {};
 
-io.on("connection", (socket) => {
+io.on(CONNECTION, (socket) => {
   socket.on(
-    "join-room",
+    JOIN_ROOM,
     ({
       roomId,
       userId,
@@ -36,39 +37,29 @@ io.on("connection", (socket) => {
 
       if (!(userId in roomUsers[roomId])) {
         roomUsers[roomId][userId] = username;
-        socket.broadcast.to(roomId).emit("user-joined", userId);
+        socket.broadcast.to(roomId).emit(USER_JOINED, userId);
       }
 
-      io.in(roomId).emit("connected-users", Object.keys(roomUsers[roomId]));
+      io.in(roomId).emit(CONNECTED_USERS, Object.keys(roomUsers[roomId]));
 
     }
   );
 
-  socket.on('lock-record', ({ recordId, roomId, username }) => {
-    io.in(roomId).emit("lock-record", { recordId, username })
+  socket.on(CHANGED_RECORD, ({ recordId, roomId, userId }) => {
+    io.in(roomId).emit(CHANGED_RECORD, { recordId, userId })
   })
 
-  socket.on('unlock-record', ({ recordId, roomId, username }) => {
-    io.in(roomId).emit("unlock-record", { recordId, username })
+  socket.on(SAVE_RECORD, ({ recordId, roomId, userId }) => {
+    io.in(roomId).emit(SAVE_RECORD, { recordId, userId })
   })
 
-  socket.on('create-record', ({ }) => {
-
-  })
-
-  socket.on('delete-record', ({ recordId, roomId }) => {
+  socket.on(CREATE_RECORD, ({ }) => {
 
   })
 
-  socket.on('change-record', ({ delta, roomId, username }) => {
+  socket.on(DELETE_RECORD, ({ recordId, roomId }) => {
 
   })
 });
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Node.js + Express Server");
-});
-
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

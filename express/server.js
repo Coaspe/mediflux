@@ -6,8 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const socket_io_1 = require("socket.io");
 const http_1 = __importDefault(require("http"));
+const index_1 = require("../shared-constants/index");
 const app = (0, express_1.default)();
-const port = 5000;
+const PORT = 5001;
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {
@@ -15,22 +16,27 @@ const io = new socket_io_1.Server(server, {
     },
 });
 const roomUsers = {};
-io.on("connection", (socket) => {
-    socket.on("join-room", ({ roomId, userId, username, }) => {
+io.on(index_1.CONNECTION, (socket) => {
+    socket.on(index_1.JOIN_ROOM, ({ roomId, userId, username, }) => {
         socket.join(roomId);
         if (!(roomId in roomUsers)) {
             roomUsers[roomId] = { [userId]: username };
         }
         if (!(userId in roomUsers[roomId])) {
             roomUsers[roomId][userId] = username;
-            socket.broadcast.to(roomId).emit("user-joined", userId);
+            socket.broadcast.to(roomId).emit(index_1.USER_JOINED, userId);
         }
-        io.in(roomId).emit("connecte-users", Object.keys(roomUsers[roomId]));
+        io.in(roomId).emit(index_1.CONNECTED_USERS, Object.keys(roomUsers[roomId]));
+    });
+    socket.on(index_1.CHANGED_RECORD, ({ recordId, roomId, userId }) => {
+        io.in(roomId).emit(index_1.CHANGED_RECORD, { recordId, userId });
+    });
+    socket.on(index_1.SAVE_RECORD, ({ recordId, roomId, userId }) => {
+        io.in(roomId).emit(index_1.SAVE_RECORD, { recordId, userId });
+    });
+    socket.on(index_1.CREATE_RECORD, ({}) => {
+    });
+    socket.on(index_1.DELETE_RECORD, ({ recordId, roomId }) => {
     });
 });
-app.get("/", (req, res) => {
-    res.send("Node.js + Express Server");
-});
-app.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
-});
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -23,6 +23,11 @@ import {
 } from '@tanstack/react-query';
 
 import { MRT_Localization_KO } from 'material-react-table/locales/ko'
+
+import { Socket, io } from 'socket.io-client';
+import { CHANGED_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED } from '../../../shared-constants/index'
+import { User } from '~/type';
+import { ROLE } from '~/constant';
 
 type PRecord = {
   id: string;
@@ -316,6 +321,60 @@ function useCreatePRecord() {
 const queryClient = new QueryClient();
 
 export default function Scheduling() {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [clients, setClients] = useState<String[]>([]);
+  const [user, setUser] = useState<User>({
+    id: 1,
+    name: '이우람',
+    image: '',
+    role: ROLE.DOCTOR
+  })
+
+  const handleConnectedUsers = (users: String[]) => {
+    console.log(`Updated list of connected users: ${users}`);
+    setClients(users);
+  };
+
+  // Lock record specified by recordId
+  const handleChangeRecord = (recordId: number) => {
+    socket?.emit(CHANGED_RECORD, { recordId, userId: user.id })
+  }
+
+  const handleDeleteRecord = (recordId: number) => {
+    // Needs confirmation step
+    socket?.emit(DELETE_RECORD, { recordId, userId: user.id })
+  }
+
+  const handleSaveRecord = (recordId: number) => {
+    socket?.emit(SAVE_RECORD, { recordId, userId: user.id })
+  }
+
+  const handleCreateRecord = (recordId: number) => {
+    socket?.emit(CREATE_RECORD, { recordId, userId: user.id })
+  }
+
+  useEffect(() => {
+    const socketInstance = io("http://localhost:5001")
+    setSocket(socketInstance)
+
+    // Default
+    socketInstance.on(CONNECT, () => {
+      console.log("Socket connected, joining room with ID:", 100);
+      socketInstance.emit(JOIN_ROOM, { roomId: 100, userId: user.id, username: user.name })
+    })
+
+    // Other user joined
+    socketInstance.on(USER_JOINED, (username) => {
+      if (typeof socket === 'undefined') return;
+      setClients(prev => [...prev, username]);
+      socketInstance.emit(CONNECTED_USERS, clients);        //Emit User Array 
+    });
+
+    // Set connected users
+    socketInstance.on(CONNECTED_USERS, handleConnectedUsers);
+
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <Table />
