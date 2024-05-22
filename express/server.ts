@@ -1,7 +1,16 @@
 import express, { Express } from "express";
 import { Server } from "socket.io";
 import http from "http";
-import { CHANGED_RECORD, CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED } from '../shared-constants/index'
+import {
+  CHANGE_RECORD,
+  CONNECTED_USERS,
+  CONNECTION,
+  CREATE_RECORD,
+  DELETE_RECORD,
+  JOIN_ROOM,
+  SAVE_RECORD,
+  USER_JOINED,
+} from "../shared-constants/index";
 
 const app: Express = express();
 
@@ -41,25 +50,26 @@ io.on(CONNECTION, (socket) => {
       }
 
       io.in(roomId).emit(CONNECTED_USERS, Object.keys(roomUsers[roomId]));
-
     }
   );
 
-  socket.on(CHANGED_RECORD, ({ recordId, roomId, userId }) => {
-    io.in(roomId).emit(CHANGED_RECORD, { recordId, userId })
-  })
-
-  socket.on(SAVE_RECORD, ({ recordId, roomId, userId }) => {
-    io.in(roomId).emit(SAVE_RECORD, { recordId, userId })
-  })
-
-  socket.on(CREATE_RECORD, ({ }) => {
-
-  })
+  socket.on(CHANGE_RECORD, ({ recordId, roomId, userId }) => {
+    io.in(roomId).emit(CHANGE_RECORD, { recordId, userId });
+  });
 
   socket.on(DELETE_RECORD, ({ recordId, roomId }) => {
+    io.in(roomId).emit(DELETE_RECORD, { recordId });
+  });
 
-  })
+  socket.on(SAVE_RECORD, ({ recordId, roomId, userId }) => {
+    io.in(roomId).emit(SAVE_RECORD, { recordId, userId });
+  });
+
+  socket.on(CREATE_RECORD, ({ recordId, roomId }) => {
+    io.in(roomId).emit(CREATE_RECORD, { recordId });
+  });
 });
 
-server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+server.listen(PORT, () =>
+  console.log(`Server running on http://localhost:${PORT}`)
+);

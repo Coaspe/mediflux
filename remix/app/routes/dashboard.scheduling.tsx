@@ -1,18 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_Row,
   type MRT_ColumnDef,
   type MRT_TableOptions,
-} from 'material-react-table';
-import {
-  Box,
-  Button,
-  IconButton, Tooltip
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+} from "material-react-table";
+import { Box, Button, IconButton, Tooltip } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import {
   QueryClient,
@@ -20,56 +16,69 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 
-import { MRT_Localization_KO } from 'material-react-table/locales/ko'
+import { MRT_Localization_KO } from "material-react-table/locales/ko";
 
-import { Socket, io } from 'socket.io-client';
-import { CHANGED_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED } from '../../../shared-constants/index'
-import { User } from '~/type';
-import { ROLE } from '~/constant';
+import { Socket, io } from "socket.io-client";
+import {
+  CHANGE_RECORD,
+  CONNECT,
+  CONNECTED_USERS,
+  CREATE_RECORD,
+  DELETE_RECORD,
+  JOIN_ROOM,
+  ROOM_ID,
+  SAVE_RECORD,
+  USER_JOINED,
+} from "../../../shared-constants/index";
+import { User } from "~/type";
+import { ROLE } from "~/constant";
 
 type PRecord = {
   id: string;
   patient: string;
   attendingDoctor?: string;
   date: number;
-}
+  isLocked: boolean;
+};
 
 let mock: PRecord[] = [
   {
-    id: '1',
+    id: "1",
     patient: "나나미",
     attendingDoctor: "이우람",
-    date: 0
+    date: 0,
   } as PRecord,
   {
-    id: '2',
+    id: "2",
     patient: "나나미",
     attendingDoctor: "이우람",
-    date: 0
+    date: 0,
   } as PRecord,
   {
-    id: '3',
+    id: "3",
     patient: "나나미",
     attendingDoctor: "이우람",
-    date: 0
+    date: 0,
   } as PRecord,
   {
-    id: '4',
+    id: "4",
     patient: "나나미",
     attendingDoctor: "이우람",
-    date: 0
+    date: 0,
   } as PRecord,
   {
-    id: '5',
+    id: "5",
     patient: "나나미",
     attendingDoctor: "이우람",
-    date: 0
+    date: 0,
   } as PRecord,
-]
+];
 
-function Table() {
+type NullableSocket = Socket | null;
+
+function Table({ user, socket }: { user: User; socket: NullableSocket }) {
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
@@ -87,40 +96,56 @@ function Table() {
   const { mutateAsync: deletePRecord, isPending: isDeletingPRecord } =
     useDeletePRecord();
   const openDeleteConfirmModal = (row: MRT_Row<PRecord>) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
+    if (window.confirm("Are you sure you want to delete this record?")) {
       deletePRecord(row.original.id);
+      emitDeleteRecord(row.id);
     }
   };
 
-  const handleSavePRecord: MRT_TableOptions<PRecord>['onEditingRowSave'] = async ({
-    values,
-    table,
-  }) => {
-    setValidationErrors({})
-    await updatePRecord(values)
-    table.setEditingRow(null); //exit editing mode
+  const handleSavePRecord: MRT_TableOptions<PRecord>["onEditingRowSave"] =
+    async ({ row, values, table }) => {
+      setValidationErrors({});
+      await updatePRecord(values);
+      table.setEditingRow(null); //exit editing mode
+      emitSaveRecord(row.id);
+    };
+
+  const handleCreatePRecord: MRT_TableOptions<PRecord>["onCreatingRowSave"] =
+    async ({ row, values, table }) => {
+      setValidationErrors({});
+      await createPRecord(values);
+      table.setCreatingRow(null); //exit creating mode
+      emitCreateRecord(row.id);
+    };
+
+  // Lock record specified by recordId
+  const emitChangeRecord = (recordId: String) => {
+    socket?.emit(CHANGE_RECORD, { recordId, userId: user.id });
   };
 
-  const handleCreatePRecord: MRT_TableOptions<PRecord>['onCreatingRowSave'] = async ({
-    values,
-    table,
-  }) => {
-    setValidationErrors({})
-    await createPRecord(values)
-    table.setCreatingRow(null); //exit creating mode
-  }
+  const emitDeleteRecord = (recordId: String) => {
+    // Needs confirmation step
+    socket?.emit(DELETE_RECORD, { recordId, userId: user.id });
+  };
 
+  const emitSaveRecord = (recordId: String) => {
+    socket?.emit(SAVE_RECORD, { recordId, userId: user.id });
+  };
+
+  const emitCreateRecord = (recordId: String) => {
+    socket?.emit(CREATE_RECORD, { recordId, userId: user.id });
+  };
   const columns = useMemo<MRT_ColumnDef<PRecord>[]>(
     () => [
       {
-        accessorKey: 'id',
-        header: 'Id',
+        accessorKey: "id",
+        header: "Id",
         enableEditing: false,
         size: 80,
       },
       {
-        accessorKey: 'patient',
-        header: 'Patient',
+        accessorKey: "patient",
+        header: "Patient",
         muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.firstName,
@@ -135,8 +160,8 @@ function Table() {
         },
       },
       {
-        accessorKey: 'attendingDoctor',
-        header: 'Doctor',
+        accessorKey: "attendingDoctor",
+        header: "Doctor",
         muiEditTextFieldProps: {
           required: true,
           error: !!validationErrors?.lastName,
@@ -153,7 +178,7 @@ function Table() {
         // accessorFn: (row) => row.date, //convert to Date for sorting and filtering
         // id: 'date',
         accessorKey: "date",
-        header: 'Date',
+        header: "Date",
         // filterVariant: 'date',
         // filterFn: 'lessThan',
         // sortingFn: 'datetime',
@@ -162,31 +187,31 @@ function Table() {
         // Header: ({ column }) => <em>{column.columnDef.header}</em>, //custom header markup
         muiFilterTextFieldProps: {
           sx: {
-            minWidth: '250px',
+            minWidth: "250px",
           },
         },
       },
     ],
-    [validationErrors],
+    [validationErrors]
   );
 
   const table = useMaterialReactTable({
     columns,
     data: fetchedPRecords,
     localization: MRT_Localization_KO,
-    createDisplayMode: 'row', // ('modal', and 'custom' are also available)
-    editDisplayMode: 'row', // ('modal', 'cell', 'table', and 'custom' are also available)
+    createDisplayMode: "row", // ('modal', and 'custom' are also available)
+    editDisplayMode: "row", // ('modal', 'cell', 'table', and 'custom' are also available)
     enableEditing: true,
-    getRowId: (row) => String(row.id),
+    getRowId: (row) => row.id,
     muiToolbarAlertBannerProps: isLoadingPRecordsError
       ? {
-        color: 'error',
-        children: 'Error loading data',
-      }
+          color: "error",
+          children: "Error loading data",
+        }
       : undefined,
     muiTableContainerProps: {
       sx: {
-        minHeight: '500px',
+        minHeight: "500px",
       },
     },
     onCreatingRowCancel: () => setValidationErrors({}),
@@ -194,9 +219,14 @@ function Table() {
     onEditingRowCancel: () => setValidationErrors({}),
     onEditingRowSave: handleSavePRecord,
     renderRowActions: ({ row, table }) => (
-      <Box sx={{ display: 'flex', gap: '1rem' }}>
+      <Box sx={{ display: "flex", gap: "1rem" }}>
         <Tooltip title="Edit">
-          <IconButton onClick={() => table.setEditingRow(row)}>
+          <IconButton
+            onClick={() => {
+              table.setEditingRow(row);
+              emitChangeRecord(row.id);
+            }}
+          >
             <EditIcon />
           </IconButton>
         </Tooltip>
@@ -210,7 +240,7 @@ function Table() {
     renderTopToolbarCustomActions: ({ table }) => (
       <Button
         variant="contained"
-        className='bg-button'
+        className="bg-button"
         onClick={() => {
           table.setCreatingRow(true); //simplest way to open the create row modal with no default values
           //or you can pass in a row object to set default values with the `createRow` helper function
@@ -232,8 +262,6 @@ function Table() {
     },
   });
 
-
-
   return <MaterialReactTable table={table} />;
 }
 
@@ -247,10 +275,10 @@ function useUpdatePRecord() {
     },
     //client side optimistic update
     onMutate: (newPRecord: PRecord) => {
-      queryClient.setQueryData(['precords'], (prevs: any) =>
+      queryClient.setQueryData(["precords"], (prevs: any) =>
         prevs?.map((prevPRecord: PRecord) =>
-          prevPRecord.id === newPRecord.id ? newPRecord : prevPRecord,
-        ),
+          prevPRecord.id === newPRecord.id ? newPRecord : prevPRecord
+        )
       );
     },
     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
@@ -267,8 +295,8 @@ function useDeletePRecord() {
     },
     //client side optimistic update
     onMutate: (id: string) => {
-      queryClient.setQueryData(['precords'], (prevPRecords: any) =>
-        prevPRecords?.filter((precord: PRecord) => precord.id !== id),
+      queryClient.setQueryData(["precords"], (prevPRecords: any) =>
+        prevPRecords?.filter((precord: PRecord) => precord.id !== id)
       );
     },
     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
@@ -277,7 +305,7 @@ function useDeletePRecord() {
 
 function useGetPRecords() {
   return useQuery<PRecord[]>({
-    queryKey: ['precords'],
+    queryKey: ["precords"],
     queryFn: async () => {
       //send api request here
       // await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
@@ -296,23 +324,20 @@ function useCreatePRecord() {
     mutationFn: async (precord: PRecord) => {
       //send api update request here
       // await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      mock.push(precord)
+      mock.push(precord);
       return Promise.resolve();
     },
     //client side optimistic update
     onMutate: (newPRecordInfo: PRecord) => {
-      queryClient.setQueryData(
-        ['precords'],
-        (prevPRecords: any) => {
-          return [
-            ...prevPRecords,
-            {
-              ...newPRecordInfo,
-              id: 123,
-            },
-          ] as PRecord[]
-        }
-      );
+      queryClient.setQueryData(["precords"], (prevPRecords: any) => {
+        return [
+          ...prevPRecords,
+          {
+            ...newPRecordInfo,
+            id: 123,
+          },
+        ] as PRecord[];
+      });
     },
     // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
   });
@@ -325,59 +350,44 @@ export default function Scheduling() {
   const [clients, setClients] = useState<String[]>([]);
   const [user, setUser] = useState<User>({
     id: 1,
-    name: '이우람',
-    image: '',
-    role: ROLE.DOCTOR
-  })
+    name: "이우람",
+    image: "",
+    role: ROLE.DOCTOR,
+  });
 
   const handleConnectedUsers = (users: String[]) => {
     console.log(`Updated list of connected users: ${users}`);
     setClients(users);
   };
 
-  // Lock record specified by recordId
-  const handleChangeRecord = (recordId: number) => {
-    socket?.emit(CHANGED_RECORD, { recordId, userId: user.id })
-  }
-
-  const handleDeleteRecord = (recordId: number) => {
-    // Needs confirmation step
-    socket?.emit(DELETE_RECORD, { recordId, userId: user.id })
-  }
-
-  const handleSaveRecord = (recordId: number) => {
-    socket?.emit(SAVE_RECORD, { recordId, userId: user.id })
-  }
-
-  const handleCreateRecord = (recordId: number) => {
-    socket?.emit(CREATE_RECORD, { recordId, userId: user.id })
-  }
-
   useEffect(() => {
-    const socketInstance = io("http://localhost:5001")
-    setSocket(socketInstance)
+    const socketInstance = io("http://localhost:5001");
+    setSocket(socketInstance);
 
     // Default
     socketInstance.on(CONNECT, () => {
-      console.log("Socket connected, joining room with ID:", 100);
-      socketInstance.emit(JOIN_ROOM, { roomId: 100, userId: user.id, username: user.name })
-    })
+      console.log("Socket connected, joining room with ID:", ROOM_ID);
+      socketInstance.emit(JOIN_ROOM, {
+        roomId: ROOM_ID,
+        userId: user.id,
+        username: user.name,
+      });
+    });
 
     // Other user joined
     socketInstance.on(USER_JOINED, (username) => {
-      if (typeof socket === 'undefined') return;
-      setClients(prev => [...prev, username]);
-      socketInstance.emit(CONNECTED_USERS, clients);        //Emit User Array 
+      if (typeof socket === "undefined") return;
+      setClients((prev) => [...prev, username]);
+      socketInstance.emit(CONNECTED_USERS, clients); //Emit User Array
     });
 
     // Set connected users
     socketInstance.on(CONNECTED_USERS, handleConnectedUsers);
-
-  }, [])
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Table />
+      <Table user={user} socket={socket} />
     </QueryClientProvider>
-  )
+  );
 }
