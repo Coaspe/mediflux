@@ -1,11 +1,12 @@
 export const JOIN_ROOM = "join-room";
 export const CONNECTED_USERS = "connected-users";
-export const CHANGE_RECORD = "change-record";
+export const LOCK_RECORD = "lock-record";
 export const SAVE_RECORD = "save-record";
 export const DELETE_RECORD = "delete-record";
 export const CONNECTION = "connection";
 export const USER_JOINED = "user-join";
 export const CREATE_RECORD = "create-record";
 export const CONNECT = "connect";
-export const IS_RECORD_LOCKED = "is_record_locked";
-export const ROOM_ID = 100;
+export const ROOM_ID = '100';
+export const CANCEL_EDITING = 'cancel-editing'
+export const UNLOCK_RECORD = 'unlock-record'

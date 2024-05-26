@@ -20,10 +20,10 @@ export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>()
 
   return (
-    <div className="flex-col">
+    <div className="flex-col pr-5">
       <DashboardHeader selectedMenu={clickedMenu} />
       <div className="flex">
-        <Sidebar className="font-work">
+        <Sidebar className="font-work pr-5">
           <Menu>
             <SubMenu
               icon={
@@ -51,9 +51,7 @@ export default function Dashboard() {
             </MenuItem>
           </Menu>
         </Sidebar>
-        <div className="pl-5 w-full max-w-5xl ">
-          <Outlet />
-        </div>
+        <Outlet />
       </div>
     </div>
   );

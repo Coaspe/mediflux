@@ -5,7 +5,7 @@ import DropdownMenu from "./dropdown";
 import { useState } from "react";
 
 const mockUser: User = {
-    id: 123,
+    id: '123',
     name: "이우람",
     image: "",
     role: ROLE.DOCTOR,
@@ -32,7 +32,7 @@ function DashboardUser({ user }: { user: User }) {
                     {user.name}
                 </span>
                 <span className="text-xs text-gray-500">
-                    {getRoleName(user.role)}
+                    {getRoleName(ROLE.DOCTOR)}
                 </span>
             </div>
         </div>
