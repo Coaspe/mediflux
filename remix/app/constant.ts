@@ -31,7 +31,7 @@ export const mock: PRecord[] = [
         doctor: "이우람",
         checkInTime: 1716729790,
         chartNum: '131242',
-        opReadiness: false,
+        opReadiness: true,
         treatment1: '리쥬란',
         quantityTreat1: 2,
         treatmentRoom: 3,
@@ -69,3 +69,5 @@ export const mock: PRecord[] = [
         checkInTime: 1716729790,
     } as PRecord,
 ];
+
+const DOCTORS = []

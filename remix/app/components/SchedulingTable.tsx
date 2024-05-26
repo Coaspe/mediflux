@@ -6,7 +6,7 @@ import {
     type MRT_ColumnDef,
     type MRT_TableOptions,
 } from "material-react-table";
-import { Button } from "@mui/material";
+import { Button, Chip } from "@mui/material";
 
 import {
     useMutation,
@@ -196,7 +196,9 @@ const SchedulingTable = () => {
         socket?.emit(UNLOCK_RECORD, { recordId, roomId: ROOM_ID, });
         record.LockingUser = null
     };
-
+    const nameCellRenderer = (name?: string) => {
+        return name ? <Chip size="small" label={name} /> : ""
+    }
     const columns = useMemo<MRT_ColumnDef<PRecord>[]>(
         () => [
             {
@@ -216,6 +218,7 @@ const SchedulingTable = () => {
 
                     return `${hours}:${minutes}`;
                 },
+
                 // Cell: ({ cell }) => cell.getValue<Date>()?.toLocaleDateString(), //render Date as a string
                 // Header: ({ column }) => <em>{column.columnDef.header}</em>, //custom header markup
             },
@@ -246,8 +249,8 @@ const SchedulingTable = () => {
                 header: '준비',
                 size: 110, //medium column
                 Cell: ({ cell }) => {
-                    const val = cell.getValue()
-                    return val ? "True" : "False"
+                    return cell.getValue() ? <Chip size="small" label='Y' color="success" />
+                        : <Chip size="small" label='N' color="error" />
                 }
             },
             {
@@ -279,6 +282,7 @@ const SchedulingTable = () => {
                             lastName: undefined,
                         }),
                 },
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString())
             },
             {
                 accessorKey: 'anesthesiaNote',
@@ -287,31 +291,38 @@ const SchedulingTable = () => {
             {
                 accessorKey: 'skincareSpecialist1',
                 header: '피부1',
+
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
                 size: 120, //medium column
             },
             {
                 accessorKey: 'skincareSpecialist2',
                 header: '피부2',
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'nursingStaff1',
                 header: '간호1',
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'nursingStaff2',
                 header: '간호2',
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'coordinator',
                 header: '코디',
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
                 size: 110,
             },
             {
                 accessorKey: 'consultant',
                 header: '상담',
+                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
                 size: 110,
             },
             {
