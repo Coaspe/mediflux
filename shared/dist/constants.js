@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SHURINK = exports.UNLOCK_RECORD = exports.CANCEL_EDITING = exports.ROOM_ID = exports.CONNECT = exports.CREATE_RECORD = exports.USER_JOINED = exports.CONNECTION = exports.DELETE_RECORD = exports.SAVE_RECORD = exports.LOCK_RECORD = exports.CONNECTED_USERS = exports.JOIN_ROOM = void 0;
+exports.JOIN_ROOM = "join-room";
+exports.CONNECTED_USERS = "connected-users";
+exports.LOCK_RECORD = "lock-record";
+exports.SAVE_RECORD = "save-record";
+exports.DELETE_RECORD = "delete-record";
+exports.CONNECTION = "connection";
+exports.USER_JOINED = "user-join";
+exports.CREATE_RECORD = "create-record";
+exports.CONNECT = "connect";
+exports.ROOM_ID = '100';
+exports.CANCEL_EDITING = 'cancel-editing';
+exports.UNLOCK_RECORD = 'unlock-record';
+exports.SHURINK = '슈링크';

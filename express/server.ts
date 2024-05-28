@@ -12,14 +12,12 @@ import {
   USER_JOINED,
   UNLOCK_RECORD,
   ROOM_ID,
-} from "./contants";
+} from "shared";
+
 
 const app: Express = express();
-
 const PORT = 5004;
-
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -54,23 +52,23 @@ io.on(CONNECTION, (socket) => {
     }
   );
 
-  socket.on(LOCK_RECORD, ({ recordId, locker, isLocked }) => {
+  socket.on(LOCK_RECORD, ({ recordId, locker, isLocked }: { recordId: string, locker: string, isLocked: string }) => {
     socket.broadcast.to(ROOM_ID).emit(LOCK_RECORD, { recordId, locker, isLocked })
   });
 
-  socket.on(DELETE_RECORD, ({ recordId }) => {
+  socket.on(DELETE_RECORD, ({ recordId }: { recordId: string }) => {
     socket.broadcast.to(ROOM_ID).emit(DELETE_RECORD, { recordId })
   });
 
-  socket.on(SAVE_RECORD, ({ recordId, record }) => {
+  socket.on(SAVE_RECORD, ({ recordId, record }: { recordId: string, record: string }) => {
     socket.broadcast.to(ROOM_ID).emit(SAVE_RECORD, { recordId, record })
   });
 
-  socket.on(UNLOCK_RECORD, ({ recordId }) => {
+  socket.on(UNLOCK_RECORD, ({ recordId }: { recordId: string }) => {
     socket.broadcast.to(ROOM_ID).emit(UNLOCK_RECORD, { recordId })
   });
 
-  socket.on(CREATE_RECORD, ({ record }) => {
+  socket.on(CREATE_RECORD, ({ record }: { record: string }) => {
     let precord = JSON.parse(record)
     precord['id'] = id.toString()
     id += 1

@@ -18,6 +18,14 @@ import { MRT_Localization_KO } from "material-react-table/locales/ko";
 
 import { Socket, io } from "socket.io-client";
 import {
+    mock,
+    ROLE,
+    FIELDS_DOCTOR,
+    FIELDS_NURSE,
+    FIELDS_PAITENT,
+} from "../constant";
+
+import {
     LOCK_RECORD,
     CONNECT,
     CONNECTED_USERS,
@@ -28,9 +36,8 @@ import {
     SAVE_RECORD,
     USER_JOINED,
     UNLOCK_RECORD,
-    mock,
-    ROLE,
-} from "../constant";
+} from 'shared'
+
 import { PRecord, User } from "~/type";
 import SchedulingTableRow from "~/components/scheduling_table_row";
 
@@ -196,8 +203,19 @@ const SchedulingTable = () => {
         socket?.emit(UNLOCK_RECORD, { recordId, roomId: ROOM_ID, });
         record.LockingUser = null
     };
-    const nameCellRenderer = (name?: string) => {
-        return name ? <Chip size="small" label={name} /> : ""
+    type ChipColor = "error" | "primary" | "secondary" | "warning" | "default" | "success" | "info"
+    const nameCellRenderer = (fieldname: string, name?: string) => {
+        let color: ChipColor
+        if (FIELDS_DOCTOR.includes(fieldname)) {
+            color = 'primary'
+        } else if (FIELDS_NURSE.includes(fieldname)) {
+            color = 'secondary'
+        } else if (FIELDS_PAITENT.includes(fieldname)) {
+            color = 'default'
+        } else {
+            color = 'warning'
+        }
+        return name ? <Chip size="small" color={color} label={name} /> : ""
     }
     const columns = useMemo<MRT_ColumnDef<PRecord>[]>(
         () => [
@@ -219,7 +237,7 @@ const SchedulingTable = () => {
                     return `${hours}:${minutes}`;
                 },
 
-                // Cell: ({ cell }) => cell.getValue<Date>()?.toLocaleDateString(), //render Date as a string
+                // Cell: ({ cell, column }) => cell.getValue<Date>()?.toLocaleDateString(), //render Date as a string
                 // Header: ({ column }) => <em>{column.columnDef.header}</em>, //custom header markup
             },
             {
@@ -282,7 +300,7 @@ const SchedulingTable = () => {
                             lastName: undefined,
                         }),
                 },
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString())
+                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString())
             },
             {
                 accessorKey: 'anesthesiaNote',
@@ -292,37 +310,38 @@ const SchedulingTable = () => {
                 accessorKey: 'skincareSpecialist1',
                 header: '피부1',
 
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120, //medium column
             },
             {
                 accessorKey: 'skincareSpecialist2',
                 header: '피부2',
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'nursingStaff1',
                 header: '간호1',
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'nursingStaff2',
                 header: '간호2',
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'coordinator',
                 header: '코디',
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
                 size: 110,
             },
             {
                 accessorKey: 'consultant',
                 header: '상담',
-                Cell: ({ cell }) => nameCellRenderer(cell.getValue()?.toString()),
+                Cell: ({ cell, column }) =>
+                    nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
                 size: 110,
             },
             {
