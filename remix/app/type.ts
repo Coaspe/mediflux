@@ -37,3 +37,5 @@ export type PRecord = {
     commentCaution?: string;  // VARCHAR (300), optional
     LockingUser?: User | null;
 };
+
+export type ChipColor = "error" | "primary" | "secondary" | "warning" | "default" | "success" | "info"

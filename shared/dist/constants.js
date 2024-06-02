@@ -1,16 +1,48 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SHURINK = exports.UNLOCK_RECORD = exports.CANCEL_EDITING = exports.ROOM_ID = exports.CONNECT = exports.CREATE_RECORD = exports.USER_JOINED = exports.CONNECTION = exports.DELETE_RECORD = exports.SAVE_RECORD = exports.LOCK_RECORD = exports.CONNECTED_USERS = exports.JOIN_ROOM = void 0;
-exports.JOIN_ROOM = "join-room";
-exports.CONNECTED_USERS = "connected-users";
-exports.LOCK_RECORD = "lock-record";
-exports.SAVE_RECORD = "save-record";
-exports.DELETE_RECORD = "delete-record";
-exports.CONNECTION = "connection";
-exports.USER_JOINED = "user-join";
-exports.CREATE_RECORD = "create-record";
-exports.CONNECT = "connect";
-exports.ROOM_ID = '100';
-exports.CANCEL_EDITING = 'cancel-editing';
-exports.UNLOCK_RECORD = 'unlock-record';
-exports.SHURINK = '슈링크';
+// Socket event
+export const JOIN_ROOM = "join-room";
+export const CONNECTED_USERS = "connected-users";
+export const LOCK_RECORD = "lock-record";
+export const SAVE_RECORD = "save-record";
+export const DELETE_RECORD = "delete-record";
+export const CONNECTION = "connection";
+export const USER_JOINED = "user-join";
+export const CREATE_RECORD = "create-record";
+export const CONNECT = "connect";
+export const ROOM_ID = '100';
+export const CANCEL_EDITING = 'cancel-editing';
+export const UNLOCK_RECORD = 'unlock-record';
+export const PORT = 5000;
+// Treatment
+export const SHURINK = '슈링크';
+export const INMODE = '인모드';
+export const OLIGIO = '올리지오';
+export const ULTHERA = '울쎄라';
+export const THERMAGE = '써마지';
+export const LDM = 'LDM';
+export const LIFTING = '리프팅';
+export const LASER_TONING = '색소 레이저';
+export const TATTOO_LASER = '문신제거';
+export const DOT_LASER = '점 제거';
+export const TREATMENT_CATEGORY = [
+    SHURINK,
+    INMODE,
+    OLIGIO,
+    ULTHERA,
+    THERMAGE,
+    LDM,
+    LIFTING,
+    LASER_TONING,
+    TATTOO_LASER,
+    DOT_LASER,
+];
+export const SHURINK_TREATMENT = [
+    '슈링크 유니버스 울트라 MP모드 300샷',
+    '슈링크 유니버스 울트라 MP모드 100샷',
+    '슈링크 유니버스 부스터 300샷 + 전용 앰플',
+    '슈링크 유니버스 부스터 600샷 + 전용 앰플',
+    '슈링크 유니버스 울트라 MP 모드 300샷 + 부트서 300샷 + 전용 앰플',
+    '아이 슈링크 100샷',
+    '더마 슈링크 100샷 (이마, 목주름)',
+    '인모드 FX 1부위',
+    '인모드 FORMA 1부위',
+];

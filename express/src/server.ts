@@ -12,11 +12,11 @@ import {
   USER_JOINED,
   UNLOCK_RECORD,
   ROOM_ID,
+  PORT
 } from "shared";
 
 
 const app: Express = express();
-const PORT = 5004;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {

@@ -4,6 +4,7 @@ import { Box, IconButton, Tooltip } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { MRT_Row, MRT_TableInstance } from "material-react-table";
+import { nameChipRendererByRole } from "./SchedulingTable";
 
 interface Props {
     row: MRT_Row<PRecord>,
@@ -14,10 +15,10 @@ interface Props {
 }
 
 const SchedulingTableRow: FC<Props> = ({ user, table, row, emitChangeRecord, openDeleteConfirmModal }) => {
-    return <Box sx={{ display: "flex", gap: "1rem" }}>
-        {row.original.LockingUser && row.original.LockingUser.id != user.id && (<div className="z-50 absolute t-0 l-0">
-            {row.original.LockingUser.name}가 수정중
-        </div>)}
+    return (row.original.LockingUser && row.original.LockingUser.id != user.id ? (
+        <Box sx={{ display: "flex", justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
+            {nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)}
+        </Box>) : <Box sx={{ display: "flex", gap: "1rem" }}>
         <Tooltip title="수정">
             <IconButton
                 onClick={() => {
@@ -36,7 +37,7 @@ const SchedulingTableRow: FC<Props> = ({ user, table, row, emitChangeRecord, ope
                 <DeleteIcon />
             </IconButton>
         </Tooltip>
-    </Box>
+    </Box>)
 }
 
 export default SchedulingTableRow

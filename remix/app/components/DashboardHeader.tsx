@@ -1,7 +1,7 @@
 import { ROLE } from "~/constant";
 import { SideMenu, User } from "~/type";
 import { getMenuName, getRoleName } from "~/utils/utils";
-import DropdownMenu from "./dropdown";
+import DropdownMenu from "./Dropdown";
 import { useState } from "react";
 
 const mockUser: User = {

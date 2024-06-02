@@ -3,8 +3,8 @@ import { SIDE_MENU } from "~/constant";
 import { useState } from "react";
 import { Menu, MenuItem, Sidebar, SubMenu } from "react-pro-sidebar";
 import { SideMenu } from "~/type";
-import DashboardHeader from "~/components/dashboard_header";
-import Icon, { ICONS } from "~/components/icons";
+import DashboardHeader from "~/components/DashboardHeader";
+import Icon, { ICONS } from "~/components/Icons";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void, to: string, name: string, clickedMenu: SideMenu | undefined }) {
   return (

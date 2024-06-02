@@ -7,6 +7,7 @@ import {
 
 import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
+import { StyledEngineProvider } from "@mui/material/styles";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -52,9 +53,11 @@ export default function App() {
         <Links />
       </head>
       <body className="">
-        <Outlet />
-        <ScrollRestoration />
-        <Scripts />
+        <StyledEngineProvider injectFirst>
+          <Outlet />
+          <ScrollRestoration />
+          <Scripts />
+        </StyledEngineProvider>
       </body>
     </html>
   );

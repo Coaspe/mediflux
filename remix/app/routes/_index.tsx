@@ -1,9 +1,9 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { LoginButton } from "~/components/landing";
+import { LoginButton } from "~/components/Landing";
 import { useState } from "react";
 import { Form, Link, useActionData } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
-import Icon, { ICONS } from "~/components/icons";
+import Icon, { ICONS } from "~/components/Icons";
 
 function validateUsername(username: string) {
   if (username.length < 3) {

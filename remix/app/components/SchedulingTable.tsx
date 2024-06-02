@@ -6,23 +6,22 @@ import {
     type MRT_ColumnDef,
     type MRT_TableOptions,
 } from "material-react-table";
-import { Button, Chip } from "@mui/material";
+import { Autocomplete, Button, Chip, MenuItem, Select, TextField } from "@mui/material";
 
 import {
     useMutation,
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
-
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
 
 import { Socket, io } from "socket.io-client";
 import {
-    mock,
-    ROLE,
     FIELDS_DOCTOR,
     FIELDS_NURSE,
     FIELDS_PAITENT,
+    mock,
+    ROLE,
 } from "../constant";
 
 import {
@@ -36,15 +35,43 @@ import {
     SAVE_RECORD,
     USER_JOINED,
     UNLOCK_RECORD,
+    SHURINK_TREATMENT,
+    PORT
 } from 'shared'
 
-import { PRecord, User } from "~/type";
-import SchedulingTableRow from "~/components/scheduling_table_row";
+import { ChipColor, PRecord, Role, User } from "~/type";
+import SchedulingTableRow from "~/components/SchedulingTableRow";
 
+export const nameChipRendererByFieldname = (fieldname: string, name?: string) => {
+    let color: ChipColor = 'warning'
+    if (FIELDS_DOCTOR.includes(fieldname)) {
+        color = 'primary'
+    } else if (FIELDS_NURSE.includes(fieldname)) {
+        color = 'secondary'
+    } else if (FIELDS_PAITENT.includes(fieldname)) {
+        color = 'default'
+    }
+    return name ? <Chip size="small" color={color} label={name} /> : <></>
+}
+export const nameChipRendererByRole = (role: Role, name?: string) => {
+    let color: ChipColor
+    switch (role) {
+        case ROLE.DOCTOR:
+            color = 'primary'
+            break;
+        case ROLE.NURSE:
+            color = 'secondary'
+        case ROLE.STAFF:
+            color = 'default'
+        default:
+            color = 'warning'
+            break;
+    }
+    return name ? <Chip size="small" color={color} label={name} /> : <></>
+}
 const SchedulingTable = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [clients, setClients] = useState<String[]>([]);
-    const PORT = 5004;
     const handleConnectedUsers = (users: String[]) => {
         console.log(`Updated list of connected users: ${users}`);
         setClients(users);
@@ -164,11 +191,14 @@ const SchedulingTable = () => {
     }
 
     const handleSavePRecord: MRT_TableOptions<PRecord>["onEditingRowSave"] =
-        async ({ row, values, table }) => {
+        async ({ row, table }) => {
             setValidationErrors({});
-            await updatePRecordWithDB(values);
+            await updatePRecordWithDB(row.original);
             table.setEditingRow(null); //exit editing mode
-            emitSaveRecord(row.id, values);
+            emitSaveRecord(row.id, row.original);
+            if (row.original.LockingUser?.id === user.id) {
+                emitUnLockRecord(row.id, row.original)
+            }
         };
 
     const handleCreatePRecord: MRT_TableOptions<PRecord>["onCreatingRowSave"] =
@@ -203,20 +233,6 @@ const SchedulingTable = () => {
         socket?.emit(UNLOCK_RECORD, { recordId, roomId: ROOM_ID, });
         record.LockingUser = null
     };
-    type ChipColor = "error" | "primary" | "secondary" | "warning" | "default" | "success" | "info"
-    const nameCellRenderer = (fieldname: string, name?: string) => {
-        let color: ChipColor
-        if (FIELDS_DOCTOR.includes(fieldname)) {
-            color = 'primary'
-        } else if (FIELDS_NURSE.includes(fieldname)) {
-            color = 'secondary'
-        } else if (FIELDS_PAITENT.includes(fieldname)) {
-            color = 'default'
-        } else {
-            color = 'warning'
-        }
-        return name ? <Chip size="small" color={color} label={name} /> : ""
-    }
     const columns = useMemo<MRT_ColumnDef<PRecord>[]>(
         () => [
             {
@@ -253,27 +269,42 @@ const SchedulingTable = () => {
                     required: true,
                     error: !!validationErrors?.firstName,
                     helperText: validationErrors?.firstName,
-                    //remove any previous validation errors when prcord focuses on the input
+                    // remove any previous validation errors when prcord focuses on the input
                     onFocus: () =>
                         setValidationErrors({
                             ...validationErrors,
                             firstName: undefined,
                         }),
-                    //optionally add validation checking for onBlur or onChange
+                    // optionally add validation checking for onBlur or onChange
                 },
             },
             {
                 accessorKey: 'opReadiness',
                 header: '준비',
-                size: 110, //medium column
+                size: 110, // medium column
                 Cell: ({ cell }) => {
-                    return cell.getValue() ? <Chip size="small" label='Y' color="success" />
+                    console.log(cell.getValue());
+
+                    return cell.getValue<boolean>() ? <Chip size="small" label='Y' color="success" />
                         : <Chip size="small" label='N' color="error" />
-                }
+                },
+                Edit: ({ cell, row }) => (
+                    <Select onChange={(event) => {
+
+                        // row.original.opReadiness = event.target.value as boolean
+                    }} defaultValue={cell.getValue()} variant="standard">
+                        <MenuItem value={true as any}>완료</MenuItem>
+                        <MenuItem value={false as any}>미완료</MenuItem>
+                    </Select>)
+
             },
             {
                 accessorKey: 'treatment1',
                 header: '시술',
+                Edit: () =>
+                    <Autocomplete
+                        options={SHURINK_TREATMENT}
+                        renderInput={(params) => <TextField {...params} label="" variant="standard" />} />
             },
             {
                 accessorKey: 'quantityTreat1',
@@ -300,7 +331,7 @@ const SchedulingTable = () => {
                             lastName: undefined,
                         }),
                 },
-                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString())
+                Cell: ({ cell, column }) => nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString())
             },
             {
                 accessorKey: 'anesthesiaNote',
@@ -310,38 +341,38 @@ const SchedulingTable = () => {
                 accessorKey: 'skincareSpecialist1',
                 header: '피부1',
 
-                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120, //medium column
             },
             {
                 accessorKey: 'skincareSpecialist2',
                 header: '피부2',
-                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'nursingStaff1',
                 header: '간호1',
-                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'nursingStaff2',
                 header: '간호2',
-                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString()),
                 size: 120,
             },
             {
                 accessorKey: 'coordinator',
                 header: '코디',
-                Cell: ({ cell, column }) => nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
+                Cell: ({ cell, column }) => nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString()),
                 size: 110,
             },
             {
                 accessorKey: 'consultant',
                 header: '상담',
                 Cell: ({ cell, column }) =>
-                    nameCellRenderer(column.columnDef.header, cell.getValue()?.toString()),
+                    nameChipRendererByFieldname(column.columnDef.header, cell.getValue()?.toString()),
                 size: 110,
             },
             {
@@ -384,9 +415,7 @@ const SchedulingTable = () => {
         }),
         onCreatingRowCancel: () => setValidationErrors({}),
         onCreatingRowSave: handleCreatePRecord,
-        onEditingRowCancel: ({ row }) => {
-            handleEditingCancel(row)
-        },
+        onEditingRowCancel: ({ row }) => handleEditingCancel(row),
         onEditingRowSave: handleSavePRecord,
         renderRowActions: ({ row, table }) => (
             <SchedulingTableRow user={user} row={row} table={table} emitChangeRecord={emitChangeRecord} openDeleteConfirmModal={openDeleteConfirmModal} />
@@ -427,8 +456,10 @@ function useUpdatePRecord() {
         },
         onMutate: (newPRecord: PRecord) => {
             queryClient.setQueryData(["precords"], (prevs: any) =>
-                prevs?.map((prevPRecord: PRecord) =>
-                    prevPRecord.id === newPRecord.id ? newPRecord : prevPRecord
+                prevs?.map((prevPRecord: PRecord) => {
+                    console.log(newPRecord, prevPRecord);
+                    return prevPRecord.id === newPRecord.id ? newPRecord : prevPRecord
+                }
                 )
             );
         },
