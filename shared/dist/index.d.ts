@@ -22,7 +22,7 @@ declare module 'shared' {
     export const LASER_TONING: string;
     export const TATTOO_LASER: string;
     export const DOT_LASER: string;
-    export const SHURINK_TREATMENT: string[];
+    export const TREATEMENTS: { id: string, group: TreatmentCategory, title: string }[];
     export const PORT: number
     //     export type Treatment = {
     //         name: string;
@@ -31,15 +31,15 @@ declare module 'shared' {
     //         // materialCategory: MaterialCategory;
     //     };
 
-    //     export type TreatmentCategory =
-    //         | typeof SHURINK
-    //         | typeof INMODE
-    //         | typeof OLIGIO
-    //         | typeof ULTHERA
-    //         | typeof THERMAGE
-    //         | typeof LDM
-    //         | typeof LIFTING
-    //         | typeof LASER_TONING
-    //         | typeof TATTOO_LASER
-    //         | typeof DOT_LASER;
+    export type TreatmentCategory =
+        | typeof SHURINK
+        | typeof INMODE
+        | typeof OLIGIO
+        | typeof ULTHERA
+        | typeof THERMAGE
+        | typeof LDM
+        | typeof LIFTING
+        | typeof LASER_TONING
+        | typeof TATTOO_LASER
+        | typeof DOT_LASER;
 }

@@ -35,14 +35,14 @@ export const TREATMENT_CATEGORY = [
     TATTOO_LASER,
     DOT_LASER,
 ];
-export const SHURINK_TREATMENT = [
-    '슈링크 유니버스 울트라 MP모드 300샷',
-    '슈링크 유니버스 울트라 MP모드 100샷',
-    '슈링크 유니버스 부스터 300샷 + 전용 앰플',
-    '슈링크 유니버스 부스터 600샷 + 전용 앰플',
-    '슈링크 유니버스 울트라 MP 모드 300샷 + 부트서 300샷 + 전용 앰플',
-    '아이 슈링크 100샷',
-    '더마 슈링크 100샷 (이마, 목주름)',
-    '인모드 FX 1부위',
-    '인모드 FORMA 1부위',
-];
+export const TREATEMENTS = [
+    { id: '1', group: SHURINK, title: '슈링크 유니버스 울트라 MP모드 300샷' },
+    { id: '2', group: SHURINK, title: '슈링크 유니버스 울트라 MP모드 100샷' },
+    { id: '3', group: SHURINK, title: '슈링크 유니버스 부스터 300샷 + 전용 앰플' },
+    { id: '4', group: SHURINK, title: '슈링크 유니버스 부스터 600샷 + 전용 앰플' },
+    { id: '4', group: SHURINK, title: '슈링크 유니버스 울트라 MP 모드 300샷 + 부트서 300샷 + 전용 앰플' },
+    { id: '5', group: SHURINK, title: '아이 슈링크 100샷' },
+    { id: '6', group: SHURINK, title: '더마 슈링크 100샷 (이마, 목주름)' },
+    { id: '7', group: INMODE, title: '인모드 FX 1부위' },
+    { id: '8', group: INMODE, title: '인모드 FORMA 1부위' },
+]

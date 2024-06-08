@@ -11,16 +11,15 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.14",
-    "@mui/material": "^5.15.14",
+    "@mui/joy": "^5.0.0-beta.36",
     "@mui/x-date-pickers": "^7.0.0",
     "@prisma/client": "^5.14.0",
     "@remix-run/node": "^2.8.1",
     "@remix-run/react": "^2.8.1",
     "@remix-run/serve": "^2.8.1",
     "@tanstack/react-query": "^5.28.9",
+    "dayjs": "^1.11.11",
     "g": "^2.0.1",
     "i18next": "^23.11.2",
     "isbot": "^4.4.0",

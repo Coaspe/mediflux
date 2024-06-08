@@ -3,7 +3,7 @@ import {
   QueryClientProvider,
 
 } from "@tanstack/react-query";
-import SchedulingTable from "~/components/SchedulingTable";
+import SchedulingTable from "~/components/Table/SchedulingTable";
 
 const queryClient = new QueryClient();
 
