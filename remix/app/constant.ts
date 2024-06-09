@@ -1,4 +1,4 @@
-import { PRecord } from "./type";
+import { PRecord, SearchHelp } from "./type";
 
 export const SIDE_MENU = {
     SCHEDULING: 'scheduling',
@@ -12,7 +12,7 @@ export const ROLE = {
 } as const
 
 
-export const mock: PRecord[] = [
+export const MOCK: PRecord[] = [
     {
         id: "1",
         patientName: "나나미",
@@ -20,7 +20,7 @@ export const mock: PRecord[] = [
         checkInTime: 1717686534,
         chartNum: '131242',
         opReadiness: true,
-        treatment1: '리쥬란',
+        treatment1: '1',
         quantityTreat1: 2,
         treatmentRoom: 3,
         anesthesiaNote: "눈 마취 안 하심",
@@ -39,7 +39,7 @@ export const mock: PRecord[] = [
         checkInTime: 1716729890,
         chartNum: '12412312',
         opReadiness: true,
-        treatment1: '울쎄라 600샷',
+        treatment1: '2',
         quantityTreat1: 1,
         treatmentRoom: 8,
         anesthesiaNote: "눈 마취 안 하심",
@@ -58,7 +58,7 @@ export const mock: PRecord[] = [
         checkInTime: 1716729990,
         chartNum: '2341241',
         opReadiness: true,
-        treatment1: '울쎄라 600샷',
+        treatment1: '3',
         quantityTreat1: 1,
         treatmentRoom: 8,
         anesthesiaNote: "눈 마취 안 하심",
@@ -77,7 +77,7 @@ export const mock: PRecord[] = [
         checkInTime: 1716729790,
         chartNum: '123124',
         opReadiness: true,
-        treatment1: '울쎄라 600샷',
+        treatment1: '4',
         quantityTreat1: 1,
         treatmentRoom: 8,
         anesthesiaNote: "눈 마취 안 하심",
@@ -96,7 +96,7 @@ export const mock: PRecord[] = [
         checkInTime: 1716729790,
         chartNum: '1231214',
         opReadiness: true,
-        treatment1: '울쎄라 600샷',
+        treatment1: '5',
         quantityTreat1: 1,
         treatmentRoom: 8,
         anesthesiaNote: "눈 마취 안 하심",
@@ -162,8 +162,8 @@ export const DOCTORS: SearchHelp[] = [
     { id: '6', group: '', title: '매머드', },
 ]
 
-export type SearchHelp = {
-    id: string,
-    group: string,
-    title: string,
+export const EMPTY_SEARCHHELP: SearchHelp = {
+    id: '',
+    group: '',
+    title: '',
 }

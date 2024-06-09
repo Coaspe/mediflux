@@ -20,11 +20,11 @@ export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>()
 
   return (
-    <div className="flex-col pr-5">
+    <div className="flex flex-col pr-5 h-screen w-full">
       <DashboardHeader selectedMenu={clickedMenu} />
       <div className="flex">
-        <Sidebar className="font-work pr-5">
-          <Menu>
+        <aside className="font-work pr-5">
+          <Menu >
             <SubMenu
               icon={
                 <Icon className={"text-gray-500 "} iconName={ICONS.EVENT_NOTE} />
@@ -50,7 +50,7 @@ export default function Dashboard() {
               Notifications{" "}
             </MenuItem>
           </Menu>
-        </Sidebar>
+        </aside>
         <Outlet />
       </div>
     </div>

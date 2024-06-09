@@ -39,3 +39,9 @@ export type PRecord = {
 };
 
 export type ChipColor = "error" | "primary" | "secondary" | "warning" | "default" | "success" | "info"
+
+export type SearchHelp = {
+    id: string,
+    group: string,
+    title: string,
+}

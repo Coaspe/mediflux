@@ -5,9 +5,7 @@ import {
     type MRT_Row,
     type MRT_ColumnDef,
     type MRT_TableOptions,
-    MRT_FilterFn,
 } from "material-react-table";
-import { checkInTimeCell, opReadinessCell, treatmentEdit, nameChipCell, checkInTimeEdit, StaffEdit } from './ColumnRenderers'
 import {
     useMutation,
     useQuery,
@@ -16,45 +14,9 @@ import {
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { Socket, io } from "socket.io-client";
 import {
-    ANESTHESIANOTE,
-    ANESTHESIANOTE_H,
-    CHART_NUMBER,
-    CHART_NUMBER_H,
-    CHECK_IN_TIME,
-    CHECK_IN_TIME_H,
-    COMMENTCAUTION,
-    COMMENTCAUTION_H,
-    CONSULTANT,
-    CONSULTANT_H,
-    COORDINATOR,
-    COORDINATOR_H,
-    DOCTOR,
-    DOCTOR_H,
-    DOCTORS,
-    LONG_COLUMN_LENGTH,
-    MEDIUM_COLUMN_LENGTH,
-    mock,
-    NURSINGSTAFF1,
-    NURSINGSTAFF1_H,
-    NURSINGSTAFF2,
-    NURSINGSTAFF2_H,
+    MOCK,
     OP_READINESS,
-    OP_READINESS_H,
-    PATIENT_NAME,
-    PATIENT_NAME_H,
-    QUANTITYTREAT1,
-    QUANTITYTREAT1_H,
     ROLE,
-    SearchHelp,
-    SHORT_COLUMN_LENGTH,
-    SKINCARESPECIALIST1,
-    SKINCARESPECIALIST1_H,
-    SKINCARESPECIALIST2,
-    SKINCARESPECIALIST2_H,
-    TREATMENT1,
-    TREATMENT1_H,
-    TREATMENT_ROOM,
-    TREATMENT_ROOM_H,
 } from "../../constant";
 import {
     LOCK_RECORD,
@@ -67,12 +29,12 @@ import {
     SAVE_RECORD,
     USER_JOINED,
     UNLOCK_RECORD,
-    PORT
+    PORT,
 } from 'shared'
 import { PRecord, User } from "~/type";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import dayjs from "dayjs";
+import { checkinTimeColumn, chartNumberColumn, patientNameColumn, opReadinessColumn, treatment1Column, quantitytreat1Column, treatmentRoomColumn, doctorColumn, anesthesiaNoteColumn, skincareSpecialist1Column, skincareSpecialist2Column, nursingStaff1Column, nursingStaff2Column, coordinatorColumn, consultantColumn, commentCautionColumn } from "~/utils/Table/columnDef";
 
 const SchedulingTable = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
@@ -149,7 +111,7 @@ const SchedulingTable = () => {
         useCreatePRecord();
 
     const {
-        data: fetchedPRecords = mock,
+        data: fetchedPRecords = MOCK,
         isError: isLoadingPRecordsError,
         isFetching: isFetchingPRecords,
         isLoading: isLoadingPRecords,
@@ -207,7 +169,7 @@ const SchedulingTable = () => {
                 setValidationErrors({});
                 await updatePRecordWithDB(originalPRecord.current);
                 table.setEditingRow(null); //exit editing mode
-                emitSaveRecord(row.id, originalPRecord.current);
+                emitSaveRecord(originalPRecord.current);
                 if (originalPRecord.current.LockingUser?.id === user.id) {
                     emitUnLockRecord(row.id, originalPRecord.current)
                 }
@@ -216,11 +178,14 @@ const SchedulingTable = () => {
         };
 
     const handleCreatePRecord: MRT_TableOptions<PRecord>["onCreatingRowSave"] =
-        async ({ values, table }) => {
-            setValidationErrors({});
-            await createPRecordWithDB(values);
-            table.setCreatingRow(null); //exit creating mode
-            emitCreateRecord(values);
+        async ({ table }) => {
+            if (originalPRecord.current != undefined) {
+                setValidationErrors({});
+                await createPRecordWithDB(originalPRecord.current);
+                table.setCreatingRow(null); //exit creating mode
+                emitCreateRecord(originalPRecord.current);
+                originalPRecord.current = undefined
+            }
         };
 
     // Start ---------------------------------------------- Emit socket event
@@ -233,8 +198,8 @@ const SchedulingTable = () => {
         socket?.emit(DELETE_RECORD, { recordId, userId: user.id, roomId: ROOM_ID });
     };
 
-    const emitSaveRecord = (recordId: String, record: PRecord) => {
-        socket?.emit(SAVE_RECORD, { recordId, roomId: ROOM_ID, record: JSON.stringify(record) });
+    const emitSaveRecord = (record: PRecord) => {
+        socket?.emit(SAVE_RECORD, { recordId: record.id, roomId: ROOM_ID, record: JSON.stringify(record) });
     };
 
     const emitCreateRecord = (record: PRecord) => {
@@ -247,135 +212,23 @@ const SchedulingTable = () => {
     // End ---------------------------------------------- Emit socket event
 
     // Start ---------------------------------------------- Column definition
-    const staffFilterFn = (id: unknown, filterValue: any, searchHelp: SearchHelp[]) => {
-        const record = DOCTORS.find(ele => ele.id === id)
-        const title = record?.title
-        return title ? title.includes(filterValue) : false
-    }
-    const checkinTimeColumn: MRT_ColumnDef<PRecord> = {
-        // id: 'date',
-        // filterVariant: 'datetime',
-        // filterFn: 'lessThan',
-        accessorKey: CHECK_IN_TIME,
-        header: CHECK_IN_TIME_H,
-        sortingFn: 'datetime',
-        Cell: checkInTimeCell,
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => checkInTimeEdit(row, originalPRecord),
-        size: LONG_COLUMN_LENGTH, //medium column
-    }
-    const chartNumberColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: CHART_NUMBER,
-        header: CHART_NUMBER_H,
-        size: LONG_COLUMN_LENGTH, //medium column
-    }
-    const patientNameColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: PATIENT_NAME,
-        header: PATIENT_NAME_H,
-    }
-    const opReadinessColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: OP_READINESS,
-        header: OP_READINESS_H,
-        editVariant: 'select',
-        editSelectOptions: [{ label: '완료', value: true }, { label: '미완료', value: false }],
-        Cell: opReadinessCell,
-        size: SHORT_COLUMN_LENGTH, // medium column
-    }
-    const treatment1Column: MRT_ColumnDef<PRecord> = {
-        accessorKey: TREATMENT1,
-        header: TREATMENT1_H,
-        enableResizing: true,
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => treatmentEdit(row, originalPRecord)
-    }
-    const quantitytreat1Column: MRT_ColumnDef<PRecord> = {
-        accessorKey: QUANTITYTREAT1,
-        header: QUANTITYTREAT1_H,
-        size: SHORT_COLUMN_LENGTH, //medium column
-    }
-    const treatmentRoomColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: TREATMENT_ROOM,
-        header: TREATMENT_ROOM_H,
-        size: MEDIUM_COLUMN_LENGTH, //medium column
-    }
-    const doctorColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: DOCTOR,
-        header: DOCTOR_H,
-        size: SHORT_COLUMN_LENGTH, //medium column
-        filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, DOCTOR, DOCTOR_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS)
-    }
-    const anesthesiaNoteColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: ANESTHESIANOTE,
-        header: ANESTHESIANOTE_H
-    }
-    const skincareSpecialist1Column: MRT_ColumnDef<PRecord> = {
-        accessorKey: SKINCARESPECIALIST1,
-        header: SKINCARESPECIALIST1_H,
-        filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, SKINCARESPECIALIST1, SKINCARESPECIALIST1_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH, //medium column
-    }
-    const skincareSpecialist2Column: MRT_ColumnDef<PRecord> = {
-        accessorKey: SKINCARESPECIALIST2,
-        header: SKINCARESPECIALIST2_H,
-        filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, SKINCARESPECIALIST2, SKINCARESPECIALIST2_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH,
-    }
-    const nursingStaff1Column: MRT_ColumnDef<PRecord> = {
-        accessorKey: NURSINGSTAFF1,
-        header: NURSINGSTAFF1_H,
-        filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, NURSINGSTAFF1, NURSINGSTAFF1_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH,
-    }
-    const nursingStaff2Column: MRT_ColumnDef<PRecord> = {
-        accessorKey: NURSINGSTAFF2,
-        header: NURSINGSTAFF2_H,
-        filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, NURSINGSTAFF2, NURSINGSTAFF2_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH,
-    }
-    const coordinatorColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: COORDINATOR,
-        header: COORDINATOR_H,
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, COORDINATOR, COORDINATOR_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: SHORT_COLUMN_LENGTH,
-    }
-    const consultantColumn: MRT_ColumnDef<PRecord> = {
-        accessorKey: CONSULTANT,
-        header: CONSULTANT_H,
-        filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-        Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, CONSULTANT, CONSULTANT_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: SHORT_COLUMN_LENGTH,
-    }
-    const commentCautionColumn = {
-        accessorKey: COMMENTCAUTION,
-        header: COMMENTCAUTION_H
-    }
     const columns = useMemo<MRT_ColumnDef<PRecord>[]>(
         () => [
-            checkinTimeColumn,
+            checkinTimeColumn(originalPRecord),
             chartNumberColumn,
             patientNameColumn,
             opReadinessColumn,
-            treatment1Column,
+            treatment1Column(originalPRecord),
             quantitytreat1Column,
             treatmentRoomColumn,
-            doctorColumn,
+            doctorColumn(originalPRecord),
             anesthesiaNoteColumn,
-            skincareSpecialist1Column,
-            skincareSpecialist2Column,
-            nursingStaff1Column,
-            nursingStaff2Column,
-            coordinatorColumn,
-            consultantColumn,
+            skincareSpecialist1Column(originalPRecord),
+            skincareSpecialist2Column(originalPRecord),
+            nursingStaff1Column(originalPRecord),
+            nursingStaff2Column(originalPRecord),
+            coordinatorColumn(originalPRecord),
+            consultantColumn(originalPRecord),
             commentCautionColumn,
         ],
         [validationErrors]
@@ -404,24 +257,37 @@ const SchedulingTable = () => {
                 children: "Error loading data",
             }
             : undefined,
-        muiTableContainerProps: {
-            sx: {
-                width: 'full',
-                minHeight: "400px",
-            },
-        },
         muiTableBodyRowProps: ({ row }) => ({
             sx: {
                 backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'gray' : 'white',
-                pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'none' : 'default'
-            }
+                pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'none' : 'default',
+            },
+        }),
+        muiTableBodyCellProps: ({ row, cell }) => ({
+            onClick: async () => {
+                if (row.original.LockingUser) {
+                    return
+                }
+
+                switch (cell.column.id) {
+                    case OP_READINESS:
+                        let newPRecord: PRecord = JSON.parse(JSON.stringify(row.original))
+                        newPRecord.opReadiness = !newPRecord.opReadiness
+                        await updatePRecordWithDB(newPRecord)
+                        emitSaveRecord(newPRecord)
+                        break;
+
+                    default:
+                        break;
+                }
+            },
         }),
         onCreatingRowCancel: () => setValidationErrors({}),
         onCreatingRowSave: handleCreatePRecord,
         onEditingRowCancel: handleEditingCancel,
         onEditingRowSave: handleSavePRecord,
         renderRowActions: ({ row, table }) => <SchedulingTableRow originalPRecord={originalPRecord} row={row} table={table} user={user} emitChangeRecord={emitChangeRecord} openDeleteConfirmModal={openDeleteConfirmModal} />,
-        renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar table={table} />,
+        renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} />,
         state: {
             isLoading: isLoadingPRecords,
             isSaving: isCreatingPRecord || isUpdatingPRecord || isDeletingPRecord,
@@ -429,9 +295,15 @@ const SchedulingTable = () => {
             showProgressBars: isFetchingPRecords,
         },
     });
+    const ReadyTable = () => {
 
-    return <MaterialReactTable table={table} />;
+    }
+    return <div className="w-full">
+        <MaterialReactTable table={table} />
+        <MaterialReactTable table={table} />
+    </div>;
 }
+
 // End ---------------------------------------------- Table definition
 
 // Start ---------------------------------------------- CRUD
@@ -480,7 +352,7 @@ function useGetPRecords() {
             // console.log("useGetPR");
 
             // return Promise.resolve(mock);
-            return Promise.resolve(mock);
+            return Promise.resolve(MOCK);
         },
         refetchOnWindowFocus: false,
     });
@@ -492,11 +364,12 @@ function useCreatePRecord() {
         mutationFn: async (precord: PRecord) => {
             //send api update request here
             // await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-            mock.push(precord);
+            MOCK.push(precord);
             return Promise.resolve();
         },
         //client side optimistic update
         onMutate: (newPRecordInfo: PRecord) => {
+            console.log(newPRecordInfo);
             queryClient.setQueryData(["precords"], (prevPRecords: any) => {
                 return [
                     newPRecordInfo,

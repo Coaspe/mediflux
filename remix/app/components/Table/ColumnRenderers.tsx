@@ -3,15 +3,17 @@ import {
     type MRT_Column,
     type MRT_Cell,
 } from "material-react-table";
-import { ChipColor, PRecord, Role } from '../../type'
+import { ChipColor, PRecord, Role, SearchHelp } from '../../type'
 import { Autocomplete, Box, Chip, TextField } from "@mui/material";
 import { TREATEMENTS } from "shared";
-import { CONSULTANT, COORDINATOR, DOCTOR, DOCTORS, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2, SearchHelp } from "~/constant";
+import { CONSULTANT, COORDINATOR, DOCTOR, DOCTORS, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { MutableRefObject } from "react";
+import { MutableRefObject, ReactNode } from "react";
+import { ChipPropsColorOverrides, ChipPropsSizeOverrides, } from "@mui/joy/Chip/ChipProps";
+import { OverridableStringUnion } from "@mui/types";
 
 export const checkInTimeCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
     const date = dayjs(cell.getValue<number>() * 1000)
@@ -26,21 +28,45 @@ export const checkInTimeEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableR
         if (originalPRecord.current == undefined) {
             originalPRecord.current = JSON.parse(JSON.stringify(row.original))
         }
+
+        if (!value) {
+            value = dayjs()
+        }
+
         originalPRecord.current!.checkInTime = value?.unix()
     }
     return <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DateTimeField
             format="YYYY/MM/DD hh:mm A"
             slotProps={{ textField: { variant: 'standard' } }}
-            defaultValue={row.original.checkInTime ? dayjs(row.original.checkInTime * 1000) : dayjs()}
+            defaultValue={dayjs(originalPRecord.current!.checkInTime! * 1000)}
             onChange={onChange}
         />
     </LocalizationProvider>
 }
+export const treatmentCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
+    let idx = -1
+    for (let i = 0; i < TREATEMENTS.length; i++) {
+        const element = TREATEMENTS[i];
+        if (element.id === cell.getValue()) {
+            idx = i
+            break
+        }
+    }
 
+    return
+}
 export const opReadinessCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
-    return cell.getValue<boolean>() ? <Chip size="small" label='Y' color="success" />
-        : <Chip size="small" label='N' color="error" />
+    let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = 'small'
+    let label: ReactNode = 'Y'
+    let color: OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides> = 'success'
+
+    if (!cell.getValue<boolean>()) {
+        label = 'N'
+        color = 'error'
+    }
+
+    return <Chip style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} />
 }
 
 export const treatmentEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRefObject<PRecord | undefined>) => {

@@ -1,5 +1,5 @@
-import { ROLE, SIDE_MENU } from "~/constant";
-import { Role, SideMenu } from "~/type";
+import { EMPTY_SEARCHHELP, ROLE, SIDE_MENU } from "~/constant";
+import { Role, SearchHelp, SideMenu } from "~/type";
 
 export function getMenuName(menu: SideMenu | undefined): string {
     switch (menu) {
@@ -12,7 +12,7 @@ export function getMenuName(menu: SideMenu | undefined): string {
     }
 }
 
-export function getRoleName(role: Role) {
+export function getRoleName(role: Role): string {
     switch (role) {
         case ROLE.DOCTOR:
             return "Doctor"
@@ -21,4 +21,14 @@ export function getRoleName(role: Role) {
         default:
             return "Staff"
     }
+}
+
+export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHelp => {
+    for (let i = 0; i < searchHelp.length; i++) {
+        const element = searchHelp[i];
+        if (element.id === id) {
+            return searchHelp[i]
+        }
+    }
+    return EMPTY_SEARCHHELP
 }
