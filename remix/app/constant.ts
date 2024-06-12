@@ -19,7 +19,7 @@ export const MOCK: PRecord[] = [
         doctor: "1",
         checkInTime: 1717686534,
         chartNum: '131242',
-        opReadiness: true,
+        opReadiness: 'C',
         treatment1: '1',
         quantityTreat1: 2,
         treatmentRoom: 3,
@@ -38,7 +38,7 @@ export const MOCK: PRecord[] = [
         doctor: "2",
         checkInTime: 1716729890,
         chartNum: '12412312',
-        opReadiness: true,
+        opReadiness: 'N',
         treatment1: '2',
         quantityTreat1: 1,
         treatmentRoom: 8,
@@ -57,7 +57,7 @@ export const MOCK: PRecord[] = [
         doctor: "1",
         checkInTime: 1716729990,
         chartNum: '2341241',
-        opReadiness: true,
+        opReadiness: 'C',
         treatment1: '3',
         quantityTreat1: 1,
         treatmentRoom: 8,
@@ -76,7 +76,7 @@ export const MOCK: PRecord[] = [
         doctor: "5",
         checkInTime: 1716729790,
         chartNum: '123124',
-        opReadiness: true,
+        opReadiness: 'P',
         treatment1: '4',
         quantityTreat1: 1,
         treatmentRoom: 8,
@@ -95,7 +95,7 @@ export const MOCK: PRecord[] = [
         doctor: "6",
         checkInTime: 1716729790,
         chartNum: '1231214',
-        opReadiness: true,
+        opReadiness: 'P',
         treatment1: '5',
         quantityTreat1: 1,
         treatmentRoom: 8,
@@ -110,12 +110,109 @@ export const MOCK: PRecord[] = [
     } as PRecord,
 ];
 
+export const MOCK2: PRecord[] = [
+    {
+        id: "1",
+        patientName: "나나미",
+        doctor: "1",
+        checkInTime: 1717686534,
+        chartNum: '131242',
+        opReadiness: 'Y',
+        treatment1: '1',
+        quantityTreat1: 2,
+        treatmentRoom: 3,
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: '2',
+        skincareSpecialist2: '3',
+        nursingStaff1: '4',
+        nursingStaff2: '5',
+        coordinator: '5',
+        consultant: '5',
+        commentCaution: '배가 많이 고픈 상태'
+    } as PRecord,
+    {
+        id: "2",
+        patientName: "김미미",
+        doctor: "2",
+        checkInTime: 1716729890,
+        chartNum: '12412312',
+        opReadiness: 'Y',
+        treatment1: '2',
+        quantityTreat1: 1,
+        treatmentRoom: 8,
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: '3',
+        skincareSpecialist2: '4',
+        nursingStaff1: '5',
+        nursingStaff2: '5',
+        coordinator: '6',
+        consultant: '6',
+        commentCaution: '배가 많이 고픈 상태'
+    } as PRecord,
+    {
+        id: "3",
+        patientName: "내루미",
+        doctor: "1",
+        checkInTime: 1716729990,
+        chartNum: '2341241',
+        opReadiness: 'Y',
+        treatment1: '3',
+        quantityTreat1: 1,
+        treatmentRoom: 8,
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: '2',
+        skincareSpecialist2: '1',
+        nursingStaff1: '2',
+        nursingStaff2: '3',
+        coordinator: '3',
+        consultant: '4',
+        commentCaution: '배가 많이 고픈 상태'
+    } as PRecord,
+    {
+        id: "4",
+        patientName: "폴킴",
+        doctor: "5",
+        checkInTime: 1716729790,
+        chartNum: '123124',
+        opReadiness: 'Y',
+        treatment1: '4',
+        quantityTreat1: 1,
+        treatmentRoom: 8,
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: '5',
+        skincareSpecialist2: '2',
+        nursingStaff1: '3',
+        nursingStaff2: '4',
+        coordinator: '1',
+        consultant: '2',
+        commentCaution: '배가 많이 고픈 상태'
+    } as PRecord,
+    {
+        id: "5",
+        patientName: "제임스",
+        doctor: "6",
+        checkInTime: 1716729790,
+        chartNum: '1231214',
+        opReadiness: 'Y',
+        treatment1: '5',
+        quantityTreat1: 1,
+        treatmentRoom: 8,
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: '2',
+        skincareSpecialist2: '4',
+        nursingStaff1: '3',
+        nursingStaff2: '1',
+        coordinator: '2',
+        consultant: '3',
+        commentCaution: '배가 많이 고픈 상태'
+    } as PRecord,
+];
 export const CHECK_IN_TIME = 'checkInTime'
 export const CHECK_IN_TIME_H = '수납시간'
 export const CHART_NUMBER = 'chartNum'
 export const CHART_NUMBER_H = '차트번호'
 export const PATIENT_NAME = 'patientName'
-export const PATIENT_NAME_H = '고객 이름'
+export const PATIENT_NAME_H = '고객이름'
 export const OP_READINESS = 'opReadiness'
 export const OP_READINESS_H = '준비'
 export const TREATMENT1 = 'treatment1'
@@ -144,8 +241,12 @@ export const COMMENTCAUTION = 'commentCaution'
 export const COMMENTCAUTION_H = '비고/주의'
 
 export const SHORT_COLUMN_LENGTH = 110
+export const SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH = 140
 export const MEDIUM_COLUMN_LENGTH = 120
-export const LONG_COLUMN_LENGTH = 130
+export const MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH = 150
+
+export const LONG_JUSTIFIED_CENTER_COLUMN_LENGTH = 190
+export const LONG_LEFT_JUSTIFIED_COLUMN_LENGTH = 120
 
 export const FIELDS_STAFF = ['피부1', '피부2', '코디', '상담']
 export const FIELDS_NURSE = ['간호1', '간호2']

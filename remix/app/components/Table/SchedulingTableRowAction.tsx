@@ -30,33 +30,32 @@ const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitChangeRecor
         table.setEditingRow(row);
         emitChangeRecord(row.id, row.original);
     }
-    return (row.original.LockingUser && row.original.LockingUser.id != user.id ? (
-        <Box sx={{ display: "flex", justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
-            {nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)}
-        </Box>) :
-        <Dropdown>
-            <MenuButton
-                slots={{ root: IconButton }}
-                slotProps={{ root: { variant: 'outlined', color: 'neutral' } }}
-            >
-                <MoreHoriz />
-            </MenuButton>
-            <Menu>
-                <MenuItem onClick={onClickEditIcon}>
-                    <ListItemDecorator>
-                        <EditIcon />
-                    </ListItemDecorator>
-                    수정
-                </MenuItem>
-                <MenuItem color="danger" onClick={() => openDeleteConfirmModal(row)}>
-                    <ListItemDecorator>
-                        <DeleteIcon />
-                    </ListItemDecorator>
-                    삭제
-                </MenuItem>
-            </Menu>
-        </Dropdown>
-    )
+    return <Box sx={{ display: "flex", justifyContent: 'center', alignItems: 'center', zIndex: 100, width: '100%' }}>
+        {row.original.LockingUser && row.original.LockingUser.id != user.id
+            ? nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)
+            : <Dropdown>
+                <MenuButton
+                    slots={{ root: IconButton }}
+                    slotProps={{ root: { variant: 'outlined', color: 'neutral' } }}
+                >
+                    <MoreHoriz />
+                </MenuButton>
+                <Menu>
+                    <MenuItem onClick={onClickEditIcon}>
+                        <ListItemDecorator>
+                            <EditIcon />
+                        </ListItemDecorator>
+                        수정
+                    </MenuItem>
+                    <MenuItem color="danger" onClick={() => openDeleteConfirmModal(row)}>
+                        <ListItemDecorator>
+                            <DeleteIcon />
+                        </ListItemDecorator>
+                        삭제
+                    </MenuItem>
+                </Menu>
+            </Dropdown>}
+    </Box>
 }
 
 export default SchedulingTableRowAction

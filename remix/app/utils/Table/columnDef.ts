@@ -1,7 +1,7 @@
 import { MRT_ColumnDef, MRT_Row } from "material-react-table"
 import { TREATEMENTS } from "shared"
 import { checkInTimeCell, checkInTimeEdit, opReadinessCell, treatmentEdit, StaffEdit, nameChipCell } from "~/components/Table/ColumnRenderers"
-import { DOCTORS, CHECK_IN_TIME, CHECK_IN_TIME_H, LONG_COLUMN_LENGTH, CHART_NUMBER, CHART_NUMBER_H, PATIENT_NAME, PATIENT_NAME_H, OP_READINESS, OP_READINESS_H, SHORT_COLUMN_LENGTH, TREATMENT1, TREATMENT1_H, QUANTITYTREAT1, QUANTITYTREAT1_H, TREATMENT_ROOM, TREATMENT_ROOM_H, MEDIUM_COLUMN_LENGTH, DOCTOR, DOCTOR_H, ANESTHESIANOTE, ANESTHESIANOTE_H, SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, NURSINGSTAFF1, NURSINGSTAFF1_H, NURSINGSTAFF2, NURSINGSTAFF2_H, COORDINATOR, COORDINATOR_H, CONSULTANT, CONSULTANT_H, COMMENTCAUTION, COMMENTCAUTION_H } from "~/constant"
+import { DOCTORS, CHECK_IN_TIME, CHECK_IN_TIME_H, LONG_JUSTIFIED_CENTER_COLUMN_LENGTH, CHART_NUMBER, CHART_NUMBER_H, PATIENT_NAME, PATIENT_NAME_H, OP_READINESS, OP_READINESS_H, SHORT_COLUMN_LENGTH, TREATMENT1, TREATMENT1_H, QUANTITYTREAT1, QUANTITYTREAT1_H, TREATMENT_ROOM, TREATMENT_ROOM_H, MEDIUM_COLUMN_LENGTH, DOCTOR, DOCTOR_H, ANESTHESIANOTE, ANESTHESIANOTE_H, SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, NURSINGSTAFF1, NURSINGSTAFF1_H, NURSINGSTAFF2, NURSINGSTAFF2_H, COORDINATOR, COORDINATOR_H, CONSULTANT, CONSULTANT_H, COMMENTCAUTION, COMMENTCAUTION_H, LONG_LEFT_JUSTIFIED_COLUMN_LENGTH, SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH } from "~/constant"
 import { SearchHelp, PRecord } from "~/type"
 import { getValueWithId } from "../utils"
 import { MutableRefObject } from "react"
@@ -21,25 +21,44 @@ export const checkinTimeColumn = (originalPRecord: MutableRefObject<PRecord | un
         sortingFn: 'datetime',
         Cell: checkInTimeCell,
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => checkInTimeEdit(row, originalPRecord),
-        size: LONG_COLUMN_LENGTH, //medium column
+        size: LONG_JUSTIFIED_CENTER_COLUMN_LENGTH, //medium column
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const chartNumberColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: CHART_NUMBER,
     header: CHART_NUMBER_H,
-    size: LONG_COLUMN_LENGTH, //medium column
+    size: LONG_JUSTIFIED_CENTER_COLUMN_LENGTH, //medium column
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
 }
 export const patientNameColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: PATIENT_NAME,
     header: PATIENT_NAME_H,
+    size: LONG_JUSTIFIED_CENTER_COLUMN_LENGTH,
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
 }
 export const opReadinessColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: OP_READINESS,
     header: OP_READINESS_H,
     editVariant: 'select',
-    editSelectOptions: [{ label: '완료', value: true }, { label: '미완료', value: false }],
+    editSelectOptions: [{ label: '완료', value: 'Y' }, { label: '미완료', value: 'N' }, { label: '시술완료', value: 'C' }, { label: "시술 중", value: 'P' }],
     Cell: opReadinessCell,
-    size: SHORT_COLUMN_LENGTH, // medium column
+    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
+    muiTableBodyCellProps: {
+        align: 'center',
+    },
 }
 export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
     return {
@@ -47,31 +66,58 @@ export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | und
         accessorKey: TREATMENT1,
         header: TREATMENT1_H,
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => treatmentEdit(row, originalPRecord),
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'left',
+        },
     }
 }
 export const quantitytreat1Column: MRT_ColumnDef<PRecord> = {
     accessorKey: QUANTITYTREAT1,
     header: QUANTITYTREAT1_H,
-    size: SHORT_COLUMN_LENGTH, //medium column
+    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
+    muiTableBodyCellProps: {
+        align: 'center',
+    },
 }
 export const treatmentRoomColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: TREATMENT_ROOM,
     header: TREATMENT_ROOM_H,
-    size: MEDIUM_COLUMN_LENGTH, //medium column
+    size: MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
+    muiTableBodyCellProps: {
+        align: 'center',
+    },
 }
 export const doctorColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
     return {
         accessorKey: DOCTOR,
         header: DOCTOR_H,
-        size: SHORT_COLUMN_LENGTH, //medium column
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
         filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, DOCTOR, DOCTOR_H),
-        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS)
+        Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const anesthesiaNoteColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: ANESTHESIANOTE,
-    header: ANESTHESIANOTE_H
+    header: ANESTHESIANOTE_H,
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
 }
 export const skincareSpecialist1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
     return {
@@ -80,7 +126,13 @@ export const skincareSpecialist1Column = (originalPRecord: MutableRefObject<PRec
         filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, SKINCARESPECIALIST1, SKINCARESPECIALIST1_H),
         Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH, //medium column
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const skincareSpecialist2Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
@@ -90,7 +142,13 @@ export const skincareSpecialist2Column = (originalPRecord: MutableRefObject<PRec
         filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, SKINCARESPECIALIST2, SKINCARESPECIALIST2_H),
         Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH,
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const nursingStaff1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
@@ -100,7 +158,13 @@ export const nursingStaff1Column = (originalPRecord: MutableRefObject<PRecord | 
         filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, NURSINGSTAFF1, NURSINGSTAFF1_H),
         Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH,
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const nursingStaff2Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
@@ -110,7 +174,13 @@ export const nursingStaff2Column = (originalPRecord: MutableRefObject<PRecord | 
         filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, NURSINGSTAFF2, NURSINGSTAFF2_H),
         Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: MEDIUM_COLUMN_LENGTH,
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const coordinatorColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
@@ -119,7 +189,13 @@ export const coordinatorColumn = (originalPRecord: MutableRefObject<PRecord | un
         header: COORDINATOR_H,
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, COORDINATOR, COORDINATOR_H),
         Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: SHORT_COLUMN_LENGTH,
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
 export const consultantColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
@@ -129,10 +205,19 @@ export const consultantColumn = (originalPRecord: MutableRefObject<PRecord | und
         filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, CONSULTANT, CONSULTANT_H),
         Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-        size: SHORT_COLUMN_LENGTH,
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
     }
 }
-export const commentCautionColumn = {
+export const commentCautionColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: COMMENTCAUTION,
-    header: COMMENTCAUTION_H
+    header: COMMENTCAUTION_H,
+    muiTableHeadCellProps: {
+        align: 'center',
+    },
 }

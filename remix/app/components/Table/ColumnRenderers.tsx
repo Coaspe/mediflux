@@ -3,7 +3,7 @@ import {
     type MRT_Column,
     type MRT_Cell,
 } from "material-react-table";
-import { ChipColor, PRecord, Role, SearchHelp } from '../../type'
+import { ChipColor, OpReadiness, PRecord, Role, SearchHelp } from '../../type'
 import { Autocomplete, Box, Chip, TextField } from "@mui/material";
 import { TREATEMENTS } from "shared";
 import { CONSULTANT, COORDINATOR, DOCTOR, DOCTORS, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
@@ -58,12 +58,21 @@ export const treatmentCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) =>
 }
 export const opReadinessCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
     let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = 'small'
-    let label: ReactNode = 'Y'
+    let label: ReactNode = cell.getValue<OpReadiness>()
     let color: OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides> = 'success'
 
-    if (!cell.getValue<boolean>()) {
-        label = 'N'
-        color = 'error'
+    switch (label) {
+        case 'N':
+            color = 'error'
+            break;
+        case 'P':
+            color = 'primary'
+            break
+        case 'D':
+            color = 'info'
+            break
+        default:
+            break;
     }
 
     return <Chip style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} />

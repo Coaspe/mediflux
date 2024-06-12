@@ -77,8 +77,8 @@ export default function Index() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <div className="min-h-screen">
-      <div className="flex justify-center bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+      <div className="flex justify-center ">
         <div className="rounded-lg shadow-lg p-8 font-noto">
           <h2 className="text-9xl font-bold font-playfair mb-10">
             Efficient care,

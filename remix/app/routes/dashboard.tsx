@@ -22,9 +22,9 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col pr-5 h-screen w-full">
       <DashboardHeader selectedMenu={clickedMenu} />
-      <div className="flex">
+      <div className="flex max-w-full">
         <aside className="font-work pr-5">
-          <Menu >
+          <Menu>
             <SubMenu
               icon={
                 <Icon className={"text-gray-500 "} iconName={ICONS.EVENT_NOTE} />
@@ -53,6 +53,6 @@ export default function Dashboard() {
         </aside>
         <Outlet />
       </div>
-    </div>
+    </div >
   );
 }

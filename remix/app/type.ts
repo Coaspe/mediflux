@@ -14,7 +14,7 @@ export type PRecord = {
     checkInTime?: number;  // TIMESTAMP (e.g., "14:08")
     chartNum?: string;  // VARCHAR (15)
     patientName?: string;  // VARCHAR (100)
-    opReadiness?: boolean;  // BOOLEAN (e.g., "T", "F" interpreted as true/false)
+    opReadiness?: OpReadiness;  // BOOLEAN (e.g., "T", "F" interpreted as true/false)
     treatment1?: string;  // VARCHAR (50)
     treatment2?: string;  // VARCHAR (50), optional
     treatment3?: string;  // VARCHAR (50), optional
@@ -37,9 +37,9 @@ export type PRecord = {
     commentCaution?: string;  // VARCHAR (300), optional
     LockingUser?: User | null;
 };
-
+export type TableType = 'Ready' | 'ExceptReady'
 export type ChipColor = "error" | "primary" | "secondary" | "warning" | "default" | "success" | "info"
-
+export type OpReadiness = 'Y' | 'N' | 'C' | 'P'
 export type SearchHelp = {
     id: string,
     group: string,
