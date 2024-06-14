@@ -62,7 +62,7 @@ export const opReadinessColumn: MRT_ColumnDef<PRecord> = {
 }
 export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
     return {
-        accessorFn: (row) => getValueWithId(TREATEMENTS, row.treatment1).title,
+        Cell: ({ cell }) => getValueWithId(TREATEMENTS, cell.getValue<string>()).title,
         accessorKey: TREATMENT1,
         header: TREATMENT1_H,
         Edit: ({ row }: { row: MRT_Row<PRecord> }) => treatmentEdit(row, originalPRecord),

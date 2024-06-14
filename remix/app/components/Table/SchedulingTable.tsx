@@ -4,7 +4,6 @@ import {
     useMaterialReactTable,
     type MRT_Row,
     type MRT_ColumnDef,
-    type MRT_TableOptions,
     MRT_TableInstance,
 } from "material-react-table";
 import {
@@ -19,7 +18,6 @@ import { Socket, io } from "socket.io-client";
 import {
     MOCK,
     MOCK2,
-    OP_READINESS,
     ROLE,
 } from "../../constant";
 import {
@@ -34,12 +32,19 @@ import {
     USER_JOINED,
     UNLOCK_RECORD,
     PORT,
+    TREATEMENTS,
 } from 'shared'
-import { PRecord, TableType, User } from "~/type";
+import { OpReadiness, PRecord, TableType, User } from "~/type";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
 import { checkinTimeColumn, chartNumberColumn, patientNameColumn, opReadinessColumn, treatment1Column, quantitytreat1Column, treatmentRoomColumn, doctorColumn, anesthesiaNoteColumn, skincareSpecialist1Column, skincareSpecialist2Column, nursingStaff1Column, nursingStaff2Column, coordinatorColumn, consultantColumn, commentCautionColumn } from "~/utils/Table/columnDef";
-
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import { action } from "~/routes/_index";
 const SchedulingTable = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [clients, setClients] = useState<String[]>([]);
@@ -114,7 +119,7 @@ const SchedulingTable = () => {
             table = exceptReadyTable
         }
         let row = table.getRow(recordId).original
-
+        console.log(row);
         return row
     }
     const onLockRecord = ({ recordId, locker, tableType }: { recordId: string, locker: User, tableType: TableType }) => {
@@ -207,28 +212,33 @@ const SchedulingTable = () => {
         'ExceptReady': deleteExceptReadyPRecordWithDB
     }
     // DB Mutation
-
-    const openDeleteConfirmModal = (row: MRT_Row<PRecord>, tableType: TableType) => {
-        if (window.confirm("Are you sure you want to delete this record?")) {
-            dbDeleteFnMapping[tableType](row.original.id);
-            emitDeleteRecord(row.original.id);
-        }
-    };
-    const handleEditingCancel = ({ row }: { row: MRT_Row<PRecord> }) => {
+    const handleEditingCancel = (row: MRT_Row<PRecord>, tableType: TableType) => {
         setValidationErrors({})
-        emitUnLockRecord(row.id, row.original)
+        emitUnLockRecord(row.id, row.original, tableType)
     }
 
-    const handleSavePRecord = async (row: MRT_Row<PRecord>, table: MRT_TableInstance<PRecord>, tableType: TableType) => {
-        if (originalPRecord.current != undefined) {
-            setValidationErrors({});
-            await dbUpdateFnMapping[tableType](originalPRecord.current);
-            table.setEditingRow(null); //exit editing mode
-            emitSaveRecord(originalPRecord.current);
-            if (originalPRecord.current.LockingUser?.id === user.id) {
-                emitUnLockRecord(row.id, originalPRecord.current)
-            }
-            originalPRecord.current = undefined
+    const handleSavePRecord = async (row: MRT_Row<PRecord>, table: MRT_TableInstance<PRecord>, tableType: TableType, values: PRecord) => {
+        let precord = values
+        if (originalPRecord.current === undefined) {
+            precord.id = row.original.id
+        } else {
+            precord = originalPRecord.current
+        }
+        setValidationErrors({});
+
+        if (precord.opReadiness === 'Y' && precord.doctor) {
+            precord.opReadiness = 'P'
+        }
+
+        await dbUpdateFnMapping[tableType](precord);
+        if (!validOpReadiessWithTable(precord, undefined, tableType)) {
+            createFnMapping[tableType === 'Ready' ? 'ExceptReady' : 'Ready'](precord)
+        }
+
+        table.setEditingRow(null); //exit editing mode
+        emitSaveRecord(precord, tableType);
+        if (precord.LockingUser?.id === user.id) {
+            emitUnLockRecord(row.id, precord, tableType)
         }
     };
 
@@ -237,31 +247,31 @@ const SchedulingTable = () => {
             setValidationErrors({});
             await dbCreateFnMapping[tableType](originalPRecord.current)
             table.setCreatingRow(null); //exit creating mode
-            emitCreateRecord(originalPRecord.current);
+            emitCreateRecord(originalPRecord.current, tableType);
             originalPRecord.current = undefined
         }
     };
 
     // Start ---------------------------------------------- Emit socket event
-    const emitChangeRecord = (recordId: String, record: PRecord) => {
+    const emitChangeRecord = (recordId: String, record: PRecord, tableType: TableType) => {
         const locker = { id: user.id, name: user.name }
-        socket?.emit(LOCK_RECORD, { recordId, locker, roomId: ROOM_ID });
+        socket?.emit(LOCK_RECORD, { recordId, locker, roomId: ROOM_ID, tableType });
     };
 
-    const emitDeleteRecord = (recordId: String) => {
-        socket?.emit(DELETE_RECORD, { recordId, userId: user.id, roomId: ROOM_ID });
+    const emitDeleteRecord = (recordId: String, tableType: TableType) => {
+        socket?.emit(DELETE_RECORD, { recordId, userId: user.id, roomId: ROOM_ID, tableType });
     };
 
-    const emitSaveRecord = (record: PRecord) => {
-        socket?.emit(SAVE_RECORD, { recordId: record.id, roomId: ROOM_ID, record: JSON.stringify(record) });
+    const emitSaveRecord = (record: PRecord, tableType: TableType) => {
+        socket?.emit(SAVE_RECORD, { recordId: record.id, roomId: ROOM_ID, record: JSON.stringify(record), tableType });
     };
 
-    const emitCreateRecord = (record: PRecord) => {
-        socket?.emit(CREATE_RECORD, { record: JSON.stringify(record), roomId: ROOM_ID });
+    const emitCreateRecord = (record: PRecord, tableType: TableType) => {
+        socket?.emit(CREATE_RECORD, { record: JSON.stringify(record), roomId: ROOM_ID, tableType });
     };
 
-    const emitUnLockRecord = (recordId: String, record: PRecord) => {
-        socket?.emit(UNLOCK_RECORD, { recordId, roomId: ROOM_ID, });
+    const emitUnLockRecord = (recordId: String, record: PRecord, tableType: TableType) => {
+        socket?.emit(UNLOCK_RECORD, { recordId, roomId: ROOM_ID, tableType });
     };
     // End ---------------------------------------------- Emit socket event
 
@@ -311,24 +321,34 @@ const SchedulingTable = () => {
                 },
             },
         },
+        muiTableContainerProps: {
+            sx: {
+                height: '300px',
+            }
+        },
         muiTableProps: ({ }) => ({
             sx: {
                 width: '0px',
             }
         }),
-        getRowId: (row) => row.id,
         muiToolbarAlertBannerProps: isLoadingReadyPRecordsError
             ? {
                 color: "error",
                 children: "Error loading data",
             }
             : undefined,
-        muiTableBodyRowProps: ({ row }) => ({
-            sx: {
-                backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'gray' : 'white',
-                pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'none' : 'default',
-            },
-        }),
+        muiTableBodyRowProps: ({ row, table }) => {
+            const { density } = table.getState()
+            return {
+                sx: {
+                    backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'gray' : 'white',
+                    pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'none' : 'default',
+                    height: `${density === 'compact' ? 45 : density === 'comfortable' ? 50 : 57}px`,
+                    cursor: user.role === ROLE.DOCTOR ? 'pointer' : 'default'
+                },
+                onDoubleClick: () => handleOpenAssignModal(row)
+            }
+        },
         muiTableBodyCellProps: ({ row, cell }) => ({
             onClick: async () => {
                 if (row.original.LockingUser) {
@@ -350,10 +370,15 @@ const SchedulingTable = () => {
         }),
         onCreatingRowCancel: () => setValidationErrors({}),
         onCreatingRowSave: ({ table }) => handleCreatePRecord(table, 'Ready'),
-        onEditingRowCancel: handleEditingCancel,
-        onEditingRowSave: ({ row, table }) => handleSavePRecord(row, table, 'Ready'),
-        renderRowActions: ({ row, table }) => <SchedulingTableRow originalPRecord={originalPRecord} row={row} table={table} user={user} emitChangeRecord={emitChangeRecord} openDeleteConfirmModal={() => openDeleteConfirmModal(row, 'Ready')} />,
+        onEditingRowCancel: ({ row }) => handleEditingCancel(row, 'Ready'),
+        onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, 'Ready', values),
+        renderRowActions: ({ row, table }) => <SchedulingTableRow originalPRecord={originalPRecord}
+            row={row} table={table} user={user}
+            emitChangeRecord={emitChangeRecord}
+            openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
+            tableType="Ready" />,
         renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} />,
+        getRowId: (originalRow) => originalRow.id,
         state: {
             isLoading: isLoadingReadyPRecords,
             isSaving: isCreatingReadyPRecord || isUpdatingReadyPRecord || isDeletingReadyPRecord,
@@ -383,6 +408,11 @@ const SchedulingTable = () => {
                 },
             },
         },
+        muiTableContainerProps: {
+            sx: {
+                height: '300px',
+            }
+        },
         muiTableProps: ({ }) => ({
             sx: {
                 width: '0px',
@@ -395,36 +425,33 @@ const SchedulingTable = () => {
                 children: "Error loading data",
             }
             : undefined,
-        muiTableBodyRowProps: ({ row }) => ({
-            sx: {
-                backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'gray' : 'white',
-                pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'none' : 'default',
-            },
-        }),
-        muiTableBodyCellProps: ({ row, cell }) => ({
+        muiTableBodyRowProps: ({ row, table }) => {
+            const { density } = table.getState()
+            return {
+                sx: {
+                    backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'gray' : 'white',
+                    pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? 'none' : 'default',
+                    height: `${density === 'compact' ? 45 : density === 'comfortable' ? 50 : 57}px`
+                }
+            }
+        },
+        muiTableBodyCellProps: ({ row }) => ({
             onClick: async () => {
                 if (row.original.LockingUser) {
                     return
                 }
-
-                // switch (cell.column.id) {
-                //     case OP_READINESS:
-                //         let newPRecord: PRecord = JSON.parse(JSON.stringify(row.original))
-                //         newPRecord.opReadiness = !newPRecord.opReadiness
-                //         await updatePRecordWithDB(newPRecord)
-                //         emitSaveRecord(newPRecord)
-                //         break;
-
-                //     default:
-                //         break;
-                // }
             },
         }),
         onCreatingRowCancel: () => setValidationErrors({}),
         onCreatingRowSave: ({ table }) => handleCreatePRecord(table, 'ExceptReady'),
-        onEditingRowCancel: handleEditingCancel,
-        onEditingRowSave: ({ row, table }) => handleSavePRecord(row, table, 'ExceptReady'),
-        renderRowActions: ({ row, table }) => <SchedulingTableRow originalPRecord={originalPRecord} row={row} table={table} user={user} emitChangeRecord={emitChangeRecord} openDeleteConfirmModal={() => openDeleteConfirmModal(row, 'ExceptReady')} />,
+        onEditingRowCancel: ({ row }) => handleEditingCancel(row, 'ExceptReady'),
+        onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, 'ExceptReady', values),
+        renderRowActions: ({ row, table }) => <SchedulingTableRow
+            originalPRecord={originalPRecord}
+            row={row} table={table} user={user}
+            emitChangeRecord={emitChangeRecord}
+            openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
+            tableType="ExceptReady" />,
         renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} />,
         state: {
             isLoading: isLoadingExceptReadyPRecords,
@@ -434,14 +461,137 @@ const SchedulingTable = () => {
         },
     });
 
-    return <div className="w-full">
+    const [openAssignModal, setOpenAssignModal] = useState(false)
+    const [openDeleteModal, setOpenDeleteModal] = useState(false)
+
+    const actionPRecord = useRef<PRecord>()
+
+
+    const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
+        setOpenAssignModal(true)
+        actionPRecord.current = JSON.parse(JSON.stringify(row.original))
+        if (actionPRecord.current) {
+            emitChangeRecord(actionPRecord.current.id, actionPRecord.current, getTableType(actionPRecord.current.opReadiness))
+        }
+    }
+    const handleCloseAssignModal = () => {
+        setOpenAssignModal(false)
+        if (actionPRecord.current) {
+            emitUnLockRecord(actionPRecord.current.id, actionPRecord.current, getTableType(actionPRecord.current.opReadiness))
+        }
+        actionPRecord.current = undefined
+    }
+    const handleConfirmAssign = async () => {
+        if (actionPRecord.current) {
+            actionPRecord.current.doctor = user.id
+            actionPRecord.current.opReadiness = 'P'
+            await dbUpdateFnMapping['Ready'](actionPRecord.current);
+            createFnMapping['ExceptReady'](actionPRecord.current)
+        }
+        handleCloseAssignModal()
+    }
+    const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
+        setOpenDeleteModal(true)
+        actionPRecord.current = JSON.parse(JSON.stringify(row.original))
+        if (actionPRecord.current) {
+            emitChangeRecord(actionPRecord.current.id, actionPRecord.current, getTableType(actionPRecord.current.opReadiness))
+        }
+    }
+    const handleCloseDeleteModal = () => {
+        setOpenDeleteModal(false)
+        console.log(actionPRecord.current);
+
+        if (actionPRecord.current) {
+            console.log("Unlock");
+            emitUnLockRecord(actionPRecord.current.id, actionPRecord.current, getTableType(actionPRecord.current.opReadiness))
+        }
+        actionPRecord.current = undefined
+    }
+    const handleConfirmDelete = async () => {
+        if (actionPRecord.current) {
+            const tableType = getTableType(actionPRecord.current.opReadiness)
+            dbDeleteFnMapping[tableType](actionPRecord.current.id);
+            emitDeleteRecord(actionPRecord.current.id, tableType);
+        }
+        handleCloseDeleteModal()
+    }
+
+
+    const AssignmentDialog = () => {
+        return <Dialog
+            open={openAssignModal}
+            onClose={handleCloseAssignModal}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">
+                시술 배정
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                    {actionPRecord.current?.chartNum}, {actionPRecord.current?.patientName}, {TREATEMENTS.find(t => t.id === actionPRecord.current?.treatment1)?.title} 시술을 진행하시겠습니까?
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleConfirmAssign} autoFocus>
+                    확인
+                </Button>
+                <Button onClick={handleCloseAssignModal}>취소</Button>
+            </DialogActions>
+        </Dialog>
+    }
+
+    const DeleteRecordDialog = () => {
+        return <Dialog
+            open={openDeleteModal}
+            onClose={handleCloseDeleteModal}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+        >
+            <DialogTitle id="alert-dialog-title">
+                차트 삭제
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                    차트번호 {actionPRecord.current?.chartNum}를 삭제하시겠습니까?
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleConfirmDelete} autoFocus>
+                    확인
+                </Button>
+                <Button onClick={handleCloseDeleteModal}>취소</Button>
+            </DialogActions>
+        </Dialog>
+    }
+    return <div className="w-full h-full gap-2 flex flex-col">
+        {/* Assignment Modal */}
+        <AssignmentDialog />
+        <DeleteRecordDialog />
         <MaterialReactTable table={readyTable} />
         <MaterialReactTable table={exceptReadyTable} />
     </div>
 }
+const getTableType = (opReadiness: OpReadiness): TableType => {
+    if (opReadiness === 'Y') {
+        return 'Ready'
+    } else {
+        return 'ExceptReady'
+    }
+}
+const validOpReadiessWithTable = (precord: PRecord, queryDataName?: string, tableType?: TableType): boolean => {
+    if (queryDataName) {
+        return ((queryDataName === 'Ready_PRecord' && precord.opReadiness === 'Y') || (queryDataName === 'Except_PRecord' && precord.opReadiness !== 'Y'))
+    }
+    if (tableType) {
+        return ((tableType === 'Ready' && precord.opReadiness === 'Y') || (tableType === 'ExceptReady' && precord.opReadiness !== 'Y'))
+    }
+    return false
+}
 
 // End ---------------------------------------------- Table definition
-
+// handleSave -> update (async, 기존), create (반대 타입)
+// onSave -> update ()
 // Start ---------------------------------------------- CRUD
 function useUpdatePRecord(queryDataName: string) {
     const queryClient = useQueryClient();
@@ -451,9 +601,15 @@ function useUpdatePRecord(queryDataName: string) {
         },
         onMutate: (newPRecord: PRecord) => {
             queryClient.setQueryData([queryDataName], (prevs: any) => {
-                return prevs?.map((prevPRecord: PRecord) => {
-                    return prevPRecord.id === newPRecord.id ? newPRecord : prevPRecord
+                let newPRecords: PRecord[] = []
+                prevs?.forEach((prevPRecord: PRecord) => {
+                    if (prevPRecord.id !== newPRecord.id) {
+                        newPRecords.push(prevPRecord)
+                    } else if (validOpReadiessWithTable(newPRecord, queryDataName)) {
+                        newPRecords.push(newPRecord)
+                    }
                 })
+                return newPRecords
             }
             );
         },
@@ -485,16 +641,11 @@ function useGetPRecords(queryDataName: string) {
         queryFn: async () => {
             let mock: PRecord[] = []
 
-            if (queryDataName == 'Ready_PRecord') {
+            if (queryDataName !== 'Ready_PRecord') {
                 mock = MOCK
             } else {
                 mock = MOCK2
             }
-            //send api request here
-            // await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-            // console.log("useGetPR");
-
-            // return Promise.resolve(mock);
             return Promise.resolve(mock);
         },
         refetchOnWindowFocus: false,

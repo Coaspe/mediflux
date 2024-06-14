@@ -14,7 +14,7 @@ export type PRecord = {
     checkInTime?: number;  // TIMESTAMP (e.g., "14:08")
     chartNum?: string;  // VARCHAR (15)
     patientName?: string;  // VARCHAR (100)
-    opReadiness?: OpReadiness;  // BOOLEAN (e.g., "T", "F" interpreted as true/false)
+    opReadiness: OpReadiness;  // BOOLEAN (e.g., "T", "F" interpreted as true/false)
     treatment1?: string;  // VARCHAR (50)
     treatment2?: string;  // VARCHAR (50), optional
     treatment3?: string;  // VARCHAR (50), optional

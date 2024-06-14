@@ -24,24 +24,24 @@ io.on(CONNECTION, (socket) => {
         }
         io.in(ROOM_ID).emit(CONNECTED_USERS, Object.keys(roomUsers[ROOM_ID]));
     });
-    socket.on(LOCK_RECORD, ({ recordId, locker, isLocked }) => {
-        socket.broadcast.to(ROOM_ID).emit(LOCK_RECORD, { recordId, locker, isLocked });
+    socket.on(LOCK_RECORD, ({ recordId, locker, isLocked, tableType }) => {
+        socket.broadcast.to(ROOM_ID).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType });
     });
-    socket.on(DELETE_RECORD, ({ recordId }) => {
-        socket.broadcast.to(ROOM_ID).emit(DELETE_RECORD, { recordId });
+    socket.on(DELETE_RECORD, ({ recordId, tableType }) => {
+        socket.broadcast.to(ROOM_ID).emit(DELETE_RECORD, { recordId, tableType });
     });
-    socket.on(SAVE_RECORD, ({ recordId, record }) => {
-        socket.broadcast.to(ROOM_ID).emit(SAVE_RECORD, { recordId, record });
+    socket.on(SAVE_RECORD, ({ recordId, record, tableType }) => {
+        socket.broadcast.to(ROOM_ID).emit(SAVE_RECORD, { recordId, record, tableType });
     });
-    socket.on(UNLOCK_RECORD, ({ recordId }) => {
-        socket.broadcast.to(ROOM_ID).emit(UNLOCK_RECORD, { recordId });
+    socket.on(UNLOCK_RECORD, ({ recordId, tableType }) => {
+        socket.broadcast.to(ROOM_ID).emit(UNLOCK_RECORD, { recordId, tableType });
     });
-    socket.on(CREATE_RECORD, ({ record }) => {
+    socket.on(CREATE_RECORD, ({ record, tableType }) => {
         let precord = JSON.parse(record);
         precord['id'] = id.toString();
         id += 1;
         record = JSON.stringify(precord);
-        socket.broadcast.to(ROOM_ID).emit(CREATE_RECORD, { record });
+        socket.broadcast.to(ROOM_ID).emit(CREATE_RECORD, { record, tableType });
     });
 });
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

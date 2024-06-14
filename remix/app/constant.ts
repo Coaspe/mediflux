@@ -35,7 +35,7 @@ export const MOCK: PRecord[] = [
     {
         id: "2",
         patientName: "김미미",
-        doctor: "2",
+        doctor: "",
         checkInTime: 1716729890,
         chartNum: '12412312',
         opReadiness: 'N',
@@ -108,13 +108,15 @@ export const MOCK: PRecord[] = [
         consultant: '3',
         commentCaution: '배가 많이 고픈 상태'
     } as PRecord,
+
 ];
 
 export const MOCK2: PRecord[] = [
+
     {
-        id: "1",
+        id: "10",
         patientName: "나나미",
-        doctor: "1",
+        doctor: "",
         checkInTime: 1717686534,
         chartNum: '131242',
         opReadiness: 'Y',
@@ -131,9 +133,9 @@ export const MOCK2: PRecord[] = [
         commentCaution: '배가 많이 고픈 상태'
     } as PRecord,
     {
-        id: "2",
+        id: "6",
         patientName: "김미미",
-        doctor: "2",
+        doctor: "",
         checkInTime: 1716729890,
         chartNum: '12412312',
         opReadiness: 'Y',
@@ -150,9 +152,9 @@ export const MOCK2: PRecord[] = [
         commentCaution: '배가 많이 고픈 상태'
     } as PRecord,
     {
-        id: "3",
+        id: "7",
         patientName: "내루미",
-        doctor: "1",
+        doctor: "",
         checkInTime: 1716729990,
         chartNum: '2341241',
         opReadiness: 'Y',
@@ -169,9 +171,9 @@ export const MOCK2: PRecord[] = [
         commentCaution: '배가 많이 고픈 상태'
     } as PRecord,
     {
-        id: "4",
+        id: "8",
         patientName: "폴킴",
-        doctor: "5",
+        doctor: "",
         checkInTime: 1716729790,
         chartNum: '123124',
         opReadiness: 'Y',
@@ -188,9 +190,9 @@ export const MOCK2: PRecord[] = [
         commentCaution: '배가 많이 고픈 상태'
     } as PRecord,
     {
-        id: "5",
+        id: "9",
         patientName: "제임스",
-        doctor: "6",
+        doctor: "",
         checkInTime: 1716729790,
         chartNum: '1231214',
         opReadiness: 'Y',

@@ -1,5 +1,5 @@
 import { FC, MutableRefObject } from "react";
-import { PRecord, User } from "~/type";
+import { PRecord, TableType, User } from "~/type";
 import { Box, IconButton } from "@mui/material";
 import Dropdown from '@mui/joy/Dropdown';
 import Menu from '@mui/joy/Menu';
@@ -17,18 +17,19 @@ interface Props {
     table: MRT_TableInstance<PRecord>
     user: User
     originalPRecord: MutableRefObject<PRecord | undefined>
-    emitChangeRecord: (id: string, record: PRecord) => void
+    emitChangeRecord: (id: string, record: PRecord, tableType: TableType) => void
     openDeleteConfirmModal: (row: MRT_Row<PRecord>) => void
+    tableType: TableType
 }
 
-const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitChangeRecord, openDeleteConfirmModal, originalPRecord }) => {
+const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitChangeRecord, openDeleteConfirmModal, originalPRecord, tableType }) => {
     const onClickEditIcon = () => {
         if (row.original.LockingUser) {
             return
         }
         originalPRecord.current = JSON.parse(JSON.stringify(row.original))
         table.setEditingRow(row);
-        emitChangeRecord(row.id, row.original);
+        emitChangeRecord(row.id, row.original, tableType);
     }
     return <Box sx={{ display: "flex", justifyContent: 'center', alignItems: 'center', zIndex: 100, width: '100%' }}>
         {row.original.LockingUser && row.original.LockingUser.id != user.id
