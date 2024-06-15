@@ -5,6 +5,7 @@ import {
     type MRT_Row,
     type MRT_ColumnDef,
     MRT_TableInstance,
+    LiteralUnion,
 } from "material-react-table";
 import {
     UseMutateAsyncFunction,
@@ -34,7 +35,7 @@ import {
     PORT,
     TREATEMENTS,
 } from 'shared'
-import { OpReadiness, PRecord, TableType, User } from "~/type";
+import { OpReadiness, PRecord, QueryDataName, TableType, User } from "~/type";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
 import { checkinTimeColumn, chartNumberColumn, patientNameColumn, opReadinessColumn, treatment1Column, quantitytreat1Column, treatmentRoomColumn, doctorColumn, anesthesiaNoteColumn, skincareSpecialist1Column, skincareSpecialist2Column, nursingStaff1Column, nursingStaff2Column, coordinatorColumn, consultantColumn, commentCautionColumn } from "~/utils/Table/columnDef";
@@ -44,7 +45,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import { action } from "~/routes/_index";
+
 const SchedulingTable = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [clients, setClients] = useState<String[]>([]);
@@ -118,8 +119,7 @@ const SchedulingTable = () => {
         if (tableType == 'ExceptReady') {
             table = exceptReadyTable
         }
-        let row = table.getRow(recordId).original
-        console.log(row);
+        let row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
         return row
     }
     const onLockRecord = ({ recordId, locker, tableType }: { recordId: string, locker: User, tableType: TableType }) => {
@@ -170,7 +170,6 @@ const SchedulingTable = () => {
         useUpdatePRecord('Ready_PRecord');
     const { mutate: deleteReadyPRecord, mutateAsync: deleteReadyPRecordWithDB, isPending: isDeletingReadyPRecord } =
         useDeletePRecord('Ready_PRecord');
-    // DB Mutation
 
     const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } =
         useCreatePRecord('ExceptReady_PRecord');
@@ -212,18 +211,55 @@ const SchedulingTable = () => {
         'ExceptReady': deleteExceptReadyPRecordWithDB
     }
     // DB Mutation
+
     const handleEditingCancel = (row: MRT_Row<PRecord>, tableType: TableType) => {
         setValidationErrors({})
         emitUnLockRecord(row.id, row.original, tableType)
+        originalPRecord.current = undefined
     }
 
-    const handleSavePRecord = async (row: MRT_Row<PRecord>, table: MRT_TableInstance<PRecord>, tableType: TableType, values: PRecord) => {
-        let precord = values
-        if (originalPRecord.current === undefined) {
-            precord.id = row.original.id
-        } else {
-            precord = originalPRecord.current
+    function areObjectsEqual(obj1: PRecord, obj2: PRecord): boolean {
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+
+        if (keys1.length !== keys2.length) {
+            return false;
         }
+
+        for (let key of keys1) {
+            if (!obj2.hasOwnProperty(key)) {
+                return false;
+            }
+
+            if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
+                if (!areObjectsEqual(obj1[key], obj2[key])) {
+                    return false;
+                }
+            } else {
+                if (obj1[key] !== obj2[key]) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    const handleSavePRecord = async (row: MRT_Row<PRecord>, table: MRT_TableInstance<PRecord>, tableType: TableType, values: Record<LiteralUnion<string, string>, any>) => {
+        let precord = values as PRecord
+
+        if (precord.id === undefined) {
+            precord.id = row.original.id
+        }
+
+        if (originalPRecord.current) {
+            for (let key of Object.keys(row.original)) {
+                if ((typeof row.original[key] === 'object' && areObjectsEqual(row.original[key], originalPRecord.current[key])) || row.original[key] !== originalPRecord.current[key]) {
+                    precord[key] = originalPRecord.current[key]
+                }
+            }
+        }
+
         setValidationErrors({});
 
         if (precord.opReadiness === 'Y' && precord.doctor) {
@@ -231,8 +267,13 @@ const SchedulingTable = () => {
         }
 
         await dbUpdateFnMapping[tableType](precord);
-        if (!validOpReadiessWithTable(precord, undefined, tableType)) {
-            createFnMapping[tableType === 'Ready' ? 'ExceptReady' : 'Ready'](precord)
+
+        let otherType: TableType = tableType === 'Ready' ? 'ExceptReady' : 'Ready'
+        if (!isInvalidOpReadiessWithTable(precord, undefined, otherType)) {
+            createFnMapping[otherType](precord)
+            emitCreateRecord(precord, otherType)
+            emitDeleteRecord(precord.id, tableType)
+            // createFnMapping[otherType](precord)
         }
 
         table.setEditingRow(null); //exit editing mode
@@ -240,16 +281,33 @@ const SchedulingTable = () => {
         if (precord.LockingUser?.id === user.id) {
             emitUnLockRecord(row.id, precord, tableType)
         }
+
+        originalPRecord.current = undefined
     };
 
-    const handleCreatePRecord = async (table: MRT_TableInstance<PRecord>, tableType: TableType) => {
-        if (originalPRecord.current != undefined) {
-            setValidationErrors({});
-            await dbCreateFnMapping[tableType](originalPRecord.current)
-            table.setCreatingRow(null); //exit creating mode
-            emitCreateRecord(originalPRecord.current, tableType);
-            originalPRecord.current = undefined
+    const id = useRef(11)
+
+    const handleCreatePRecord = async (table: MRT_TableInstance<PRecord>, tableType: TableType, values: Record<LiteralUnion<string, string>, any>) => {
+        let precord = values as PRecord
+        console.log(precord, originalPRecord.current);
+        if (originalPRecord.current) {
+            for (let key of Object.keys(originalPRecord.current)) {
+                if ((typeof originalPRecord.current[key] === 'object' && areObjectsEqual(originalPRecord.current[key], precord[key])) || originalPRecord.current[key] !== precord[key]) {
+                    precord[key] = originalPRecord.current[key]
+                }
+            }
         }
+
+
+        precord.id = id.current.toString()
+        id.current += 1
+
+        setValidationErrors({});
+        await dbCreateFnMapping[tableType](precord)
+        table.setCreatingRow(null); //exit creating mode
+        emitCreateRecord(precord, tableType);
+        originalPRecord.current = undefined
+
     };
 
     // Start ---------------------------------------------- Emit socket event
@@ -276,12 +334,33 @@ const SchedulingTable = () => {
     // End ---------------------------------------------- Emit socket event
 
     // Start ---------------------------------------------- Column definition
-    const columns = useMemo<MRT_ColumnDef<PRecord>[]>(
+    const readyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
         () => [
             checkinTimeColumn(originalPRecord),
             chartNumberColumn,
             patientNameColumn,
-            opReadinessColumn,
+            opReadinessColumn('Ready'),
+            treatment1Column(originalPRecord),
+            quantitytreat1Column,
+            treatmentRoomColumn,
+            doctorColumn(originalPRecord),
+            anesthesiaNoteColumn,
+            skincareSpecialist1Column(originalPRecord),
+            skincareSpecialist2Column(originalPRecord),
+            nursingStaff1Column(originalPRecord),
+            nursingStaff2Column(originalPRecord),
+            coordinatorColumn(originalPRecord),
+            consultantColumn(originalPRecord),
+            commentCautionColumn,
+        ],
+        [validationErrors]
+    );
+    const exceptReadyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
+        () => [
+            checkinTimeColumn(originalPRecord),
+            chartNumberColumn,
+            patientNameColumn,
+            opReadinessColumn('ExceptReady'),
             treatment1Column(originalPRecord),
             quantitytreat1Column,
             treatmentRoomColumn,
@@ -301,7 +380,7 @@ const SchedulingTable = () => {
 
     // Start ---------------------------------------------- Table definition
     const readyTable = useMaterialReactTable({
-        columns,
+        columns: readyColumns,
         data: fetchedReadyPRecords ? fetchedReadyPRecords : [],
         localization: MRT_Localization_KO,
         // enableRowSelection: true,
@@ -321,9 +400,12 @@ const SchedulingTable = () => {
                 },
             },
         },
-        muiTableContainerProps: {
-            sx: {
-                height: '300px',
+        muiTableContainerProps: ({ table }) => {
+            const { isFullScreen } = table.getState()
+            return {
+                sx: {
+                    height: isFullScreen ? '100%' : '300px',
+                }
             }
         },
         muiTableProps: ({ }) => ({
@@ -368,8 +450,11 @@ const SchedulingTable = () => {
                 // }
             },
         }),
-        onCreatingRowCancel: () => setValidationErrors({}),
-        onCreatingRowSave: ({ table }) => handleCreatePRecord(table, 'Ready'),
+        onCreatingRowCancel: () => {
+            originalPRecord.current = undefined
+            setValidationErrors({})
+        },
+        onCreatingRowSave: ({ table, values }) => handleCreatePRecord(table, 'Ready', values),
         onEditingRowCancel: ({ row }) => handleEditingCancel(row, 'Ready'),
         onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, 'Ready', values),
         renderRowActions: ({ row, table }) => <SchedulingTableRow originalPRecord={originalPRecord}
@@ -388,7 +473,7 @@ const SchedulingTable = () => {
     });
 
     const exceptReadyTable = useMaterialReactTable({
-        columns,
+        columns: exceptReadyColumns,
         data: fetchedExceptReadyPRecords ? fetchedExceptReadyPRecords : [],
         localization: MRT_Localization_KO,
         // enableRowSelection: true,
@@ -408,9 +493,12 @@ const SchedulingTable = () => {
                 },
             },
         },
-        muiTableContainerProps: {
-            sx: {
-                height: '300px',
+        muiTableContainerProps: ({ table }) => {
+            const { isFullScreen } = table.getState()
+            return {
+                sx: {
+                    height: isFullScreen ? '100%' : '300px',
+                }
             }
         },
         muiTableProps: ({ }) => ({
@@ -442,8 +530,8 @@ const SchedulingTable = () => {
                 }
             },
         }),
-        onCreatingRowCancel: () => setValidationErrors({}),
-        onCreatingRowSave: ({ table }) => handleCreatePRecord(table, 'ExceptReady'),
+        onCreatingRowCancel: () => { setValidationErrors({}); originalPRecord.current = undefined },
+        onCreatingRowSave: ({ values, table }) => handleCreatePRecord(table, 'ExceptReady', values),
         onEditingRowCancel: ({ row }) => handleEditingCancel(row, 'ExceptReady'),
         onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, 'ExceptReady', values),
         renderRowActions: ({ row, table }) => <SchedulingTableRow
@@ -485,6 +573,8 @@ const SchedulingTable = () => {
         if (actionPRecord.current) {
             actionPRecord.current.doctor = user.id
             actionPRecord.current.opReadiness = 'P'
+            emitDeleteRecord(actionPRecord.current.id, 'Ready')
+            emitCreateRecord(actionPRecord.current, 'ExceptReady')
             await dbUpdateFnMapping['Ready'](actionPRecord.current);
             createFnMapping['ExceptReady'](actionPRecord.current)
         }
@@ -499,10 +589,8 @@ const SchedulingTable = () => {
     }
     const handleCloseDeleteModal = () => {
         setOpenDeleteModal(false)
-        console.log(actionPRecord.current);
 
         if (actionPRecord.current) {
-            console.log("Unlock");
             emitUnLockRecord(actionPRecord.current.id, actionPRecord.current, getTableType(actionPRecord.current.opReadiness))
         }
         actionPRecord.current = undefined
@@ -572,19 +660,27 @@ const SchedulingTable = () => {
         <MaterialReactTable table={exceptReadyTable} />
     </div>
 }
-const getTableType = (opReadiness: OpReadiness): TableType => {
+const getTableType = (opReadiness?: OpReadiness): TableType => {
     if (opReadiness === 'Y') {
         return 'Ready'
     } else {
         return 'ExceptReady'
     }
 }
-const validOpReadiessWithTable = (precord: PRecord, queryDataName?: string, tableType?: TableType): boolean => {
+const isInvalidOpReadiessWithTable = (precord: PRecord, queryDataName?: QueryDataName, tableType?: TableType): boolean => {
+    if (!precord.opReadiness) {
+        return false
+    }
+
     if (queryDataName) {
-        return ((queryDataName === 'Ready_PRecord' && precord.opReadiness === 'Y') || (queryDataName === 'Except_PRecord' && precord.opReadiness !== 'Y'))
+        if ((queryDataName === 'Ready_PRecord' && precord.opReadiness !== 'Y') || (queryDataName === 'ExceptReady_PRecord' && precord.opReadiness === 'Y')) {
+            return true
+        }
     }
     if (tableType) {
-        return ((tableType === 'Ready' && precord.opReadiness === 'Y') || (tableType === 'ExceptReady' && precord.opReadiness !== 'Y'))
+        if ((tableType === 'Ready' && precord.opReadiness !== 'Y') || (tableType === 'ExceptReady' && precord.opReadiness === 'Y')) {
+            return true
+        }
     }
     return false
 }
@@ -593,19 +689,24 @@ const validOpReadiessWithTable = (precord: PRecord, queryDataName?: string, tabl
 // handleSave -> update (async, 기존), create (반대 타입)
 // onSave -> update ()
 // Start ---------------------------------------------- CRUD
-function useUpdatePRecord(queryDataName: string) {
+function useUpdatePRecord(queryDataName: QueryDataName) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (precord: PRecord) => {
             return Promise.resolve();
         },
         onMutate: (newPRecord: PRecord) => {
+
             queryClient.setQueryData([queryDataName], (prevs: any) => {
+                console.log(prevs, newPRecord);
                 let newPRecords: PRecord[] = []
                 prevs?.forEach((prevPRecord: PRecord) => {
+                    console.log(prevPRecord.id, newPRecord.id);
                     if (prevPRecord.id !== newPRecord.id) {
+
                         newPRecords.push(prevPRecord)
-                    } else if (validOpReadiessWithTable(newPRecord, queryDataName)) {
+                    } else if (!isInvalidOpReadiessWithTable(newPRecord, queryDataName)) {
+                        console.log(newPRecord, queryDataName);
                         newPRecords.push(newPRecord)
                     }
                 })
@@ -617,7 +718,7 @@ function useUpdatePRecord(queryDataName: string) {
     });
 }
 
-function useDeletePRecord(queryDataName: string) {
+function useDeletePRecord(queryDataName: QueryDataName) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (precordId: string) => {
@@ -635,7 +736,7 @@ function useDeletePRecord(queryDataName: string) {
     });
 }
 
-function useGetPRecords(queryDataName: string) {
+function useGetPRecords(queryDataName: QueryDataName) {
     return useQuery<PRecord[]>({
         queryKey: [queryDataName],
         queryFn: async () => {
@@ -652,7 +753,7 @@ function useGetPRecords(queryDataName: string) {
     });
 }
 
-function useCreatePRecord(queryDataName: string) {
+function useCreatePRecord(queryDataName: QueryDataName) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (precord: PRecord) => {
@@ -662,6 +763,8 @@ function useCreatePRecord(queryDataName: string) {
         },
         //client side optimistic update
         onMutate: (newPRecordInfo: PRecord) => {
+            console.log(newPRecordInfo);
+
             queryClient.setQueryData([queryDataName], (prevPRecords: any) => {
                 return [
                     newPRecordInfo,

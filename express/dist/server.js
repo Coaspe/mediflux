@@ -9,7 +9,6 @@ const io = new Server(server, {
         origin: "*",
     },
 });
-let id = 11;
 const roomUsers = {};
 roomUsers[ROOM_ID] = {};
 io.on(CONNECTION, (socket) => {
@@ -37,10 +36,6 @@ io.on(CONNECTION, (socket) => {
         socket.broadcast.to(ROOM_ID).emit(UNLOCK_RECORD, { recordId, tableType });
     });
     socket.on(CREATE_RECORD, ({ record, tableType }) => {
-        let precord = JSON.parse(record);
-        precord['id'] = id.toString();
-        id += 1;
-        record = JSON.stringify(precord);
         socket.broadcast.to(ROOM_ID).emit(CREATE_RECORD, { record, tableType });
     });
 });

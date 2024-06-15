@@ -2,7 +2,7 @@ import { MRT_ColumnDef, MRT_Row } from "material-react-table"
 import { TREATEMENTS } from "shared"
 import { checkInTimeCell, checkInTimeEdit, opReadinessCell, treatmentEdit, StaffEdit, nameChipCell } from "~/components/Table/ColumnRenderers"
 import { DOCTORS, CHECK_IN_TIME, CHECK_IN_TIME_H, LONG_JUSTIFIED_CENTER_COLUMN_LENGTH, CHART_NUMBER, CHART_NUMBER_H, PATIENT_NAME, PATIENT_NAME_H, OP_READINESS, OP_READINESS_H, SHORT_COLUMN_LENGTH, TREATMENT1, TREATMENT1_H, QUANTITYTREAT1, QUANTITYTREAT1_H, TREATMENT_ROOM, TREATMENT_ROOM_H, MEDIUM_COLUMN_LENGTH, DOCTOR, DOCTOR_H, ANESTHESIANOTE, ANESTHESIANOTE_H, SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, NURSINGSTAFF1, NURSINGSTAFF1_H, NURSINGSTAFF2, NURSINGSTAFF2_H, COORDINATOR, COORDINATOR_H, CONSULTANT, CONSULTANT_H, COMMENTCAUTION, COMMENTCAUTION_H, LONG_LEFT_JUSTIFIED_COLUMN_LENGTH, SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH } from "~/constant"
-import { SearchHelp, PRecord } from "~/type"
+import { SearchHelp, PRecord, TableType } from "~/type"
 import { getValueWithId } from "../utils"
 import { MutableRefObject } from "react"
 
@@ -46,19 +46,22 @@ export const patientNameColumn: MRT_ColumnDef<PRecord> = {
         align: 'center',
     },
 }
-export const opReadinessColumn: MRT_ColumnDef<PRecord> = {
-    accessorKey: OP_READINESS,
-    header: OP_READINESS_H,
-    editVariant: 'select',
-    editSelectOptions: [{ label: '완료', value: 'Y' }, { label: '미완료', value: 'N' }, { label: '시술완료', value: 'C' }, { label: "시술 중", value: 'P' }],
-    Cell: opReadinessCell,
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
-    muiTableHeadCellProps: {
-        align: 'center',
-    },
-    muiTableBodyCellProps: {
-        align: 'center',
-    },
+export const opReadinessColumn = (tableType: TableType): MRT_ColumnDef<PRecord> => {
+    let selectOptions = tableType === 'Ready' ? [{ label: '완료', value: 'Y' }] : [{ label: '미완료', value: 'N' }, { label: '시술완료', value: 'C' }, { label: "시술 중", value: 'P' }]
+    return {
+        accessorKey: OP_READINESS,
+        header: OP_READINESS_H,
+        editVariant: 'select',
+        editSelectOptions: selectOptions,
+        Cell: opReadinessCell,
+        size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
+        muiTableHeadCellProps: {
+            align: 'center',
+        },
+        muiTableBodyCellProps: {
+            align: 'center',
+        },
+    }
 }
 export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
     return {

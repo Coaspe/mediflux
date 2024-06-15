@@ -24,7 +24,6 @@ const io = new Server(server, {
   },
 });
 
-let id = 11
 const roomUsers: { [key: string]: { [key: string]: string } } = {};
 roomUsers[ROOM_ID] = {}
 io.on(CONNECTION, (socket) => {
@@ -69,10 +68,6 @@ io.on(CONNECTION, (socket) => {
   });
 
   socket.on(CREATE_RECORD, ({ record, tableType }: { record: string, tableType: string }) => {
-    let precord = JSON.parse(record)
-    precord['id'] = id.toString()
-    id += 1
-    record = JSON.stringify(precord)
     socket.broadcast.to(ROOM_ID).emit(CREATE_RECORD, { record, tableType })
   })
 });
