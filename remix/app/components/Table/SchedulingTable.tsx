@@ -703,15 +703,12 @@ function useUpdatePRecord(queryDataName: QueryDataName) {
         onMutate: (newPRecord: PRecord) => {
 
             queryClient.setQueryData([queryDataName], (prevs: any) => {
-                console.log(prevs, newPRecord);
                 let newPRecords: PRecord[] = []
                 prevs?.forEach((prevPRecord: PRecord) => {
-                    console.log(prevPRecord.id, newPRecord.id);
                     if (prevPRecord.id !== newPRecord.id) {
 
                         newPRecords.push(prevPRecord)
                     } else if (!isInvalidOpReadiessWithTable(newPRecord, queryDataName)) {
-                        console.log(newPRecord, queryDataName);
                         newPRecords.push(newPRecord)
                     }
                 })
