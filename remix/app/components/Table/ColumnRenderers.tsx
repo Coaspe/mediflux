@@ -75,7 +75,7 @@ export const opReadinessCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) 
             break;
     }
 
-    return <Chip style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} />
+    return label ? <Chip style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} /> : ""
 }
 
 export const treatmentEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRefObject<PRecord | undefined>) => {

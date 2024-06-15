@@ -11,6 +11,7 @@ import { MRT_Row, MRT_TableInstance } from "material-react-table";
 import { MoreHoriz } from "@mui/icons-material";
 import { ListItemDecorator } from "@mui/joy";
 import { nameChipRendererByRole } from "./ColumnRenderers";
+import { OP_READINESS } from "~/constant";
 
 interface Props {
     row: MRT_Row<PRecord>,
@@ -28,6 +29,7 @@ const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitChangeRecor
             return
         }
         originalPRecord.current = JSON.parse(JSON.stringify(row.original))
+        table.getColumn(OP_READINESS).columnDef.editSelectOptions = [{ label: '준비 완료', value: 'Y' }, { label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }]
         table.setEditingRow(row);
         emitChangeRecord(row.id, row.original, tableType);
     }

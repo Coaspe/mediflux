@@ -47,12 +47,11 @@ export const patientNameColumn: MRT_ColumnDef<PRecord> = {
     },
 }
 export const opReadinessColumn = (tableType: TableType): MRT_ColumnDef<PRecord> => {
-    let selectOptions = tableType === 'Ready' ? [{ label: '완료', value: 'Y' }] : [{ label: '미완료', value: 'N' }, { label: '시술완료', value: 'C' }, { label: "시술 중", value: 'P' }]
     return {
         accessorKey: OP_READINESS,
         header: OP_READINESS_H,
         editVariant: 'select',
-        editSelectOptions: selectOptions,
+        editSelectOptions: [{ label: '준비 완료', value: 'Y' }, { label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }],
         Cell: opReadinessCell,
         size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
         muiTableHeadCellProps: {

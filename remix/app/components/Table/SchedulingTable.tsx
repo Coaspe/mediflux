@@ -285,11 +285,12 @@ const SchedulingTable = () => {
         originalPRecord.current = undefined
     };
 
+    // Temporary id - Soon replaced with id from DB.
     const id = useRef(11)
 
     const handleCreatePRecord = async (table: MRT_TableInstance<PRecord>, tableType: TableType, values: Record<LiteralUnion<string, string>, any>) => {
         let precord = values as PRecord
-        console.log(precord, originalPRecord.current);
+
         if (originalPRecord.current) {
             for (let key of Object.keys(originalPRecord.current)) {
                 if ((typeof originalPRecord.current[key] === 'object' && areObjectsEqual(originalPRecord.current[key], precord[key])) || originalPRecord.current[key] !== precord[key]) {
@@ -302,11 +303,15 @@ const SchedulingTable = () => {
         precord.id = id.current.toString()
         id.current += 1
 
-        setValidationErrors({});
+        if (isInvalidOpReadiessWithTable(precord, undefined, tableType)) {
+            tableType = tableType === 'Ready' ? 'ExceptReady' : 'Ready'
+        }
+
         await dbCreateFnMapping[tableType](precord)
-        table.setCreatingRow(null); //exit creating mode
         emitCreateRecord(precord, tableType);
         originalPRecord.current = undefined
+        table.setCreatingRow(null); //exit creating mode
+        setValidationErrors({});
 
     };
 
@@ -462,7 +467,7 @@ const SchedulingTable = () => {
             emitChangeRecord={emitChangeRecord}
             openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
             tableType="Ready" />,
-        renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} />,
+        renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="Ready" />,
         getRowId: (originalRow) => originalRow.id,
         state: {
             isLoading: isLoadingReadyPRecords,
@@ -540,7 +545,7 @@ const SchedulingTable = () => {
             emitChangeRecord={emitChangeRecord}
             openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
             tableType="ExceptReady" />,
-        renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} />,
+        renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="ExceptReady" />,
         state: {
             isLoading: isLoadingExceptReadyPRecords,
             isSaving: isCreatingExceptReadyPRecord || isUpdatingExceptReadyPRecord || isDeletingExceptReadyPRecord,
@@ -763,7 +768,6 @@ function useCreatePRecord(queryDataName: QueryDataName) {
         },
         //client side optimistic update
         onMutate: (newPRecordInfo: PRecord) => {
-            console.log(newPRecordInfo);
 
             queryClient.setQueryData([queryDataName], (prevPRecords: any) => {
                 return [
