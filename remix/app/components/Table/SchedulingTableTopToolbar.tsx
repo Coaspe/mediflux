@@ -2,7 +2,7 @@ import { Button } from "@mui/material"
 import dayjs from "dayjs"
 import { MRT_TableInstance } from "material-react-table"
 import { FC, MutableRefObject } from "react"
-import { MOCK, MOCK2, OP_READINESS, OP_READINESS_H } from "~/constant"
+import { MOCK, MOCK2, OP_READINESS } from "~/constant"
 import { PRecord, TableType } from "~/type"
 
 interface Props {
@@ -23,7 +23,7 @@ const SchedulingTableTopToolbar: FC<Props> = ({ table, originalPRecord, tableTyp
         className="bg-button"
         onClick={() => {
             originalPRecord.current = { id: getMaxId(), checkInTime: dayjs().unix() } as PRecord
-            table.getColumn(OP_READINESS).columnDef.editSelectOptions = tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }]
+            // table.getColumn(OP_READINESS).columnDef.editSelectOptions = tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }]
             table.setCreatingRow(true)
         }}
     >

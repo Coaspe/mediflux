@@ -37,6 +37,9 @@ export const chartNumberColumn: MRT_ColumnDef<PRecord> = {
     muiTableHeadCellProps: {
         align: 'center',
     },
+    muiEditTextFieldProps: {
+        required: true,
+    }
 }
 export const patientNameColumn: MRT_ColumnDef<PRecord> = {
     accessorKey: PATIENT_NAME,
@@ -45,13 +48,16 @@ export const patientNameColumn: MRT_ColumnDef<PRecord> = {
     muiTableHeadCellProps: {
         align: 'center',
     },
+    muiEditTextFieldProps: {
+        required: true,
+    }
 }
 export const opReadinessColumn = (tableType: TableType): MRT_ColumnDef<PRecord> => {
     return {
         accessorKey: OP_READINESS,
         header: OP_READINESS_H,
         editVariant: 'select',
-        editSelectOptions: [{ label: '준비 완료', value: 'Y' }, { label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }],
+        editSelectOptions: tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }],
         Cell: opReadinessCell,
         size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
         muiTableHeadCellProps: {
@@ -60,6 +66,10 @@ export const opReadinessColumn = (tableType: TableType): MRT_ColumnDef<PRecord> 
         muiTableBodyCellProps: {
             align: 'center',
         },
+        muiEditTextFieldProps: {
+            required: true,
+            defaultValue: 'Y'
+        }
     }
 }
 export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {

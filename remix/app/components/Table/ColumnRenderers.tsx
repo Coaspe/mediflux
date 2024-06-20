@@ -4,14 +4,15 @@ import {
     type MRT_Cell,
 } from "material-react-table";
 import { ChipColor, OpReadiness, PRecord, Role, SearchHelp } from '../../type'
-import { Autocomplete, Box, Chip, TextField } from "@mui/material";
+import { Autocomplete, Box, TextField } from "@mui/material";
+import Chip from '@mui/material/Chip';
 import { TREATEMENTS } from "shared";
 import { CONSULTANT, COORDINATOR, DOCTOR, DOCTORS, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { MutableRefObject, ReactNode } from "react";
+import { MutableRefObject, ReactNode, useEffect, useRef, useState } from "react";
 import { ChipPropsColorOverrides, ChipPropsSizeOverrides, } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 
@@ -56,6 +57,45 @@ export const treatmentCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) =>
 
     return
 }
+
+const OpReadinessChip = ({ label, size, color }: { label: ReactNode, size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides>, color: OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides> }) => {
+    const STATUS_OPTIONS = ['Y', 'N', 'P', 'C']
+    const [open, setOpen] = useState(false);
+    const anchorRef = useRef<HTMLElement | null>(null);
+    const popperRef = useRef<HTMLDivElement | null>(null);
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+        anchorRef.current = event.target as HTMLElement
+        setOpen((prev) => !prev);
+    };
+
+    const handleClose = (event: MouseEvent | TouchEvent) => {
+        if (popperRef.current && anchorRef.current && !popperRef.current.contains(event.target as Node) && !anchorRef.current.contains(event.target as Node)) {
+            setOpen(false);
+        }
+    };
+
+
+    useEffect(() => {
+        if (open) {
+            document.addEventListener('mousedown', handleClose);
+            document.addEventListener('touchstart', handleClose);
+        } else {
+            document.removeEventListener('mousedown', handleClose);
+            document.removeEventListener('touchstart', handleClose);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClose);
+            document.removeEventListener('touchstart', handleClose);
+        };
+    }, [open]);
+
+
+    return label ? <div>
+        <Chip onDoubleClick={(event) => { event.stopPropagation() }} onClick={handleClick} style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} />
+    </div> : <></>
+}
 export const opReadinessCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
     let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = 'small'
     let label: ReactNode = cell.getValue<OpReadiness>()
@@ -75,9 +115,8 @@ export const opReadinessCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) 
             break;
     }
 
-    return label ? <Chip style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} /> : ""
+    return <OpReadinessChip label={label} size={size} color={color} />
 }
-
 export const treatmentEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRefObject<PRecord | undefined>) => {
     let idx = -1
     for (let i = 0; i < TREATEMENTS.length; i++) {

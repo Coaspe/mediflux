@@ -1,14 +1,14 @@
 import { OpReadiness, PRecord, SearchHelp } from "./type";
 
 export const SIDE_MENU = {
-  SCHEDULING: "scheduling",
-  MYWORKS: "myworks",
+    SCHEDULING: "scheduling",
+    MYWORKS: "myworks",
 } as const;
 
 export const ROLE = {
-  DOCTOR: "doctor",
-  NURSE: "nurse",
-  STAFF: "staff",
+    DOCTOR: "doctor",
+    NURSE: "nurse",
+    STAFF: "staff",
 } as const;
 
 export const MOCK: PRecord[] = [];
@@ -17,70 +17,70 @@ const doctorAndStaffIds = ["1", "2", "3", "4", "5", "6"];
 const opReadinessOptions: OpReadiness[] = ["P", "N", "C"];
 const treatmentOptions = ["1", "2", "3", "4", "5", "6", "7", "8"];
 const patientNames = [
-  "나나미",
-  "김미미",
-  "내루미",
-  "폴킴",
-  "제임스",
-  "사이먼",
-  "조지",
-  "마이크",
-  "리사",
-  "수지",
+    "나나미",
+    "김미미",
+    "내루미",
+    "폴킴",
+    "제임스",
+    "사이먼",
+    "조지",
+    "마이크",
+    "리사",
+    "수지",
 ]; // 예시 이름 리스트
 
 const getRandomElement = <T>(arr: T[]): T =>
-  arr[Math.floor(Math.random() * arr.length)];
+    arr[Math.floor(Math.random() * arr.length)];
 
 for (let i = 1; i <= 1000; i++) {
-  const record: PRecord = {
-    id: i.toString(),
-    patientName: getRandomElement(patientNames),
-    doctor: getRandomElement(doctorAndStaffIds),
-    checkInTime: Date.now() - Math.floor(Math.random() * 1000000000),
-    chartNum: Math.floor(Math.random() * 100000000).toString(),
-    opReadiness: getRandomElement(opReadinessOptions),
-    treatment1: getRandomElement(treatmentOptions),
-    quantityTreat1: Math.floor(Math.random() * 5) + 1, // 1부터 5까지의 숫자
-    treatmentRoom: Math.floor(Math.random() * 10) + 1, // 1부터 10까지의 숫자
-    anesthesiaNote: "눈 마취 안 하심",
-    skincareSpecialist1: getRandomElement(doctorAndStaffIds),
-    skincareSpecialist2: getRandomElement(doctorAndStaffIds),
-    nursingStaff1: getRandomElement(doctorAndStaffIds),
-    nursingStaff2: getRandomElement(doctorAndStaffIds),
-    coordinator: getRandomElement(doctorAndStaffIds),
-    consultant: getRandomElement(doctorAndStaffIds),
-    commentCaution: "배가 많이 고픈 상태",
-  };
+    const record: PRecord = {
+        id: i.toString(),
+        patientName: getRandomElement(patientNames),
+        doctor: getRandomElement(doctorAndStaffIds),
+        checkInTime: (Date.now() - Math.floor(Math.random() * 1000000000)) / 1000,
+        chartNum: Math.floor(Math.random() * 100000000).toString(),
+        opReadiness: getRandomElement(opReadinessOptions),
+        treatment1: getRandomElement(treatmentOptions),
+        quantityTreat1: Math.floor(Math.random() * 5) + 1, // 1부터 5까지의 숫자
+        treatmentRoom: Math.floor(Math.random() * 10) + 1, // 1부터 10까지의 숫자
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: getRandomElement(doctorAndStaffIds),
+        skincareSpecialist2: getRandomElement(doctorAndStaffIds),
+        nursingStaff1: getRandomElement(doctorAndStaffIds),
+        nursingStaff2: getRandomElement(doctorAndStaffIds),
+        coordinator: getRandomElement(doctorAndStaffIds),
+        consultant: getRandomElement(doctorAndStaffIds),
+        commentCaution: "배가 많이 고픈 상태",
+    };
 
-  MOCK.push(record);
+    MOCK.push(record);
 }
 
 const opReadinessOptions2: OpReadiness[] = ["Y"];
 export const MOCK2: PRecord[] = [];
 
 for (let i = 1; i <= 1000; i++) {
-  const record: PRecord = {
-    id: (i + 100).toString(),
-    patientName: getRandomElement(patientNames),
-    doctor: getRandomElement(doctorAndStaffIds),
-    checkInTime: Date.now() - Math.floor(Math.random() * 1000000000),
-    chartNum: Math.floor(Math.random() * 100000000).toString(),
-    opReadiness: getRandomElement(opReadinessOptions2),
-    treatment1: getRandomElement(treatmentOptions),
-    quantityTreat1: Math.floor(Math.random() * 5) + 1, // 1부터 5까지의 숫자
-    treatmentRoom: Math.floor(Math.random() * 10) + 1, // 1부터 10까지의 숫자
-    anesthesiaNote: "눈 마취 안 하심",
-    skincareSpecialist1: getRandomElement(doctorAndStaffIds),
-    skincareSpecialist2: getRandomElement(doctorAndStaffIds),
-    nursingStaff1: getRandomElement(doctorAndStaffIds),
-    nursingStaff2: getRandomElement(doctorAndStaffIds),
-    coordinator: getRandomElement(doctorAndStaffIds),
-    consultant: getRandomElement(doctorAndStaffIds),
-    commentCaution: "배가 많이 고픈 상태",
-  };
+    const record: PRecord = {
+        id: (i + 100).toString(),
+        patientName: getRandomElement(patientNames),
+        // doctor: getRandomElement(doctorAndStaffIds),
+        checkInTime: (Date.now() - Math.floor(Math.random() * 1000000000)) / 1000,
+        chartNum: Math.floor(Math.random() * 100000000).toString(),
+        opReadiness: getRandomElement(opReadinessOptions2),
+        treatment1: getRandomElement(treatmentOptions),
+        quantityTreat1: Math.floor(Math.random() * 5) + 1, // 1부터 5까지의 숫자
+        treatmentRoom: Math.floor(Math.random() * 10) + 1, // 1부터 10까지의 숫자
+        anesthesiaNote: "눈 마취 안 하심",
+        skincareSpecialist1: getRandomElement(doctorAndStaffIds),
+        skincareSpecialist2: getRandomElement(doctorAndStaffIds),
+        nursingStaff1: getRandomElement(doctorAndStaffIds),
+        nursingStaff2: getRandomElement(doctorAndStaffIds),
+        coordinator: getRandomElement(doctorAndStaffIds),
+        consultant: getRandomElement(doctorAndStaffIds),
+        commentCaution: "배가 많이 고픈 상태",
+    };
 
-  MOCK2.push(record);
+    MOCK2.push(record);
 }
 
 export const CHECK_IN_TIME = "checkInTime";
@@ -130,16 +130,16 @@ export const FIELDS_DOCTOR = ["의사"];
 export const FIELDS_PAITENT = ["고객 이름"];
 
 export const DOCTORS: SearchHelp[] = [
-  { id: "1", group: "", title: "이우람" },
-  { id: "2", group: "", title: "강승완" },
-  { id: "3", group: "", title: "황희찬" },
-  { id: "4", group: "", title: "손흥민" },
-  { id: "5", group: "", title: "즐라탄" },
-  { id: "6", group: "", title: "매머드" },
+    { id: "1", group: "", title: "이우람" },
+    { id: "2", group: "", title: "강승완" },
+    { id: "3", group: "", title: "황희찬" },
+    { id: "4", group: "", title: "손흥민" },
+    { id: "5", group: "", title: "즐라탄" },
+    { id: "6", group: "", title: "매머드" },
 ];
 
 export const EMPTY_SEARCHHELP: SearchHelp = {
-  id: "",
-  group: "",
-  title: "",
+    id: "",
+    group: "",
+    title: "",
 };
