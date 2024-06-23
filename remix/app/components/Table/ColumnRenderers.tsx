@@ -93,28 +93,29 @@ const OpReadinessChip = ({ label, size, color }: { label: ReactNode, size: Overr
 
 
     return label ? <div>
-        <Chip onDoubleClick={(event) => { event.stopPropagation() }} onClick={handleClick} style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} />
+        <Chip onClick={handleClick} style={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', }} sx={{ '&:hover': { transform: 'scale(1.1)' } }} size={size} label={label} color={color} />
     </div> : <></>
 }
+
+export const getStatusChipColor = (label: ReactNode): ChipColor => {
+    switch (label) {
+        case 'N':
+            return 'error'
+        case 'P':
+            return 'primary'
+        case 'D':
+            return 'info'
+        case 'C':
+            return 'secondary'
+        default:
+            return 'success'
+    }
+}
+
 export const opReadinessCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
     let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = 'small'
     let label: ReactNode = cell.getValue<OpReadiness>()
-    let color: OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides> = 'success'
-
-    switch (label) {
-        case 'N':
-            color = 'error'
-            break;
-        case 'P':
-            color = 'primary'
-            break
-        case 'D':
-            color = 'info'
-            break
-        default:
-            break;
-    }
-
+    let color: ChipColor = getStatusChipColor(label)
     return <OpReadinessChip label={label} size={size} color={color} />
 }
 export const treatmentEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRefObject<PRecord | undefined>) => {

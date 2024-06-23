@@ -65,11 +65,22 @@ import {
     UseMutateFunction,
     UseMutateAsyncFunction,
 } from "@tanstack/react-query";
+import Chip from '@mui/material/Chip';
+import { getStatusChipColor } from "./ColumnRenderers";
+import { Box } from "@mui/joy";
+import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
 
 const SchedulingTable = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [clients, setClients] = useState<String[]>([]);
-    let originalPRecord = useRef<PRecord>();
+
+    // Assign and Delete Dialogs
+    const [openAssignModal, setOpenAssignModal] = useState(false);
+    const [openDeleteModal, setOpenDeleteModal] = useState(false);
+    const [openChangeStatusModal, setOpenChangeStatusModal] = useState(false);
+
+    const actionPRecord = useRef<PRecord>();
+    const originalPRecord = useRef<PRecord>();
 
     const handleConnectedUsers = (users: String[]) => {
         console.log(`Updated list of connected users: ${users}`);
@@ -286,6 +297,8 @@ const SchedulingTable = () => {
         tableType: TableType;
     }) => {
         const precord: PRecord = JSON.parse(record);
+        console.log(record);
+
         precord.LockingUser = null;
         let row = setTableAndGetRow(tableType, recordId);
         if (row) {
@@ -450,7 +463,7 @@ const SchedulingTable = () => {
             checkinTimeColumn(originalPRecord),
             chartNumberColumn,
             patientNameColumn,
-            opReadinessColumn("Ready"),
+            opReadinessColumn("Ready", setOpenChangeStatusModal, actionPRecord),
             treatment1Column(originalPRecord),
             quantitytreat1Column,
             treatmentRoomColumn,
@@ -471,7 +484,7 @@ const SchedulingTable = () => {
             checkinTimeColumn(originalPRecord),
             chartNumberColumn,
             patientNameColumn,
-            opReadinessColumn("ExceptReady"),
+            opReadinessColumn("ExceptReady", setOpenChangeStatusModal, actionPRecord),
             treatment1Column(originalPRecord),
             quantitytreat1Column,
             treatmentRoomColumn,
@@ -554,7 +567,7 @@ const SchedulingTable = () => {
             };
         },
         muiTableBodyCellProps: ({ row, cell }) => ({
-            onClick: async () => {
+            onDoubleClick: async (event) => {
                 if (row.original.LockingUser) {
                     return;
                 }
@@ -790,12 +803,6 @@ const SchedulingTable = () => {
         });
     }
 
-    // Assign and Delete Dialogs
-    const [openAssignModal, setOpenAssignModal] = useState(false);
-    const [openDeleteModal, setOpenDeleteModal] = useState(false);
-    const [openChangeStatusModal, setOpenChangeStatusModal] = useState(false);
-
-    const actionPRecord = useRef<PRecord>();
 
     const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
         setOpenAssignModal(true);
@@ -863,6 +870,37 @@ const SchedulingTable = () => {
         }
         handleCloseDeleteModal();
     };
+    const handleCloseStatusChangeModal = () => {
+        setOpenChangeStatusModal(false)
+        if (actionPRecord.current) {
+            emitUnLockRecord(
+                actionPRecord.current.id,
+                getTableType(actionPRecord.current.opReadiness),
+                socket
+            );
+        }
+        actionPRecord.current = undefined;
+    }
+    const handleConfirmStatusChange = async (newStatus?: OpReadiness) => {
+        if (actionPRecord.current && actionPRecord.current.opReadiness !== newStatus) {
+            let tableType = getTableType(actionPRecord.current.opReadiness);
+            if (actionPRecord.current.opReadiness === 'Y' || newStatus === 'Y') {
+                actionPRecord.current.opReadiness = newStatus
+                // need api call to update db
+                deleteFnMapping[tableType](actionPRecord.current.id)
+                emitDeleteRecord(actionPRecord.current.id, tableType, socket, user)
+                tableType = tableType === 'Ready' ? 'ExceptReady' : 'Ready'
+                createFnMapping[tableType](actionPRecord.current)
+                emitCreateRecord(actionPRecord.current, tableType, socket)
+            } else {
+                actionPRecord.current.opReadiness = newStatus
+                await dbUpdateFnMapping[tableType](actionPRecord.current)
+                emitSaveRecord(actionPRecord.current, tableType, socket)
+            }
+        }
+        handleCloseStatusChangeModal();
+    }
+
     const AssignmentDialog = () => {
         return (
             <Dialog
@@ -895,23 +933,27 @@ const SchedulingTable = () => {
     };
     const ChangeStatusDialog = () => {
         const readinessArray: OpReadiness[] = ['Y', 'N', 'C', 'P'];
+        const [opReadiness, setOpReadiness] = useState<OpReadiness | undefined>(actionPRecord.current?.opReadiness)
         return (
             <Dialog
                 open={openChangeStatusModal}
-                onClose={handleCloseAssignModal}
+                onClose={handleCloseStatusChangeModal}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
                 <DialogTitle id="alert-dialog-title">상태 변경</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                    </DialogContentText>
+                    <Box sx={{ gap: '1em', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: "10px 0px" }}>
+                        {readinessArray.map((op) => opReadiness !== op ? <Chip key={op} onClick={() => { setOpReadiness(op) }}
+                            sx={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', '&:hover': { transform: 'scale(1.1)' }, }}
+                            label={op} color={getStatusChipColor(op)} /> : <CheckOutlinedIcon />)}
+                    </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleConfirmAssign} autoFocus>
+                    <Button onClick={() => { handleConfirmStatusChange(opReadiness) }} autoFocus>
                         확인
                     </Button>
-                    <Button onClick={handleCloseAssignModal}>취소</Button>
+                    <Button onClick={handleCloseStatusChangeModal}>취소</Button>
                 </DialogActions>
             </Dialog>
         );
@@ -944,6 +986,7 @@ const SchedulingTable = () => {
     return (
         <div className="w-full h-full gap-2 flex flex-col">
             {/* Assignment Modal */}
+            <ChangeStatusDialog />
             <AssignmentDialog />
             <DeleteRecordDialog />
             <MaterialReactTable table={readyTable} />

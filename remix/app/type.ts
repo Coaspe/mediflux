@@ -1,4 +1,6 @@
 import { ROLE, SIDE_MENU } from "~/constant";
+import { OverridableStringUnion } from "@mui/types";
+import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
 
 export type SideMenu = typeof SIDE_MENU[keyof typeof SIDE_MENU];
 export type Role = typeof ROLE[keyof typeof ROLE]
@@ -40,7 +42,7 @@ export type PRecord = {
 };
 export type TableType = 'Ready' | 'ExceptReady'
 export type QueryDataName = 'Ready_PRecord' | 'ExceptReady_PRecord'
-export type ChipColor = "error" | "primary" | "secondary" | "warning" | "default" | "success" | "info"
+export type ChipColor = OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>
 export type OpReadiness = 'Y' | 'N' | 'C' | 'P'
 export type SearchHelp = {
     id: string,
