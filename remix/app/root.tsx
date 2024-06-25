@@ -4,7 +4,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-
+import {
+  RecoilRoot,
+} from 'recoil';
 import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
 import { StyledEngineProvider } from "@mui/material/styles";
@@ -53,11 +55,13 @@ export default function App() {
         <Links />
       </head>
       <body className="">
-        <StyledEngineProvider injectFirst>
-          <Outlet />
-          <ScrollRestoration />
-          <Scripts />
-        </StyledEngineProvider>
+        <RecoilRoot>
+          <StyledEngineProvider injectFirst>
+            <Outlet />
+            <ScrollRestoration />
+            <Scripts />
+          </StyledEngineProvider>
+        </RecoilRoot>
       </body>
     </html>
   );

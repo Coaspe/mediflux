@@ -17,7 +17,6 @@ export const emitLockRecord = (
 ) => {
   const locker = { id: user.id, name: user.name };
   socket?.emit(LOCK_RECORD, { recordId, locker, roomId: ROOM_ID, tableType });
-  console.log("Lock", recordId);
 };
 
 export const emitDeleteRecord = (

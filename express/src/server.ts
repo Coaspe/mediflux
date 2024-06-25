@@ -53,6 +53,8 @@ io.on(CONNECTION, (socket) => {
 
   socket.on(LOCK_RECORD, ({ recordId, locker, isLocked, tableType }: { recordId: string, locker: string, isLocked: string, tableType: string }) => {
     socket.broadcast.to(ROOM_ID).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType })
+    console.log("Lock");
+
   });
 
   socket.on(DELETE_RECORD, ({ recordId, tableType }: { recordId: string, tableType: string }) => {

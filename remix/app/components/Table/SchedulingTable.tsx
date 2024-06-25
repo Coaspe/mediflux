@@ -417,7 +417,6 @@ const SchedulingTable = () => {
 
         originalPRecord.current = undefined;
     };
-
     const id = useRef(2001);
 
     const handleCreatePRecord = async (
@@ -456,6 +455,7 @@ const SchedulingTable = () => {
     const [validationErrors, setValidationErrors] = useState<
         Record<string, string | undefined>
     >({});
+
 
     // Start ---------------------------------------------- Column definition
     const readyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
@@ -946,7 +946,7 @@ const SchedulingTable = () => {
                     <Box sx={{ gap: '1em', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: "10px 0px" }}>
                         {readinessArray.map((op) => opReadiness !== op ? <Chip key={op} onClick={() => { setOpReadiness(op) }}
                             sx={{ cursor: "pointer", transition: 'transform 0.2s ease-in-out', '&:hover': { transform: 'scale(1.1)' }, }}
-                            label={op} color={getStatusChipColor(op)} /> : <CheckOutlinedIcon />)}
+                            label={op} color={getStatusChipColor(op)} /> : <CheckOutlinedIcon key={op} />)}
                     </Box>
                 </DialogContent>
                 <DialogActions>

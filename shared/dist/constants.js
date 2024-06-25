@@ -11,7 +11,7 @@ export const CONNECT = "connect";
 export const ROOM_ID = '100';
 export const CANCEL_EDITING = 'cancel-editing';
 export const UNLOCK_RECORD = 'unlock-record';
-export const PORT = 5000;
+export const PORT = 5001;
 // Treatment
 export const SHURINK = '슈링크';
 export const INMODE = '인모드';

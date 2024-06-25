@@ -4,6 +4,9 @@ import { useState } from "react";
 import { Form, Link, useActionData } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
 import Icon, { ICONS } from "~/components/Icons";
+import { atom, useRecoilState } from "recoil";
+import { User } from "~/type";
+import { userState } from "~/recoil_state";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -48,6 +51,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     password: validatePassword(password),
     username: validateUsername(username),
   };
+
   if (Object.values(fieldErrors).some(Boolean)) {
     return badRequest({
       fieldErrors,
@@ -75,6 +79,8 @@ export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
   const actionData = useActionData<typeof action>();
+
+  const [user, setUser] = useRecoilState(userState)
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">

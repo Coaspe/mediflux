@@ -28,6 +28,7 @@
     "react-dom": "^18.2.0",
     "react-i18next": "^14.1.1",
     "react-pro-sidebar": "^1.1.0",
+    "recoil": "^0.7.7",
     "remix-i18next": "^6.1.0",
     "shared": "file:../shared",
     "socket.io-client": "^4.7.5"
