@@ -4,8 +4,7 @@ import { useState } from "react";
 import { Form, Link, useActionData } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
 import Icon, { ICONS } from "~/components/Icons";
-import { atom, useRecoilState } from "recoil";
-import { User } from "~/type";
+import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
 
 function validateUsername(username: string) {

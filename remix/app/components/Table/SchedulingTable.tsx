@@ -424,12 +424,13 @@ const SchedulingTable = () => {
     const id = useRef(2001);
 
     const handleCreatePRecord = async (
-        table: MRT_TableInstance<PRecord>,
+        currentTable: MRT_TableInstance<PRecord>,
+        anotherTable: MRT_TableInstance<PRecord>,
         tableType: TableType,
         values: Record<LiteralUnion<string, string>, any>
     ) => {
         let precord = values as PRecord;
-
+        let table: MRT_TableInstance<PRecord> = currentTable
         if (originalPRecord.current) {
             for (let key of Object.keys(originalPRecord.current)) {
                 if (
@@ -447,6 +448,7 @@ const SchedulingTable = () => {
 
         if (isInvalidOpReadiessWithTable(precord, undefined, tableType)) {
             tableType = tableType === "Ready" ? "ExceptReady" : "Ready";
+            table = anotherTable
         }
 
         await dbCreateFnMapping[tableType](precord);
@@ -507,7 +509,7 @@ const SchedulingTable = () => {
     // End ---------------------------------------------- Column definition
 
     // Start ---------------------------------------------- Table definition
-    const readyTable = useMaterialReactTable({
+    const readyTable: MRT_TableInstance<PRecord> = useMaterialReactTable({
         columns: readyColumns,
         data: fetchedReadyPRecords ? fetchedReadyPRecords : [],
         localization: MRT_Localization_KO,
@@ -580,11 +582,9 @@ const SchedulingTable = () => {
             originalPRecord.current = undefined;
             setValidationErrors({});
         },
-        onCreatingRowSave: ({ table, values }) =>
-            handleCreatePRecord(table, "Ready", values),
+        onCreatingRowSave: ({ table, values }) => handleCreatePRecord(table, exceptReadyTable, "Ready", values),
         onEditingRowCancel: ({ row }) => handleEditingCancel(row, "Ready"),
-        onEditingRowSave: ({ row, table, values }) =>
-            handleSavePRecord(row, table, "Ready", values),
+        onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, "Ready", values),
         renderRowActions: ({ row, table }) => (
             <SchedulingTableRow
                 originalPRecord={originalPRecord}
@@ -616,7 +616,7 @@ const SchedulingTable = () => {
         },
     });
 
-    const exceptReadyTable = useMaterialReactTable({
+    const exceptReadyTable: MRT_TableInstance<PRecord> = useMaterialReactTable({
         columns: exceptReadyColumns,
         data: fetchedExceptReadyPRecords ? fetchedExceptReadyPRecords : [],
         localization: MRT_Localization_KO,
@@ -688,11 +688,9 @@ const SchedulingTable = () => {
             setValidationErrors({});
             originalPRecord.current = undefined;
         },
-        onCreatingRowSave: ({ values, table }) =>
-            handleCreatePRecord(table, "ExceptReady", values),
+        onCreatingRowSave: ({ values, table }) => handleCreatePRecord(table, readyTable, "ExceptReady", values),
         onEditingRowCancel: ({ row }) => handleEditingCancel(row, "ExceptReady"),
-        onEditingRowSave: ({ row, table, values }) =>
-            handleSavePRecord(row, table, "ExceptReady", values),
+        onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, "ExceptReady", values),
         renderRowActions: ({ row, table }) => (
             <SchedulingTableRow
                 originalPRecord={originalPRecord}
@@ -893,6 +891,10 @@ const SchedulingTable = () => {
     }
 
     const AssignmentDialog = () => {
+        const charNumString: string = `${actionPRecord.current?.chartNum && '['}${actionPRecord.current?.chartNum}${actionPRecord.current?.chartNum && ', '}`
+        const patientNameString: string = `${actionPRecord.current?.patientName}${actionPRecord.current?.patientName && ', '}`
+        const treatment = TREATEMENTS.find((t) => t.id === actionPRecord.current?.treatment1)?.title
+        const treatmentString = treatment && `${treatment}]`
         return (
             <Dialog
                 open={openAssignModal}
@@ -903,14 +905,7 @@ const SchedulingTable = () => {
                 <DialogTitle id="alert-dialog-title">시술 배정</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        {actionPRecord.current?.chartNum},{" "}
-                        {actionPRecord.current?.patientName},{" "}
-                        {
-                            TREATEMENTS.find(
-                                (t) => t.id === actionPRecord.current?.treatment1
-                            )?.title
-                        }{" "}
-                        시술을 진행하시겠습니까?
+                        {charNumString}{patientNameString}{treatmentString} 시술을 진행하시겠습니까?
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

@@ -22,8 +22,9 @@ const SchedulingTableTopToolbar: FC<Props> = ({ table, originalPRecord, tableTyp
         variant="contained"
         className="bg-button"
         onClick={() => {
-            originalPRecord.current = { id: getMaxId(), checkInTime: dayjs().unix() } as PRecord
             // table.getColumn(OP_READINESS).columnDef.editSelectOptions = tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }]
+            table.getColumn(OP_READINESS).columnDef.editSelectOptions = []
+            originalPRecord.current = { id: getMaxId(), checkInTime: dayjs().unix() } as PRecord
             table.setCreatingRow(true)
         }}
     >

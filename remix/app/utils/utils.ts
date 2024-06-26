@@ -31,10 +31,7 @@ export function getRoleName(role: Role): string {
   }
 }
 
-export const getValueWithId = (
-  searchHelp: SearchHelp[],
-  id?: string
-): SearchHelp => {
+export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHelp => {
   for (let i = 0; i < searchHelp.length; i++) {
     const element = searchHelp[i];
     if (element.id === id) {

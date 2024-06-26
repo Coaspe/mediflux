@@ -61,7 +61,8 @@ export const opReadinessColumn = (tableType: TableType,
         accessorKey: OP_READINESS,
         header: OP_READINESS_H,
         editVariant: 'select',
-        editSelectOptions: tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }],
+        // editSelectOptions: ({}) => tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }],
+        editSelectOptions: [{ label: '준비 완료 (Y)', value: 'Y' }, { label: '준비 미완료 (N)', value: 'N' }, { label: '시술 완료 (C)', value: 'C' }, { label: "시술 중 (P)", value: 'P' }],
         Cell: opReadinessCell,
         size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
         muiTableHeadCellProps: {

@@ -25,7 +25,6 @@ io.on(CONNECTION, (socket) => {
     });
     socket.on(LOCK_RECORD, ({ recordId, locker, isLocked, tableType }) => {
         socket.broadcast.to(ROOM_ID).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType });
-        console.log("Lock");
     });
     socket.on(DELETE_RECORD, ({ recordId, tableType }) => {
         socket.broadcast.to(ROOM_ID).emit(DELETE_RECORD, { recordId, tableType });

@@ -1,56 +1,36 @@
 import { FC, MutableRefObject } from "react";
 import { PRecord, TableType, User } from "~/type";
 import { Box, IconButton } from "@mui/material";
-import Dropdown from "@mui/joy/Dropdown";
-import Menu from "@mui/joy/Menu";
-import MenuButton from "@mui/joy/MenuButton";
-import MenuItem from "@mui/joy/MenuItem";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { MRT_Row, MRT_TableInstance } from "material-react-table";
 import { MoreHoriz } from "@mui/icons-material";
 import { ListItemDecorator } from "@mui/joy";
 import { nameChipRendererByRole } from "./ColumnRenderers";
 import { OP_READINESS } from "~/constant";
 import { Socket } from "socket.io-client";
+import Dropdown from "@mui/joy/Dropdown";
+import Menu from "@mui/joy/Menu";
+import MenuButton from "@mui/joy/MenuButton";
+import MenuItem from "@mui/joy/MenuItem";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Props {
   row: MRT_Row<PRecord>;
   table: MRT_TableInstance<PRecord>;
   user: User;
   originalPRecord: MutableRefObject<PRecord | undefined>;
-  emitLockRecord: (
-    id: string,
-    tableType: TableType,
-    socket: Socket | null,
-    user: User
-  ) => void;
+  emitLockRecord: (id: string, tableType: TableType, socket: Socket | null, user: User) => void;
   openDeleteConfirmModal: (row: MRT_Row<PRecord>) => void;
   socket: Socket | null;
   tableType: TableType;
 }
 
-const SchedulingTableRowAction: FC<Props> = ({
-  user,
-  table,
-  row,
-  emitLockRecord,
-  openDeleteConfirmModal,
-  originalPRecord,
-  tableType,
-  socket,
-}) => {
+const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket }) => {
   const onClickEditIcon = () => {
     if (row.original.LockingUser) {
       return;
     }
     originalPRecord.current = JSON.parse(JSON.stringify(row.original));
-    table.getColumn(OP_READINESS).columnDef.editSelectOptions = [
-      { label: "준비 완료", value: "Y" },
-      { label: "준비 미완료", value: "N" },
-      { label: "시술 완료", value: "C" },
-      { label: "시술 중", value: "P" },
-    ];
     table.setEditingRow(row);
     emitLockRecord(row.id, tableType, socket, user);
   };

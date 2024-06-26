@@ -1,7 +1,7 @@
 import { Link, Outlet } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useState } from "react";
-import { Menu, MenuItem, Sidebar, SubMenu } from "react-pro-sidebar";
+import { Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { SideMenu } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
@@ -32,7 +32,7 @@ export default function Dashboard() {
               label="Schedule"
             >
               <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MYWORKS)} to={"myworks"} name={"My works"} clickedMenu={clickedMenu} />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MYWORKS)} to={"archive"} name={"Archive"} clickedMenu={clickedMenu} />
             </SubMenu>
             <MenuItem
               icon={

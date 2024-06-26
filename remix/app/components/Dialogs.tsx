@@ -1,18 +1,17 @@
 import { Box, Button } from "@mui/joy";
+import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
+import { useState, MutableRefObject, Dispatch, SetStateAction, useEffect } from "react";
+import { TREATEMENTS } from "shared";
+import { Socket } from "socket.io-client";
+import { OpReadiness, PRecord, TableType, User } from "~/type";
+import { emitUnLockRecord, emitDeleteRecord, emitCreateRecord, emitSaveRecord } from "~/utils/Table/socket";
+import { getTableType } from "~/utils/utils";
+import { getStatusChipColor } from "./Table/ColumnRenderers";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
-import { MRT_Row } from "material-react-table";
-import { useState, MutableRefObject, Dispatch, SetStateAction, useEffect } from "react";
-import { TREATEMENTS } from "shared";
-import { Socket } from "socket.io-client";
-import { OpReadiness, PRecord, TableType, User } from "~/type";
-import { emitLockRecord, emitUnLockRecord, emitDeleteRecord, emitCreateRecord, emitSaveRecord } from "~/utils/Table/socket";
-import { getTableType } from "~/utils/utils";
-import { getStatusChipColor } from "./Table/ColumnRenderers";
 import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
 import Chip from '@mui/material/Chip';
 
@@ -38,6 +37,7 @@ export const AssignmentDialog: React.FC<Props> = ({ socket, user, dbUpdateFnMapp
                 socket
             );
         }
+        console.log(actionPRecord);
         actionPRecord.current = undefined;
     };
     const handleConfirmAssign = async () => {
@@ -52,6 +52,11 @@ export const AssignmentDialog: React.FC<Props> = ({ socket, user, dbUpdateFnMapp
         handleCloseAssignModal();
     };
 
+
+    const charNumString: string = `${actionPRecord.current?.chartNum}${actionPRecord.current?.chartNum && ', '}`
+    const patientNameString: string = `${actionPRecord.current?.patientName}${actionPRecord.current?.patientName && ', '}`
+    const treatment = TREATEMENTS.find((t) => t.id === actionPRecord.current?.treatment1)?.title
+    const treatmentString = treatment && `${treatment} `
     return (
         <Dialog
             open={modalOpen}
@@ -62,13 +67,9 @@ export const AssignmentDialog: React.FC<Props> = ({ socket, user, dbUpdateFnMapp
             <DialogTitle id="alert-dialog-title">시술 배정</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    {actionPRecord.current?.chartNum},{" "}
-                    {actionPRecord.current?.patientName},{" "}
-                    {
-                        TREATEMENTS.find(
-                            (t) => t.id === actionPRecord.current?.treatment1
-                        )?.title
-                    }{" "}
+                    {/* {charNumString}
+                    {patientNameString}
+                    {treatmentString} */}
                     시술을 진행하시겠습니까?
                 </DialogContentText>
             </DialogContent>
@@ -131,11 +132,7 @@ export const DeleteRecordDialog: React.FC<Props> = ({ socket, user, dbDeleteFnMa
 export const ChangeStatusDialog: React.FC<Props> = ({ deleteFnMapping, createFnMapping, socket, user, dbUpdateFnMapping, setModalOpen, modalOpen, actionPRecord }) => {
     const readinessArray: OpReadiness[] = ['Y', 'N', 'C', 'P'];
     const [opReadiness, setOpReadiness] = useState<OpReadiness | undefined>(actionPRecord.current?.opReadiness)
-    const handleCloseStatusChangeModal = (
-        actionPRecord: MutableRefObject<PRecord | undefined>,
-        setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>,
-        socket: Socket | null) => {
-        console.log(actionPRecord);
+    const handleCloseStatusChangeModal = (actionPRecord: MutableRefObject<PRecord | undefined>, setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>, socket: Socket | null) => {
         setOpenChangeStatusModal(false)
         if (actionPRecord.current) {
             emitUnLockRecord(

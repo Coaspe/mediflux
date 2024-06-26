@@ -7,7 +7,7 @@ import { ChipColor, OpReadiness, PRecord, Role, SearchHelp } from '../../type'
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from '@mui/material/Chip';
 import { TREATEMENTS } from "shared";
-import { CONSULTANT, COORDINATOR, DOCTOR, DOCTORS, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
+import { CONSULTANT, COORDINATOR, DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -122,12 +122,11 @@ export const treatmentEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRef
     let idx = -1
     for (let i = 0; i < TREATEMENTS.length; i++) {
         const element = TREATEMENTS[i];
-        if (element.id === row.original.id) {
+        if (element.id === row.original.treatment1) {
             idx = i
             break
         }
     }
-
     const onChange = (value: {
         id: string;
         group: string;
