@@ -81,6 +81,13 @@ const SchedulingTable = () => {
 
     const actionPRecord = useRef<PRecord>();
     const originalPRecord = useRef<PRecord>();
+    const audioRef = useRef<HTMLAudioElement>(null)
+
+    const playAudio = () => {
+        if (audioRef.current) {
+            audioRef.current.play()
+        }
+    }
 
     const handleConnectedUsers = (users: String[]) => {
         console.log(`Updated list of connected users: ${users}`);
@@ -297,7 +304,6 @@ const SchedulingTable = () => {
         tableType: TableType;
     }) => {
         const precord: PRecord = JSON.parse(record);
-        console.log(record);
 
         precord.LockingUser = null;
         let row = setTableAndGetRow(tableType, recordId);
@@ -316,6 +322,9 @@ const SchedulingTable = () => {
         const precord: PRecord = JSON.parse(record);
         precord.LockingUser = null;
         createFnMapping[tableType](precord);
+        if (precord.opReadiness === 'Y') {
+            playAudio()
+        }
     };
 
     const onDeleteRecord = ({
@@ -363,11 +372,6 @@ const SchedulingTable = () => {
         return true;
     }
 
-    /**
-     * 
-     * @see
-     * save -> create
-     */
     const handleSavePRecord = async (
         row: MRT_Row<PRecord>,
         table: MRT_TableInstance<PRecord>,
@@ -507,7 +511,6 @@ const SchedulingTable = () => {
         columns: readyColumns,
         data: fetchedReadyPRecords ? fetchedReadyPRecords : [],
         localization: MRT_Localization_KO,
-        // enableRowSelection: true,
         initialState: {
             columnPinning: { left: ["mrt-row-actions"] },
             density: "compact",
@@ -566,22 +569,11 @@ const SchedulingTable = () => {
                 onDoubleClick: () => handleOpenAssignModal(row),
             };
         },
-        muiTableBodyCellProps: ({ row, cell }) => ({
-            onDoubleClick: async (event) => {
+        muiTableBodyCellProps: ({ row }) => ({
+            onDoubleClick: async () => {
                 if (row.original.LockingUser) {
                     return;
                 }
-                // switch (cell.column.id) {
-                //     case OP_READINESS:
-                //         let newPRecord: PRecord = JSON.parse(JSON.stringify(row.original))
-                //         newPRecord.opReadiness = !newPRecord.opReadiness
-                //         await updatePRecordWithDB(newPRecord)
-                //         emitSaveRecord(newPRecord)
-                //         break;
-
-                //     default:
-                //         break;
-                // }
             },
         }),
         onCreatingRowCancel: () => {
@@ -628,7 +620,6 @@ const SchedulingTable = () => {
         columns: exceptReadyColumns,
         data: fetchedExceptReadyPRecords ? fetchedExceptReadyPRecords : [],
         localization: MRT_Localization_KO,
-        // enableRowSelection: true,
         initialState: {
             columnPinning: { left: ["mrt-row-actions"] },
             density: "compact",
@@ -931,6 +922,7 @@ const SchedulingTable = () => {
             </Dialog>
         );
     };
+
     const ChangeStatusDialog = () => {
         const readinessArray: OpReadiness[] = ['Y', 'N', 'C', 'P'];
         const [opReadiness, setOpReadiness] = useState<OpReadiness | undefined>(actionPRecord.current?.opReadiness)
@@ -983,8 +975,11 @@ const SchedulingTable = () => {
         );
     };
     // Assign and Delete Dialogs
+
+
     return (
         <div className="w-full h-full gap-2 flex flex-col">
+            <audio className="hidden" ref={audioRef} src={'../assets/sounds/new_record_ready_noti.mp3'} controls />
             {/* Assignment Modal */}
             <ChangeStatusDialog />
             <AssignmentDialog />
