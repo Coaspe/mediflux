@@ -32,7 +32,7 @@ export default function Dashboard() {
               label="Schedule"
             >
               <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MYWORKS)} to={"archive"} name={"Archive"} clickedMenu={clickedMenu} />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} clickedMenu={clickedMenu} />
             </SubMenu>
             <MenuItem
               icon={

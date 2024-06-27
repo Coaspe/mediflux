@@ -5,7 +5,6 @@ import { MRT_Row, MRT_TableInstance } from "material-react-table";
 import { MoreHoriz } from "@mui/icons-material";
 import { ListItemDecorator } from "@mui/joy";
 import { nameChipRendererByRole } from "./ColumnRenderers";
-import { OP_READINESS } from "~/constant";
 import { Socket } from "socket.io-client";
 import Dropdown from "@mui/joy/Dropdown";
 import Menu from "@mui/joy/Menu";

@@ -2,7 +2,7 @@ import { OpReadiness, PRecord, SearchHelp } from "./type";
 
 export const SIDE_MENU = {
     SCHEDULING: "scheduling",
-    MYWORKS: "myworks",
+    ARCHIVE: "archive",
 } as const;
 
 export const ROLE = {

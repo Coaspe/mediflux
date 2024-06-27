@@ -67,9 +67,9 @@ export const AssignmentDialog: React.FC<Props> = ({ socket, user, dbUpdateFnMapp
             <DialogTitle id="alert-dialog-title">시술 배정</DialogTitle>
             <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                    {/* {charNumString}
+                    {charNumString}
                     {patientNameString}
-                    {treatmentString} */}
+                    {treatmentString}
                     시술을 진행하시겠습니까?
                 </DialogContentText>
             </DialogContent>

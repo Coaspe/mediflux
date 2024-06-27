@@ -13,8 +13,8 @@ export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
     case SIDE_MENU.SCHEDULING:
       return "Scheduling";
-    case SIDE_MENU.MYWORKS:
-      return "My works";
+    case SIDE_MENU.ARCHIVE:
+      return "Archive";
     default:
       return "";
   }
