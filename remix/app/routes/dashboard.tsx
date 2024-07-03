@@ -5,6 +5,7 @@ import { Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { SideMenu } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
   return (
@@ -18,6 +19,7 @@ function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; t
 
 export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>();
+  const queryClient = new QueryClient();
 
   return (
     <div className="flex flex-col pr-5 h-screen w-full">
@@ -33,7 +35,9 @@ export default function Dashboard() {
             <MenuItem icon={<Icon className={"text-gray-500"} iconName={ICONS.NOTIFICATION} />}> Notifications </MenuItem>
           </Menu>
         </aside>
-        <Outlet />
+        <QueryClientProvider client={queryClient}>
+          <Outlet />
+        </QueryClientProvider>
       </div>
     </div>
   );

@@ -40,8 +40,8 @@ export type PRecord = {
   LockingUser?: User | null;
   [key: string]: any;
 };
-export type TableType = "Ready" | "ExceptReady";
-export type QueryDataName = "Ready_PRecord" | "ExceptReady_PRecord";
+export type TableType = "Ready" | "ExceptReady" | "Archive";
+export type QueryDataName = "Ready_PRecord" | "ExceptReady_PRecord" | "Archive_PRecord";
 export type ChipColor = OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;
 export type OpReadiness = "Y" | "N" | "C" | "P";
 export type SearchHelp = {

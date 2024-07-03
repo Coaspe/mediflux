@@ -12,14 +12,12 @@ import {
   PATIENT_NAME_H,
   OP_READINESS,
   OP_READINESS_H,
-  SHORT_COLUMN_LENGTH,
   TREATMENT1,
   TREATMENT1_H,
   QUANTITYTREAT1,
   QUANTITYTREAT1_H,
   TREATMENT_ROOM,
   TREATMENT_ROOM_H,
-  MEDIUM_COLUMN_LENGTH,
   DOCTOR,
   DOCTOR_H,
   ANESTHESIANOTE,
@@ -38,7 +36,6 @@ import {
   CONSULTANT_H,
   COMMENTCAUTION,
   COMMENTCAUTION_H,
-  LONG_LEFT_JUSTIFIED_COLUMN_LENGTH,
   SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH,
 } from "~/constant";
@@ -92,7 +89,7 @@ export const patientNameColumn: MRT_ColumnDef<PRecord> = {
     required: true,
   },
 };
-export const opReadinessColumn = (tableType: TableType, setOpenStatusModal: Dispatch<SetStateAction<boolean>>, actionPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
+export const opReadinessColumn = (setOpenStatusModal: Dispatch<SetStateAction<boolean>>, actionPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
   return {
     accessorKey: OP_READINESS,
     header: OP_READINESS_H,

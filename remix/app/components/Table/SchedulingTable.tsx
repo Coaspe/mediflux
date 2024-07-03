@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { MaterialReactTable, useMaterialReactTable, type MRT_Row, type MRT_ColumnDef, MRT_TableInstance, LiteralUnion } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { Socket, io } from "socket.io-client";
-import { MOCK, MOCK2, ROLE } from "../../constant";
-import { LOCK_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, PORT, TREATEMENTS } from "shared";
-import { OpReadiness, PRecord, QueryDataName, TableType, User } from "~/type";
+import { ROLE } from "../../constant";
+import { LOCK_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, PORT } from "shared";
+import { OpReadiness, PRecord, TableType, User } from "~/type";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
 import {
@@ -25,19 +25,11 @@ import {
   consultantColumn,
   commentCautionColumn,
 } from "~/utils/Table/columnDef";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
 import { isInvalidOpReadiessWithTable, getTableType } from "~/utils/utils";
 import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord, emitLockRecord } from "~/utils/Table/socket";
-import { useQueryClient, useMutation, useQuery, UseMutateFunction, UseMutateAsyncFunction } from "@tanstack/react-query";
-import Chip from "@mui/material/Chip";
-import { getStatusChipColor } from "./ColumnRenderers";
-import { Box } from "@mui/joy";
-import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
+import { UseMutateFunction, UseMutateAsyncFunction } from "@tanstack/react-query";
+import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
+import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
 
 const SchedulingTable = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -59,7 +51,6 @@ const SchedulingTable = () => {
   };
 
   const handleConnectedUsers = (users: String[]) => {
-    console.log(`Updated list of connected users: ${users}`);
     setClients(users);
   };
 
@@ -124,6 +115,7 @@ const SchedulingTable = () => {
       socketInstance.disconnect();
     };
   }, []);
+
   const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
 
   const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
@@ -148,29 +140,52 @@ const SchedulingTable = () => {
   } = useUpdatePRecord("ExceptReady_PRecord");
   const { mutate: deleteExceptReadyPRecord, mutateAsync: deleteExceptReadyPRecordWithDB, isPending: isDeletingExceptReadyPRecord } = useDeletePRecord("ExceptReady_PRecord");
 
+  const dummyUpdateArchivePRecord: UseMutateFunction<void, Error, PRecord, void> = () => {
+    console.warn("Archive update function is not implemented yet.");
+    return Promise.resolve(); // 또는 필요한 기본 반환값
+  };
+  const dummyUpdateArchivePRecordString: UseMutateFunction<void, Error, string, void> = () => {
+    console.warn("Archive update function is not implemented yet.");
+    return Promise.resolve(); // 또는 필요한 기본 반환값
+  };
+  const dummyUpdateArchivePRecordStringWithDB: UseMutateAsyncFunction<void, Error, string, void> = () => {
+    console.warn("Archive update function is not implemented yet.");
+    return Promise.resolve(); // 또는 필요한 기본 반환값
+  };
+  const dummyUpdateArchivePRecordWithDB: UseMutateAsyncFunction<void, Error, PRecord, void> = () => {
+    console.warn("Archive update function is not implemented yet.");
+    return Promise.resolve(); // 또는 필요한 기본 반환값
+  };
+
   const updateFnMapping: Record<TableType, UseMutateFunction<void, Error, PRecord, void>> = {
     Ready: updateReadyPRecord,
     ExceptReady: updateExceptReadyPRecord,
+    Archive: dummyUpdateArchivePRecord,
   };
   const createFnMapping: Record<TableType, UseMutateFunction<void, Error, PRecord, void>> = {
     Ready: createReadyPRecord,
     ExceptReady: createExceptReadyPRecord,
+    Archive: dummyUpdateArchivePRecord,
   };
   const deleteFnMapping: Record<TableType, UseMutateFunction<void, Error, string, void>> = {
     Ready: deleteReadyPRecord,
     ExceptReady: deleteExceptReadyPRecord,
+    Archive: dummyUpdateArchivePRecordString,
   };
   const dbUpdateFnMapping: Record<TableType, UseMutateAsyncFunction<void, Error, PRecord, void>> = {
     Ready: updateReadyPRecordWithDB,
     ExceptReady: updateExceptReadyPRecordWithDB,
+    Archive: dummyUpdateArchivePRecordWithDB,
   };
   const dbCreateFnMapping: Record<TableType, UseMutateAsyncFunction<void, Error, PRecord, void>> = {
     Ready: createReadyPRecordWithDB,
     ExceptReady: createExceptReadyPRecordWithDB,
+    Archive: dummyUpdateArchivePRecordWithDB,
   };
   const dbDeleteFnMapping: Record<TableType, UseMutateAsyncFunction<void, Error, string, void>> = {
     Ready: deleteReadyPRecordWithDB,
     ExceptReady: deleteExceptReadyPRecordWithDB,
+    Archive: dummyUpdateArchivePRecordStringWithDB,
   };
   // Start ---------------------------------------------- On socket event
   const setTableAndGetRow = (tableType: TableType, recordId: string) => {
@@ -335,7 +350,7 @@ const SchedulingTable = () => {
       checkinTimeColumn(originalPRecord),
       chartNumberColumn,
       patientNameColumn,
-      opReadinessColumn("Ready", setOpenChangeStatusModal, actionPRecord),
+      opReadinessColumn(setOpenChangeStatusModal, actionPRecord),
       treatment1Column(originalPRecord),
       quantitytreat1Column,
       treatmentRoomColumn,
@@ -356,7 +371,7 @@ const SchedulingTable = () => {
       checkinTimeColumn(originalPRecord),
       chartNumberColumn,
       patientNameColumn,
-      opReadinessColumn("ExceptReady", setOpenChangeStatusModal, actionPRecord),
+      opReadinessColumn(setOpenChangeStatusModal, actionPRecord),
       treatment1Column(originalPRecord),
       quantitytreat1Column,
       treatmentRoomColumn,
@@ -555,74 +570,6 @@ const SchedulingTable = () => {
     },
   });
   // End ---------------------------------------------- Table definition
-  function useUpdatePRecord(queryDataName: QueryDataName) {
-    const queryClient = useQueryClient();
-    return useMutation({
-      mutationFn: async (precord: PRecord) => {
-        return Promise.resolve();
-      },
-      onMutate: (newPRecord: PRecord) => {
-        queryClient.setQueryData([queryDataName], (prevs: any) => {
-          let newPRecords: PRecord[] = [];
-          prevs?.forEach((prevPRecord: PRecord) => {
-            if (prevPRecord.id !== newPRecord.id) {
-              newPRecords.push(prevPRecord);
-            } else if (!isInvalidOpReadiessWithTable(newPRecord, queryDataName)) {
-              newPRecords.push(newPRecord);
-            }
-          });
-          return newPRecords;
-        });
-      },
-      // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
-    });
-  }
-
-  function useDeletePRecord(queryDataName: QueryDataName) {
-    const queryClient = useQueryClient();
-    return useMutation({
-      mutationFn: async (precordId: string) => {
-        return Promise.resolve();
-      },
-      onMutate: (id: string) => {
-        queryClient.setQueryData([queryDataName], (prevPRecords: any) => prevPRecords?.filter((precord: PRecord) => precord.id !== id));
-      },
-      // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
-    });
-  }
-
-  function useGetPRecords(queryDataName: QueryDataName) {
-    return useQuery<PRecord[]>({
-      queryKey: [queryDataName],
-      queryFn: async () => {
-        let mock: PRecord[] = [];
-
-        if (queryDataName !== "Ready_PRecord") {
-          mock = MOCK;
-        } else {
-          mock = MOCK2;
-        }
-        return Promise.resolve(mock);
-      },
-      refetchOnWindowFocus: false,
-    });
-  }
-
-  function useCreatePRecord(queryDataName: QueryDataName) {
-    const queryClient = useQueryClient();
-    return useMutation({
-      mutationFn: async (precord: PRecord) => {
-        return Promise.resolve();
-      },
-      //client side optimistic update
-      onMutate: (newPRecordInfo: PRecord) => {
-        queryClient.setQueryData([queryDataName], (prevPRecords: any) => {
-          return [newPRecordInfo, ...prevPRecords] as PRecord[];
-        });
-      },
-      // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
-    });
-  }
 
   const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
     setOpenAssignModal(true);
@@ -698,97 +645,15 @@ const SchedulingTable = () => {
     }
     handleCloseStatusChangeModal();
   };
-
-  const AssignmentDialog = () => {
-    const charNumString: string = `${actionPRecord.current?.chartNum && "["}${actionPRecord.current?.chartNum}${actionPRecord.current?.chartNum && ", "}`;
-    const patientNameString: string = `${actionPRecord.current?.patientName}${actionPRecord.current?.patientName && ", "}`;
-    const treatment = TREATEMENTS.find((t) => t.id === actionPRecord.current?.treatment1)?.title;
-    const treatmentString = treatment && `${treatment}]`;
-    return (
-      <Dialog open={openAssignModal} onClose={handleCloseAssignModal} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-        <DialogTitle id="alert-dialog-title">시술 배정</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            {charNumString}
-            {patientNameString}
-            {treatmentString} 시술을 진행하시겠습니까?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleConfirmAssign} autoFocus>
-            확인
-          </Button>
-          <Button onClick={handleCloseAssignModal}>취소</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  };
-
-  const ChangeStatusDialog = () => {
-    const readinessArray: OpReadiness[] = ["Y", "N", "C", "P"];
-    const [opReadiness, setOpReadiness] = useState<OpReadiness | undefined>(actionPRecord.current?.opReadiness);
-    return (
-      <Dialog open={openChangeStatusModal} onClose={handleCloseStatusChangeModal} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-        <DialogTitle id="alert-dialog-title">상태 변경</DialogTitle>
-        <DialogContent>
-          <Box sx={{ gap: "1em", display: "flex", justifyContent: "center", alignItems: "center", padding: "10px 0px" }}>
-            {readinessArray.map((op) =>
-              opReadiness !== op ? (
-                <Chip
-                  key={op}
-                  onClick={() => {
-                    setOpReadiness(op);
-                  }}
-                  sx={{ cursor: "pointer", transition: "transform 0.2s ease-in-out", "&:hover": { transform: "scale(1.1)" } }}
-                  label={op}
-                  color={getStatusChipColor(op)}
-                />
-              ) : (
-                <CheckOutlinedIcon key={op} />
-              )
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              handleConfirmStatusChange(opReadiness);
-            }}
-            autoFocus
-          >
-            확인
-          </Button>
-          <Button onClick={handleCloseStatusChangeModal}>취소</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  };
-
-  const DeleteRecordDialog = () => {
-    return (
-      <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-        <DialogTitle id="alert-dialog-title">차트 삭제</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">차트번호 {actionPRecord.current?.chartNum}를 삭제하시겠습니까?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleConfirmDelete} autoFocus>
-            확인
-          </Button>
-          <Button onClick={handleCloseDeleteModal}>취소</Button>
-        </DialogActions>
-      </Dialog>
-    );
-  };
   // Assign and Delete Dialogs
 
   return (
     <div className="w-full h-full gap-2 flex flex-col">
       <audio className="hidden" ref={audioRef} src={"../assets/sounds/new_record_ready_noti.mp3"} controls />
       {/* Assignment Modal */}
-      <ChangeStatusDialog />
-      <AssignmentDialog />
-      <DeleteRecordDialog />
+      <ChangeStatusDialog handleCloseModal={handleCloseStatusChangeModal} handleConfirmModal={handleConfirmStatusChange} openModal={openChangeStatusModal} actionPRecord={actionPRecord} />
+      <AssignmentDialog handleCloseModal={handleCloseAssignModal} handleConfirmModal={handleConfirmAssign} openModal={openAssignModal} actionPRecord={actionPRecord} />
+      <DeleteRecordDialog handleCloseModal={handleCloseDeleteModal} handleConfirmModal={handleConfirmDelete} openModal={openDeleteModal} actionPRecord={actionPRecord} />
       <MaterialReactTable table={readyTable} />
       <MaterialReactTable table={exceptReadyTable} />
     </div>

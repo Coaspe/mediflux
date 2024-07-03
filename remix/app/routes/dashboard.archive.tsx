@@ -9,6 +9,7 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import ArchiveTable from "~/components/Archive/ArchiveTable";
 
 export default function Archive() {
   const [numOfInterval, setNumOfInterval] = useState<number>(7);
@@ -52,6 +53,7 @@ export default function Archive() {
         </FormControl>
       </div>
       <ArchiveChart numOfInterval={numOfInterval} interval={interval} baseDate={baseDate} />
+      <ArchiveTable />
     </div>
   );
 }
