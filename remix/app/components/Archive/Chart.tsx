@@ -54,6 +54,7 @@ const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate }) =>
         const start = dayjs(record.checkInTime * 1000)
           .startOf(interval)
           .unix();
+
         if (start in mapping) {
           mapping[start].numOfPRecords += 1;
         }
@@ -63,9 +64,6 @@ const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate }) =>
     const entries = Object.entries(mapping);
     entries.sort((a, b) => a[0].localeCompare(b[0]));
     const en = entries.map((entry) => entry[1]);
-    for (let i = 0; i < numOfInterval; i++) {
-      en[i].numOfPRecords = Math.floor(Math.random() * 100);
-    }
     setChartData(en);
   };
 
