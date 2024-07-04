@@ -27,6 +27,7 @@ export default function Archive() {
       setBaseDate(value);
     }
   };
+
   return (
     <div className="w-full">
       <div className="flex gap-3 pb-5">
@@ -53,7 +54,13 @@ export default function Archive() {
         </FormControl>
       </div>
       <ArchiveChart numOfInterval={numOfInterval} interval={interval} baseDate={baseDate} />
-      <ArchiveTable />
+      <ArchiveTable
+        startDate={dayjs(baseDate).startOf(interval)}
+        endDate={dayjs(baseDate)
+          .startOf(interval)
+          .add(numOfInterval - 1, interval)
+          .endOf(interval)}
+      />
     </div>
   );
 }

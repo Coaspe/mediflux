@@ -5,7 +5,7 @@ import { OpReadiness, PRecord, TableType, User } from "~/type";
 import { emitCreateRecord, emitDeleteRecord, emitLockRecord, emitSaveRecord, emitUnLockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "../Table/SchedulingTableTopToolbar";
 import { useCreatePRecord, useDeletePRecord, useGetPRecords, useUpdatePRecord } from "~/utils/Table/crud";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -28,8 +28,16 @@ import { PORT, CONNECT, JOIN_ROOM, USER_JOINED, CONNECTED_USERS, LOCK_RECORD, UN
 import { Socket, io } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "../Table/Dialogs";
+import dayjs, { Dayjs } from "dayjs";
 
-const ArchiveTable = () => {
+type props = {
+  startDate: Dayjs;
+  endDate: Dayjs;
+};
+
+const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
+  console.log(dayjs(startDate).format("YYYY-MM-DD"), dayjs(endDate).format("YYYY-MM-DD"));
+
   const [socket, setSocket] = useState<Socket | null>(null);
   const [clients, setClients] = useState<String[]>([]);
   let user: User = {
@@ -89,7 +97,12 @@ const ArchiveTable = () => {
   const originalPRecord = useRef<PRecord>();
 
   const { mutate: createArchivePRecord, mutateAsync: createArchivePRecordWithDB, isPending: isCreatingArchivePRecord } = useCreatePRecord("Archive_PRecord");
-  const { data: fetchedArchivePRecords, isError: isLoadingArchivePRecordsError, isFetching: isFetchingArchivePRecords, isLoading: isLoadingArchivePRecords } = useGetPRecords("Archive_PRecord");
+  const {
+    data: fetchedArchivePRecords,
+    isError: isLoadingArchivePRecordsError,
+    isFetching: isFetchingArchivePRecords,
+    isLoading: isLoadingArchivePRecords,
+  } = useGetPRecords("Archive_PRecord", startDate, endDate);
   const { mutate: updateArchivePRecord, mutateAsync: updateArchivePRecordWithDB, isPending: isUpdatingArchivePRecord, error: updateError } = useUpdatePRecord("Archive_PRecord");
   const { mutate: deleteArchivePRecord, mutateAsync: deleteArchivePRecordWithDB, isPending: isDeletingArchivePRecord } = useDeletePRecord("Archive_PRecord");
 

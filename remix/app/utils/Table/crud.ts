@@ -42,7 +42,7 @@ function useDeletePRecord(queryDataName: QueryDataName) {
 
 function useGetPRecords(queryDataName: QueryDataName, startDate?: Dayjs, endDate?: Dayjs) {
   return useQuery<PRecord[]>({
-    queryKey: [queryDataName],
+    queryKey: [queryDataName, startDate, endDate],
     queryFn: async () => {
       let mock: PRecord[] = [];
 
@@ -53,10 +53,11 @@ function useGetPRecords(queryDataName: QueryDataName, startDate?: Dayjs, endDate
       }
 
       if (startDate && endDate) {
-        let startDateUnix = dayjs(startDate).startOf("day").unix();
-        let endDateUnix = dayjs(endDate).endOf("day").unix();
+        const startDateUnix = dayjs(startDate).startOf("day").unix();
+        const endDateUnix = dayjs(endDate).endOf("day").unix();
         mock = mock.filter((record) => record.checkInTime && startDateUnix <= record.checkInTime && record.checkInTime <= endDateUnix);
       }
+      mock.sort((a, b) => (a.checkInTime ?? 0) - (b.checkInTime ?? 0));
       return Promise.resolve(mock);
     },
     refetchOnWindowFocus: false,
