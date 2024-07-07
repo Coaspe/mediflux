@@ -1,6 +1,6 @@
-import { Link, Outlet } from "@remix-run/react";
+import { Link, Outlet, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { SideMenu } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
@@ -16,10 +16,21 @@ function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; t
     </li>
   );
 }
+const isSideMenu = (value: any): value is SideMenu => {
+  return Object.values(SIDE_MENU).includes(value);
+};
 
 export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>();
   const queryClient = new QueryClient();
+  const location = useLocation();
+
+  useEffect(() => {
+    const path = location.pathname.split("/");
+    if (isSideMenu(path[path.length - 1])) {
+      setClickedMenu(path[path.length - 1] as SideMenu);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col pr-5 h-screen w-full">

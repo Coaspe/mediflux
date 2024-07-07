@@ -27,7 +27,7 @@ import {
 import { PORT, CONNECT, JOIN_ROOM, USER_JOINED, CONNECTED_USERS, LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD } from "shared";
 import { Socket, io } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
-import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "../Table/Dialogs";
+import { ChangeStatusDialog, DeleteRecordDialog } from "../Table/Dialogs";
 import dayjs, { Dayjs } from "dayjs";
 
 type props = {
@@ -89,7 +89,6 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
     };
   }, []);
   // Assign and Delete Dialogs
-  const [openAssignModal, setOpenAssignModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openChangeStatusModal, setOpenChangeStatusModal] = useState(false);
 
@@ -141,30 +140,6 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
 
   const onDeleteRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }) => {
     deleteArchivePRecord(recordId);
-  };
-  const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
-    setOpenAssignModal(true);
-    actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-    if (actionPRecord.current) {
-      emitLockRecord(actionPRecord.current.id, "Archive", socket, user);
-    }
-  };
-  const handleCloseAssignModal = () => {
-    setOpenAssignModal(false);
-    if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, "Archive", socket);
-    }
-    actionPRecord.current = undefined;
-  };
-
-  const handleConfirmAssign = async () => {
-    if (actionPRecord.current) {
-      actionPRecord.current.doctor = user.id;
-      actionPRecord.current.opReadiness = "P";
-      emitSaveRecord(actionPRecord.current, "Archive", socket);
-      await updateArchivePRecordWithDB(actionPRecord.current);
-    }
-    handleCloseAssignModal();
   };
   const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
     setOpenDeleteModal(true);
@@ -359,7 +334,6 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
         },
-        onDoubleClick: () => handleOpenAssignModal(row),
       };
     },
     muiTableBodyCellProps: ({ row }) => ({
@@ -400,7 +374,6 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
   return (
     <>
       <ChangeStatusDialog handleCloseModal={handleCloseStatusChangeModal} handleConfirmModal={handleConfirmStatusChange} openModal={openChangeStatusModal} actionPRecord={actionPRecord} />
-      <AssignmentDialog handleCloseModal={handleCloseAssignModal} handleConfirmModal={handleConfirmAssign} openModal={openAssignModal} actionPRecord={actionPRecord} />
       <DeleteRecordDialog handleCloseModal={handleCloseDeleteModal} handleConfirmModal={handleConfirmDelete} openModal={openDeleteModal} actionPRecord={actionPRecord} />
       <MaterialReactTable table={archiveTable} />
     </>

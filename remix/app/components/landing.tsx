@@ -1,5 +1,5 @@
 import { Form, useActionData } from "@remix-run/react";
-import React, { Dispatch, HTMLInputTypeAttribute } from "react";
+import React, { Dispatch, HTMLInputTypeAttribute, useState } from "react";
 import Icon, { ICONS } from "./Icons";
 import { Transition } from "@headlessui/react";
 
@@ -32,17 +32,29 @@ type LoginInputProps = {
   ariaErrorMessage: string | undefined;
 };
 export const LoginInput: React.FC<LoginInputProps> = ({ id, type, placeholder, name, defaultValue, ariaErrorMessage, ariaInvalid }) => {
+  const [value, setValue] = useState<string | undefined>();
   return (
-    <input
-      className="shadow appearance-none border border-gray-400 rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
-      id={id}
-      type={type}
-      placeholder={placeholder}
-      name={name}
-      defaultValue={defaultValue}
-      aria-invalid={ariaInvalid}
-      aria-errormessage={ariaErrorMessage}
-    />
+    <div className="relative group/item">
+      <input
+        className="shadow appearance-none border border-gray-400 rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        name={name}
+        defaultValue={defaultValue}
+        aria-invalid={ariaInvalid}
+        aria-errormessage={ariaErrorMessage}
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+      />
+      <Icon
+        onClick={() => {
+          setValue("");
+        }}
+        className={"text-gray-400 text-xs absolute top-1/2 right-3 transform -translate-y-1/2 cursor-pointer invisible group-hover/item:visible "}
+        iconName={ICONS.CLOSE}
+      />
+    </div>
   );
 };
 
@@ -64,7 +76,12 @@ type LoginAction = {
 };
 
 export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalOpen }) => {
-  const actionData = useActionData<LoginAction>();
+  let actionData = useActionData<LoginAction>();
+
+  const closeModal = () => {
+    actionData = undefined;
+    setIsModalOpen(false);
+  };
   return (
     <Transition
       show={isModalOpen}
@@ -75,9 +92,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
     >
-      <div onClick={() => setIsModalOpen(false)} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center`}>
+      <div onClick={closeModal} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center`}>
         <div onClick={(event) => event.stopPropagation()} className="flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] h-[400px] transition-all duration-100 transform">
-          <Icon onClick={() => setIsModalOpen(!isModalOpen)} className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"} iconName={ICONS.CLOSE} />
+          <Icon onClick={closeModal} className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"} iconName={ICONS.CLOSE} />
           <span className="font-semibold text-2xl">Login</span>
           <div className="flex flex-col justify-center items-center h-full">
             <Form method="post">
@@ -98,7 +115,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                   <LoginInput
                     id="password"
                     type="password"
-                    placeholder="Password"
+                    placeholder="패스워드"
                     name="password"
                     defaultValue={actionData?.fields?.password}
                     ariaInvalid={Boolean(actionData?.fieldErrors?.password)}
@@ -107,7 +124,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                   <AlertP msg={actionData?.fieldErrors?.password} />
                 </div>
                 <input className="hidden" id="logintype-input" type="text" name="requestType" defaultValue={"login"} />
-                <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard"} />
+                <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard/scheduling"} />
               </div>
               <button
                 className="bg-button hover:bg-blue-800 text-gray-200 font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
@@ -116,7 +133,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                 Log in
               </button>
             </Form>
-            <p className="text-blue-500 hover:underline cursor-pointer pt-5" onClick={() => setIsModalOpen(!isModalOpen)}>
+            <p className="text-blue-500 hover:underline cursor-pointer pt-5" onClick={closeModal}>
               Create account
             </p>
           </div>

@@ -1,9 +1,8 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
-import { AlertP, LoginButton, LoginInput, LoginModal } from "~/components/Landing";
+import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
-import { Form, redirect, useActionData } from "@remix-run/react";
+import { redirect } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
-import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
 
@@ -73,10 +72,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
-  const actionData = useActionData<typeof action>();
-
   const [user, setUser] = useRecoilState(userState);
 
   return (
