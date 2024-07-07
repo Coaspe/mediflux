@@ -3,7 +3,7 @@ import { MaterialReactTable, useMaterialReactTable, type MRT_Row, type MRT_Colum
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { Socket, io } from "socket.io-client";
 import { ROLE } from "../../constant";
-import { LOCK_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, PORT } from "shared";
+import { LOCK_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, PORT, SCHEDULING_ROOM_ID } from "shared";
 import { OpReadiness, PRecord, TableType, User } from "~/type";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
@@ -30,10 +30,13 @@ import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord, e
 import { UseMutateFunction, UseMutateAsyncFunction } from "@tanstack/react-query";
 import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
 import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
+import { useRecoilState } from "recoil";
+import { userState } from "~/recoil_state";
 
 const SchedulingTable = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [clients, setClients] = useState<String[]>([]);
+  const [user, setUser] = useRecoilState(userState);
 
   // Assign and Delete Dialogs
   const [openAssignModal, setOpenAssignModal] = useState(false);
@@ -54,29 +57,6 @@ const SchedulingTable = () => {
     setClients(users);
   };
 
-  let user: User = {
-    id: "1",
-    name: "이우람",
-    image: "",
-    role: ROLE.DOCTOR,
-  };
-
-  const userAgent = navigator.userAgent;
-
-  function isEdgeBrowser(): boolean {
-    const userAgent = window.navigator.userAgent;
-    return userAgent.includes("Edg") || userAgent.includes("Edge");
-  }
-
-  if ((/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) || isEdgeBrowser()) {
-    user = {
-      id: "2",
-      name: "율곡 이이",
-      image: "",
-      role: ROLE.DOCTOR,
-    };
-  }
-
   // Socket configuration
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);
@@ -87,6 +67,7 @@ const SchedulingTable = () => {
       socketInstance.emit(JOIN_ROOM, {
         userId: user.id,
         username: user.name,
+        roomId: SCHEDULING_ROOM_ID,
       });
     });
 
@@ -243,7 +224,7 @@ const SchedulingTable = () => {
 
   const handleEditingCancel = (row: MRT_Row<PRecord>, tableType: TableType) => {
     setValidationErrors({});
-    emitUnLockRecord(row.id, tableType, socket);
+    emitUnLockRecord(row.id, tableType, socket, SCHEDULING_ROOM_ID);
     originalPRecord.current = undefined;
   };
 
@@ -300,16 +281,16 @@ const SchedulingTable = () => {
     let otherType: TableType = tableType === "Ready" ? "ExceptReady" : "Ready";
     if (!isInvalidOpReadiessWithTable(precord, undefined, otherType)) {
       createFnMapping[otherType](precord);
-      emitCreateRecord(precord, otherType, socket);
-      emitDeleteRecord(precord.id, tableType, socket, user);
+      emitCreateRecord(precord, otherType, socket, SCHEDULING_ROOM_ID);
+      emitDeleteRecord(precord.id, tableType, socket, user, SCHEDULING_ROOM_ID);
     } else {
-      emitSaveRecord(precord, tableType, socket);
+      emitSaveRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
     }
 
     table.setEditingRow(null); // exit editing mode
 
     if (precord.LockingUser?.id === user.id) {
-      emitUnLockRecord(row.id, tableType, socket);
+      emitUnLockRecord(row.id, tableType, socket, SCHEDULING_ROOM_ID);
     }
 
     originalPRecord.current = undefined;
@@ -336,7 +317,7 @@ const SchedulingTable = () => {
     }
 
     await dbCreateFnMapping[tableType](precord);
-    emitCreateRecord(precord, tableType, socket);
+    emitCreateRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
     originalPRecord.current = undefined;
     table.setCreatingRow(null); //exit creating mode
     setValidationErrors({});
@@ -469,6 +450,7 @@ const SchedulingTable = () => {
         socket={socket}
         openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
         tableType="Ready"
+        roomId={SCHEDULING_ROOM_ID}
       />
     ),
     renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="Ready" />,
@@ -559,6 +541,7 @@ const SchedulingTable = () => {
         socket={socket}
         openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
         tableType="ExceptReady"
+        roomId={SCHEDULING_ROOM_ID}
       />
     ),
     renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="ExceptReady" />,
@@ -575,13 +558,13 @@ const SchedulingTable = () => {
     setOpenAssignModal(true);
     actionPRecord.current = JSON.parse(JSON.stringify(row.original));
     if (actionPRecord.current) {
-      emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user);
+      emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user, SCHEDULING_ROOM_ID);
     }
   };
   const handleCloseAssignModal = () => {
     setOpenAssignModal(false);
     if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket);
+      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, SCHEDULING_ROOM_ID);
     }
     actionPRecord.current = undefined;
   };
@@ -589,8 +572,8 @@ const SchedulingTable = () => {
     if (actionPRecord.current) {
       actionPRecord.current.doctor = user.id;
       actionPRecord.current.opReadiness = "P";
-      emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user);
-      emitCreateRecord(actionPRecord.current, "ExceptReady", socket);
+      emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
+      emitCreateRecord(actionPRecord.current, "ExceptReady", socket, SCHEDULING_ROOM_ID);
       await dbUpdateFnMapping["Ready"](actionPRecord.current);
       createFnMapping["ExceptReady"](actionPRecord.current);
     }
@@ -600,14 +583,14 @@ const SchedulingTable = () => {
     setOpenDeleteModal(true);
     actionPRecord.current = JSON.parse(JSON.stringify(row.original));
     if (actionPRecord.current) {
-      emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user);
+      emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user, SCHEDULING_ROOM_ID);
     }
   };
   const handleCloseDeleteModal = () => {
     setOpenDeleteModal(false);
 
     if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket);
+      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, SCHEDULING_ROOM_ID);
     }
     actionPRecord.current = undefined;
   };
@@ -615,14 +598,14 @@ const SchedulingTable = () => {
     if (actionPRecord.current) {
       const tableType = getTableType(actionPRecord.current.opReadiness);
       dbDeleteFnMapping[tableType](actionPRecord.current.id);
-      emitDeleteRecord(actionPRecord.current.id, tableType, socket, user);
+      emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);
     }
     handleCloseDeleteModal();
   };
   const handleCloseStatusChangeModal = () => {
     setOpenChangeStatusModal(false);
     if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket);
+      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, SCHEDULING_ROOM_ID);
     }
     actionPRecord.current = undefined;
   };
@@ -633,14 +616,14 @@ const SchedulingTable = () => {
         actionPRecord.current.opReadiness = newStatus;
         // need api call to update db
         deleteFnMapping[tableType](actionPRecord.current.id);
-        emitDeleteRecord(actionPRecord.current.id, tableType, socket, user);
+        emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);
         tableType = tableType === "Ready" ? "ExceptReady" : "Ready";
         createFnMapping[tableType](actionPRecord.current);
-        emitCreateRecord(actionPRecord.current, tableType, socket);
+        emitCreateRecord(actionPRecord.current, tableType, socket, SCHEDULING_ROOM_ID);
       } else {
         actionPRecord.current.opReadiness = newStatus;
         await dbUpdateFnMapping[tableType](actionPRecord.current);
-        emitSaveRecord(actionPRecord.current, tableType, socket);
+        emitSaveRecord(actionPRecord.current, tableType, socket, SCHEDULING_ROOM_ID);
       }
     }
     handleCloseStatusChangeModal();

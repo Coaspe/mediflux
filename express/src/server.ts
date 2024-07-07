@@ -1,20 +1,7 @@
 import express, { Express } from "express";
 import { Server } from "socket.io";
 import http from "http";
-import {
-  CONNECTED_USERS,
-  CONNECTION,
-  CREATE_RECORD,
-  DELETE_RECORD,
-  JOIN_ROOM,
-  LOCK_RECORD,
-  SAVE_RECORD,
-  USER_JOINED,
-  UNLOCK_RECORD,
-  ROOM_ID,
-  PORT
-} from "shared";
-
+import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 
 const app: Express = express();
 const server = http.createServer(app);
@@ -25,54 +12,45 @@ const io = new Server(server, {
 });
 
 const roomUsers: { [key: string]: { [key: string]: string } } = {};
-roomUsers[ROOM_ID] = {}
+
+roomUsers[SCHEDULING_ROOM_ID] = {};
+roomUsers[ARCHIVE_ROOM_ID] = {};
+
 io.on(CONNECTION, (socket) => {
-  socket.on(
-    JOIN_ROOM,
-    ({
-      userId,
-      username,
-    }: {
-      userId: number;
-      username: string;
-    }) => {
-      socket.join(ROOM_ID);
+  socket.on(JOIN_ROOM, ({ userId, username, roomId }: { userId: number; username: string; roomId: string }) => {
+    socket.join(roomId);
 
-      if (!(ROOM_ID in roomUsers)) {
-        roomUsers[ROOM_ID] = { [userId]: username };
-      }
-
-      if (!(userId in roomUsers[ROOM_ID])) {
-        roomUsers[ROOM_ID][userId] = username;
-        socket.broadcast.to(ROOM_ID).emit(USER_JOINED, userId);
-      }
-
-      io.in(ROOM_ID).emit(CONNECTED_USERS, Object.keys(roomUsers[ROOM_ID]));
+    if (!(roomId in roomUsers)) {
+      roomUsers[roomId] = { [userId]: username };
     }
-  );
 
-  socket.on(LOCK_RECORD, ({ recordId, locker, isLocked, tableType }: { recordId: string, locker: string, isLocked: string, tableType: string }) => {
-    socket.broadcast.to(ROOM_ID).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType })
+    if (!(userId in roomUsers[roomId])) {
+      roomUsers[roomId][userId] = username;
+      socket.broadcast.to(roomId).emit(USER_JOINED, userId);
+    }
 
+    io.in(roomId).emit(CONNECTED_USERS, Object.keys(roomUsers[roomId]));
   });
 
-  socket.on(DELETE_RECORD, ({ recordId, tableType }: { recordId: string, tableType: string }) => {
-    socket.broadcast.to(ROOM_ID).emit(DELETE_RECORD, { recordId, tableType })
+  socket.on(LOCK_RECORD, ({ recordId, locker, isLocked, tableType, roomId }: { recordId: string; locker: string; isLocked: string; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType });
   });
 
-  socket.on(SAVE_RECORD, ({ recordId, record, tableType }: { recordId: string, record: string, tableType: string }) => {
-    socket.broadcast.to(ROOM_ID).emit(SAVE_RECORD, { recordId, record, tableType })
+  socket.on(DELETE_RECORD, ({ recordId, tableType, roomId }: { recordId: string; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordId, tableType });
   });
 
-  socket.on(UNLOCK_RECORD, ({ recordId, tableType }: { recordId: string, tableType: string }) => {
-    socket.broadcast.to(ROOM_ID).emit(UNLOCK_RECORD, { recordId, tableType })
+  socket.on(SAVE_RECORD, ({ recordId, record, tableType, roomId }: { recordId: string; record: string; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(SAVE_RECORD, { recordId, record, tableType });
   });
 
-  socket.on(CREATE_RECORD, ({ record, tableType }: { record: string, tableType: string }) => {
-    socket.broadcast.to(ROOM_ID).emit(CREATE_RECORD, { record, tableType })
-  })
+  socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }: { recordId: string; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
+  });
+
+  socket.on(CREATE_RECORD, ({ record, tableType, roomId }: { record: string; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(CREATE_RECORD, { record, tableType });
+  });
 });
 
-server.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-);
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

@@ -18,20 +18,21 @@ interface Props {
   table: MRT_TableInstance<PRecord>;
   user: User;
   originalPRecord: MutableRefObject<PRecord | undefined>;
-  emitLockRecord: (id: string, tableType: TableType, socket: Socket | null, user: User) => void;
+  emitLockRecord: (id: string, tableType: TableType, socket: Socket | null, user: User, roomId: string) => void;
   openDeleteConfirmModal: (row: MRT_Row<PRecord>) => void;
   socket: Socket | null;
   tableType: TableType;
+  roomId: string;
 }
 
-const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket }) => {
+const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket, roomId }) => {
   const onClickEditIcon = () => {
     if (row.original.LockingUser) {
       return;
     }
     originalPRecord.current = JSON.parse(JSON.stringify(row.original));
     table.setEditingRow(row);
-    emitLockRecord(row.id, tableType, socket, user);
+    emitLockRecord(row.id, tableType, socket, user, roomId);
   };
   return (
     <Box
@@ -44,16 +45,10 @@ const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord,
       }}
     >
       {row.original.LockingUser && row.original.LockingUser.id != user.id ? (
-        nameChipRendererByRole(
-          row.original.LockingUser.role!,
-          row.original.LockingUser?.name
-        )
+        nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)
       ) : (
         <Dropdown>
-          <MenuButton
-            slots={{ root: IconButton }}
-            slotProps={{ root: { variant: "outlined", color: "neutral" } }}
-          >
+          <MenuButton slots={{ root: IconButton }} slotProps={{ root: { variant: "outlined", color: "neutral" } }}>
             <MoreHoriz />
           </MenuButton>
           <Menu>
@@ -63,10 +58,7 @@ const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord,
               </ListItemDecorator>
               수정
             </MenuItem>
-            <MenuItem
-              color="danger"
-              onClick={() => openDeleteConfirmModal(row)}
-            >
+            <MenuItem color="danger" onClick={() => openDeleteConfirmModal(row)}>
               <ListItemDecorator>
                 <DeleteIcon />
               </ListItemDecorator>

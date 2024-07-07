@@ -5,6 +5,7 @@ import { redirect } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
 import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
+import { ROLE } from "~/constant";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -73,8 +74,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
-  const [user, setUser] = useRecoilState(userState);
-
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center ">

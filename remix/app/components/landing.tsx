@@ -31,6 +31,7 @@ type LoginInputProps = {
   ariaInvalid: boolean;
   ariaErrorMessage: string | undefined;
 };
+
 export const LoginInput: React.FC<LoginInputProps> = ({ id, type, placeholder, name, defaultValue, ariaErrorMessage, ariaInvalid }) => {
   const [value, setValue] = useState<string | undefined>();
   return (
@@ -82,6 +83,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
     actionData = undefined;
     setIsModalOpen(false);
   };
+
   return (
     <Transition
       show={isModalOpen}
@@ -95,7 +97,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
       <div onClick={closeModal} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center`}>
         <div onClick={(event) => event.stopPropagation()} className="flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] h-[400px] transition-all duration-100 transform">
           <Icon onClick={closeModal} className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"} iconName={ICONS.CLOSE} />
-          <span className="font-semibold text-2xl">Login</span>
+          <span className="font-work font-semibold text-2xl">Login</span>
           <div className="flex flex-col justify-center items-center h-full">
             <Form method="post">
               <div className="w-[300px] flex flex-col justify-center items-center mb-8 gap-4 text-sm ">
@@ -127,7 +129,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                 <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard/scheduling"} />
               </div>
               <button
-                className="bg-button hover:bg-blue-800 text-gray-200 font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
+                className="bg-button hover:bg-blue-800 text-gray-200  font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
                 type="submit"
               >
                 Log in

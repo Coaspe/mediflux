@@ -1,13 +1,5 @@
 import { EMPTY_SEARCHHELP, ROLE, SIDE_MENU } from "~/constant";
-import {
-  OpReadiness,
-  PRecord,
-  QueryDataName,
-  Role,
-  SearchHelp,
-  SideMenu,
-  TableType,
-} from "~/type";
+import { OpReadiness, PRecord, QueryDataName, Role, SearchHelp, SideMenu, TableType } from "~/type";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -48,28 +40,18 @@ export const getTableType = (opReadiness?: OpReadiness): TableType => {
     return "ExceptReady";
   }
 };
-export const isInvalidOpReadiessWithTable = (
-  precord: PRecord,
-  queryDataName?: QueryDataName,
-  tableType?: TableType
-): boolean => {
+export const isInvalidOpReadiessWithTable = (precord: PRecord, queryDataName?: QueryDataName, tableType?: TableType): boolean => {
   if (!precord.opReadiness) {
     return false;
   }
 
   if (queryDataName) {
-    if (
-      (queryDataName === "Ready_PRecord" && precord.opReadiness !== "Y") ||
-      (queryDataName === "ExceptReady_PRecord" && precord.opReadiness === "Y")
-    ) {
+    if ((queryDataName === "Ready_PRecord" && precord.opReadiness !== "Y") || (queryDataName === "ExceptReady_PRecord" && precord.opReadiness === "Y")) {
       return true;
     }
   }
   if (tableType) {
-    if (
-      (tableType === "Ready" && precord.opReadiness !== "Y") ||
-      (tableType === "ExceptReady" && precord.opReadiness === "Y")
-    ) {
+    if ((tableType === "Ready" && precord.opReadiness !== "Y") || (tableType === "ExceptReady" && precord.opReadiness === "Y")) {
       return true;
     }
   }

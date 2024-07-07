@@ -24,11 +24,11 @@ import {
   consultantColumn,
   commentCautionColumn,
 } from "~/utils/Table/columnDef";
-import { PORT, CONNECT, JOIN_ROOM, USER_JOINED, CONNECTED_USERS, LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD } from "shared";
+import { PORT, CONNECT, JOIN_ROOM, USER_JOINED, CONNECTED_USERS, LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, ARCHIVE_ROOM_ID } from "shared";
 import { Socket, io } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import { ChangeStatusDialog, DeleteRecordDialog } from "../Table/Dialogs";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 
 type props = {
   startDate: Dayjs;
@@ -36,8 +36,6 @@ type props = {
 };
 
 const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
-  console.log(dayjs(startDate).format("YYYY-MM-DD"), dayjs(endDate).format("YYYY-MM-DD"));
-
   const [socket, setSocket] = useState<Socket | null>(null);
   const [clients, setClients] = useState<String[]>([]);
   let user: User = {
@@ -145,34 +143,34 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
     setOpenDeleteModal(true);
     actionPRecord.current = JSON.parse(JSON.stringify(row.original));
     if (actionPRecord.current) {
-      emitLockRecord(actionPRecord.current.id, "Archive", socket, user);
+      emitLockRecord(actionPRecord.current.id, "Archive", socket, user, ARCHIVE_ROOM_ID);
     }
   };
   const handleCloseDeleteModal = () => {
     setOpenDeleteModal(false);
     if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, "Archive", socket);
+      emitUnLockRecord(actionPRecord.current.id, "Archive", socket, ARCHIVE_ROOM_ID);
     }
     actionPRecord.current = undefined;
   };
   const handleConfirmDelete = async () => {
     if (actionPRecord.current) {
       await deleteArchivePRecordWithDB(actionPRecord.current.id);
-      emitDeleteRecord(actionPRecord.current.id, "Archive", socket, user);
+      emitDeleteRecord(actionPRecord.current.id, "Archive", socket, user, ARCHIVE_ROOM_ID);
     }
     handleCloseDeleteModal();
   };
   const handleCloseStatusChangeModal = () => {
     setOpenChangeStatusModal(false);
     if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, "Archive", socket);
+      emitUnLockRecord(actionPRecord.current.id, "Archive", socket, ARCHIVE_ROOM_ID);
     }
     actionPRecord.current = undefined;
   };
   const handleConfirmStatusChange = async (newStatus?: OpReadiness) => {
     if (actionPRecord.current && actionPRecord.current.opReadiness !== newStatus) {
       await updateArchivePRecordWithDB(actionPRecord.current);
-      emitSaveRecord(actionPRecord.current, "Archive", socket);
+      emitSaveRecord(actionPRecord.current, "Archive", socket, ARCHIVE_ROOM_ID);
     }
     handleCloseStatusChangeModal();
   };
@@ -200,7 +198,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
   );
   const handleEditingCancel = (row: MRT_Row<PRecord>, tableType: TableType) => {
     // setValidationErrors({});
-    emitUnLockRecord(row.id, tableType, socket);
+    emitUnLockRecord(row.id, tableType, socket, ARCHIVE_ROOM_ID);
     originalPRecord.current = undefined;
   };
 
@@ -251,12 +249,12 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
     }
 
     await updateArchivePRecordWithDB(precord);
-    emitSaveRecord(precord, tableType, socket);
+    emitSaveRecord(precord, tableType, socket, ARCHIVE_ROOM_ID);
 
     table.setEditingRow(null); // exit editing mode
 
     if (precord.LockingUser?.id === user.id) {
-      emitUnLockRecord(row.id, tableType, socket);
+      emitUnLockRecord(row.id, tableType, socket, ARCHIVE_ROOM_ID);
     }
 
     originalPRecord.current = undefined;
@@ -276,7 +274,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
     precord.id = id.current.toString();
     id.current += 1;
     await createArchivePRecordWithDB(precord);
-    emitCreateRecord(precord, tableType, socket);
+    emitCreateRecord(precord, tableType, socket, ARCHIVE_ROOM_ID);
     originalPRecord.current = undefined;
     table.setCreatingRow(null); //exit creating mode
   };
@@ -359,6 +357,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
         socket={socket}
         openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
         tableType="Archive"
+        roomId={ARCHIVE_ROOM_ID}
       />
     ),
     renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="Archive" />,
