@@ -1,11 +1,8 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
-import { redirect } from "@remix-run/react";
 import { badRequest } from "~/utils/request.server";
-import { useRecoilState } from "recoil";
-import { userState } from "~/recoil_state";
-import { ROLE } from "~/constant";
+import { createUserSession, login, register } from "~/services/session.server";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -33,6 +30,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const password = form.get("password");
   const username = form.get("username");
   const redirectTo = validateUrl((form.get("redirectTo") as string) || "/");
+
   if (typeof password !== "string" || typeof username !== "string") {
     return badRequest({
       fieldErrors: null,
@@ -41,7 +39,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     });
   }
 
-  const fields = { password, username };
+  let fields: { [key: string]: string } = { password, username };
   const fieldErrors = {
     password: validatePassword(password),
     username: validateUsername(username),
@@ -57,10 +55,43 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   switch (requestType) {
     case "login": {
-      return redirect(redirectTo);
+      let user = await login({ username, password });
+
+      if (!user) {
+        return badRequest({
+          fieldErrors: null,
+          fields,
+          formError: `Username/Password combination is incorrect`,
+        });
+      }
+
+      return createUserSession(user.id, redirectTo);
     }
+
     case "register": {
+      let email = form.get("useremail");
+      if (!email || typeof email !== "string") {
+        return badRequest({
+          fieldErrors: null,
+          fields,
+          formError: `Username/Password combination is incorrect`,
+        });
+      }
+
+      fields["email"] = email;
+      let user = await register({ username, email, password });
+
+      if (!user) {
+        badRequest({
+          fieldErrors: null,
+          fields,
+          formError: `Already exists user`,
+        });
+      }
+
+      return user;
     }
+
     default: {
       return badRequest({
         fieldErrors: null,

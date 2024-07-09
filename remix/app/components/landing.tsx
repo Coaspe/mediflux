@@ -131,6 +131,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
               <button
                 className="bg-button hover:bg-blue-800 text-gray-200  font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
                 type="submit"
+                onClick={() => {}}
               >
                 Log in
               </button>
