@@ -31,7 +31,7 @@ import { UseMutateFunction, UseMutateAsyncFunction } from "@tanstack/react-query
 import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
 import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
 import { useRecoilState } from "recoil";
-import { userState } from "~/recoil_state";
+import { readyTableState, userState } from "~/recoil_state";
 
 const SchedulingTable = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -624,7 +624,6 @@ const SchedulingTable = () => {
     }
     handleCloseStatusChangeModal();
   };
-  // Assign and Delete Dialogs
 
   return (
     <div className="w-full h-full gap-2 flex flex-col">

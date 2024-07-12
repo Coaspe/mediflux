@@ -1,4 +1,4 @@
-import React, { MutableRefObject, useState } from "react";
+import React, { MutableRefObject, useEffect, useState } from "react";
 import { TREATMENTS } from "shared";
 import { OpReadiness, PRecord } from "~/type";
 import Button from "@mui/material/Button";
@@ -47,6 +47,11 @@ export const AssignmentDialog: React.FC<props> = ({ handleCloseModal, handleConf
 export const ChangeStatusDialog: React.FC<props> = ({ handleCloseModal, handleConfirmModal, actionPRecord, openModal }) => {
   const readinessArray: OpReadiness[] = ["Y", "N", "C", "P"];
   const [opReadiness, setOpReadiness] = useState<OpReadiness | undefined>(actionPRecord.current?.opReadiness);
+
+  useEffect(() => {
+    setOpReadiness(actionPRecord.current?.opReadiness);
+  }, [actionPRecord.current]);
+
   return (
     <Dialog open={openModal} onClose={handleCloseModal} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
       <DialogTitle id="alert-dialog-title">상태 변경</DialogTitle>
