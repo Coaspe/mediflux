@@ -98,21 +98,17 @@ const SchedulingTable = () => {
   }, []);
 
   const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
-
   const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
-
   const { mutate: updateReadyPRecord, mutateAsync: updateReadyPRecordWithDB, isPending: isUpdatingReadyPRecord, error: updateError } = useUpdatePRecord("Ready_PRecord");
   const { mutate: deleteReadyPRecord, mutateAsync: deleteReadyPRecordWithDB, isPending: isDeletingReadyPRecord } = useDeletePRecord("Ready_PRecord");
 
   const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
-
   const {
     data: fetchedExceptReadyPRecords,
     isError: isLoadingExceptReadyPRecordsError,
     isFetching: isFetchingExceptReadyPRecords,
     isLoading: isLoadingExceptReadyPRecords,
   } = useGetPRecords("ExceptReady_PRecord");
-
   const {
     mutate: updateExceptReadyPRecord,
     mutateAsync: updateExceptReadyPRecordWithDB,

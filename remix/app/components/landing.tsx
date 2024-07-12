@@ -1,7 +1,11 @@
-import { Form, useActionData } from "@remix-run/react";
-import React, { Dispatch, HTMLInputTypeAttribute, useState } from "react";
+import { Form, useActionData, useNavigate } from "@remix-run/react";
+import React, { Dispatch, HTMLInputTypeAttribute, useEffect, useState } from "react";
 import Icon, { ICONS } from "./Icons";
 import { Transition } from "@headlessui/react";
+import { useRecoilState } from "recoil";
+import { userState } from "~/recoil_state";
+import { User } from "~/type";
+import { ROLE } from "~/constant";
 
 export const LoginButton = ({ name, onClose }: { name: string; onClose: () => void }) => {
   return (
@@ -70,14 +74,29 @@ type LoginAction = {
     username: string | undefined;
   };
   fields: {
-    password: string | undefined;
-    username: string | undefined;
+    password: string;
+    user: string;
+    username: string;
   };
   formError: null;
 };
 
 export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalOpen }) => {
   let actionData = useActionData<LoginAction>();
+  const [user, setUser] = useRecoilState(userState);
+  const navigtor = useNavigate();
+
+  useEffect(() => {
+    if (actionData === undefined || actionData?.fields?.username !== undefined) {
+      setUser({ id: "1", name: "이우람", role: ROLE.DOCTOR } as User);
+    }
+  }, [actionData]);
+
+  useEffect(() => {
+    if (user) {
+      navigtor("/dashboard/scheduling");
+    }
+  }, [user]);
 
   const closeModal = () => {
     actionData = undefined;
@@ -126,12 +145,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                   <AlertP msg={actionData?.fieldErrors?.password} />
                 </div>
                 <input className="hidden" id="logintype-input" type="text" name="requestType" defaultValue={"login"} />
-                <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard/scheduling"} />
+                <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard"} />
               </div>
               <button
                 className="bg-button hover:bg-blue-800 text-gray-200  font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
                 type="submit"
-                onClick={() => {}}
               >
                 Log in
               </button>

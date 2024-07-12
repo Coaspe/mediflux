@@ -12,6 +12,8 @@ function useUpdatePRecord(queryDataName: QueryDataName) {
     },
     onMutate: (newPRecord: PRecord) => {
       queryClient.setQueryData([queryDataName], (prevs: any) => {
+        console.log(prevs);
+
         let newPRecords: PRecord[] = [];
         prevs?.forEach((prevPRecord: PRecord) => {
           if (prevPRecord.id !== newPRecord.id) {
@@ -42,7 +44,7 @@ function useDeletePRecord(queryDataName: QueryDataName) {
 
 function useGetPRecords(queryDataName: QueryDataName, startDate?: Dayjs, endDate?: Dayjs) {
   return useQuery<PRecord[]>({
-    queryKey: [queryDataName, startDate, endDate],
+    queryKey: startDate ? [queryDataName, startDate, endDate] : [queryDataName],
     queryFn: async () => {
       let mock: PRecord[] = [];
 

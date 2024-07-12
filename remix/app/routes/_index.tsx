@@ -1,8 +1,9 @@
-import type { ActionFunctionArgs } from "@remix-run/node";
+import type { ActionFunction, ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, login, register } from "~/services/session.server";
+import { ROLE } from "~/constant";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -23,8 +24,11 @@ function validateUrl(url: string) {
   // }
   return url;
 }
-
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
+  console.log("Loader");
+  return null;
+};
+export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const requestType = form.get("requestType");
   const password = form.get("password");
@@ -64,8 +68,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           formError: `Username/Password combination is incorrect`,
         });
       }
-
-      return createUserSession(user.id, redirectTo);
+      fields["role"] = ROLE.DOCTOR;
+      fields["username"] = "Doccoco";
+      fields["id"] = "123124";
+      return await createUserSession(user, redirectTo);
     }
 
     case "register": {
@@ -105,6 +111,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
+
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center ">
