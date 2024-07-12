@@ -1,5 +1,5 @@
 import React, { MutableRefObject, useState } from "react";
-import { TREATEMENTS } from "shared";
+import { TREATMENTS } from "shared";
 import { OpReadiness, PRecord } from "~/type";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -22,7 +22,7 @@ type props = {
 export const AssignmentDialog: React.FC<props> = ({ handleCloseModal, handleConfirmModal, actionPRecord, openModal }) => {
   const charNumString: string = `${actionPRecord.current?.chartNum && "["}${actionPRecord.current?.chartNum}${actionPRecord.current?.chartNum && ", "}`;
   const patientNameString: string = `${actionPRecord.current?.patientName}${actionPRecord.current?.patientName && ", "}`;
-  const treatment = TREATEMENTS.find((t) => t.id === actionPRecord.current?.treatment1)?.title;
+  const treatment = TREATMENTS.find((t) => t.id === actionPRecord.current?.treatment1)?.title;
   const treatmentString = treatment && `${treatment}]`;
   return (
     <Dialog open={openModal} onClose={handleCloseModal} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">

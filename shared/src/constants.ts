@@ -28,7 +28,7 @@ export const DOT_LASER = "점 제거";
 
 export const TREATMENT_CATEGORY = [SHURINK, INMODE, OLIGIO, ULTHERA, THERMAGE, LDM, LIFTING, LASER_TONING, TATTOO_LASER, DOT_LASER];
 
-export const TREATEMENTS: SearchHelp[] = [
+export const TREATMENTS: SearchHelp[] = [
   { id: "1", group: SHURINK, title: "슈링크 유니버스 울트라 MP모드 300샷" },
   { id: "2", group: SHURINK, title: "슈링크 유니버스 울트라 MP모드 100샷" },
   { id: "3", group: SHURINK, title: "슈링크 유니버스 부스터 300샷 + 전용 앰플" },

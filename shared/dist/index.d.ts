@@ -23,7 +23,7 @@ declare module "shared" {
   export const LASER_TONING: string;
   export const TATTOO_LASER: string;
   export const DOT_LASER: string;
-  export const TREATEMENTS: { id: string; group: TreatmentCategory; title: string }[];
+  export const TREATMENTS: { id: string; group: TreatmentCategory; title: string }[];
   export const PORT: number;
   //     export type Treatment = {
   //         name: string;

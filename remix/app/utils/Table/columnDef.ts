@@ -1,5 +1,5 @@
 import { MRT_ColumnDef, MRT_Row } from "material-react-table";
-import { TREATEMENTS } from "shared";
+import { TREATMENTS } from "shared";
 import { checkInTimeCell, checkInTimeEdit, opReadinessCell, treatmentEdit, StaffEdit, nameChipCell } from "~/components/Table/ColumnRenderers";
 import {
   DOCTORS,
@@ -124,7 +124,7 @@ export const opReadinessColumn = (setOpenStatusModal: Dispatch<SetStateAction<bo
 };
 export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
   return {
-    Cell: ({ cell }) => getValueWithId(TREATEMENTS, cell.getValue<string>()).title,
+    Cell: ({ cell }) => getValueWithId(TREATMENTS, cell.getValue<string>()).title,
     accessorKey: TREATMENT1,
     header: TREATMENT1_H,
     Edit: ({ row }: { row: MRT_Row<PRecord> }) => treatmentEdit(row, originalPRecord),
