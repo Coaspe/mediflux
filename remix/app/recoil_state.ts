@@ -11,3 +11,8 @@ export const readyTableState = atom<MRT_TableInstance<PRecord>>({
   key: "readyTableState",
   default: undefined,
 });
+
+export const exceptReadyTableState = atom<MRT_TableInstance<PRecord>>({
+  key: "exceptReadyTableState",
+  default: undefined,
+});

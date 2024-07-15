@@ -1,9 +1,13 @@
 import type { ActionFunction, ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, login, register } from "~/services/session.server";
 import { ROLE } from "~/constant";
+import { useSetRecoilState } from "recoil";
+import { userState } from "~/recoil_state";
+import { getBrowserType } from "~/utils/utils";
+import { query } from "~/utils/db";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -24,10 +28,12 @@ function validateUrl(url: string) {
   // }
   return url;
 }
+
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
-  console.log("Loader");
+  const result = await query("SELECT * FROM TABLE");
   return null;
 };
+
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const requestType = form.get("requestType");
@@ -68,9 +74,11 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
           formError: `Username/Password combination is incorrect`,
         });
       }
+
       fields["role"] = ROLE.DOCTOR;
-      fields["username"] = "Doccoco";
-      fields["id"] = "123124";
+      fields["username"] = "Dococo";
+      fields["id"] = "1";
+
       return await createUserSession(user, redirectTo);
     }
 
@@ -111,6 +119,16 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
+  const setUser = useSetRecoilState(userState);
+
+  useEffect(() => {
+    const browser = getBrowserType();
+    if (browser === "Apple Safari") {
+      setUser({ id: "1", name: "COCODO", role: ROLE.DOCTOR });
+    } else {
+      setUser({ id: "2", name: "Kim", role: ROLE.STAFF });
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">

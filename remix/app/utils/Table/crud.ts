@@ -12,8 +12,6 @@ function useUpdatePRecord(queryDataName: QueryDataName) {
     },
     onMutate: (newPRecord: PRecord) => {
       queryClient.setQueryData([queryDataName], (prevs: any) => {
-        console.log(prevs);
-
         let newPRecords: PRecord[] = [];
         prevs?.forEach((prevPRecord: PRecord) => {
           if (prevPRecord.id !== newPRecord.id) {
@@ -25,7 +23,8 @@ function useUpdatePRecord(queryDataName: QueryDataName) {
         return newPRecords;
       });
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }),
+    // Refetch precords after mutation, disabled for demo.
   });
 }
 
@@ -38,7 +37,8 @@ function useDeletePRecord(queryDataName: QueryDataName) {
     onMutate: (id: string) => {
       queryClient.setQueryData([queryDataName], (prevPRecords: any) => prevPRecords?.filter((precord: PRecord) => precord.id !== id));
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }),
+    // Refetch precords after mutation, disabled for demo.
   });
 }
 
@@ -72,13 +72,14 @@ function useCreatePRecord(queryDataName: QueryDataName) {
     mutationFn: async (precord: PRecord) => {
       return Promise.resolve();
     },
-    //client side optimistic update
+    // Client side optimistic update
     onMutate: (newPRecordInfo: PRecord) => {
       queryClient.setQueryData([queryDataName], (prevPRecords: any) => {
         return [newPRecordInfo, ...prevPRecords] as PRecord[];
       });
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }), //refetch precords after mutation, disabled for demo
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['precords'] }),
+    // Refetch precords after mutation, disabled for demo
   });
 }
 
