@@ -1,5 +1,3 @@
-/** @format */
-
 import { useEffect, useRef, useState } from "react";
 import { type MRT_Row } from "material-react-table";
 import { Socket, io } from "socket.io-client";
@@ -9,7 +7,7 @@ import { getTableType } from "~/utils/utils";
 import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord, emitLockRecord } from "~/utils/Table/socket";
 import { UseMutateFunction, UseMutateAsyncFunction } from "@tanstack/react-query";
 import { useCreatePRecord, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
-import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
+import { ChangeStatusDialog, DeleteRecordDialog } from "./Dialogs";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
 import ReadyTable from "./ReadyTable";
@@ -21,19 +19,11 @@ const SchedulingTable = () => {
   const user = useRecoilValue(userState);
 
   // Assign and Delete Dialogs
-  const [openAssignModal, setOpenAssignModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openChangeStatusModal, setOpenChangeStatusModal] = useState(false);
 
   const actionPRecord = useRef<PRecord>();
   const originalPRecord = useRef<PRecord>();
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const playAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-    }
-  };
 
   const handleConnectedUsers = (users: String[]) => {
     setClients(users);
@@ -55,13 +45,13 @@ const SchedulingTable = () => {
 
     // Other user joined
     socketInstance.on(USER_JOINED, (username) => {
-      if (typeof socket === "undefined") return;
-      setClients((prev) => [...prev, username]);
-      socketInstance.emit(CONNECTED_USERS, clients); //Emit User Array
+      // if (typeof socket === "undefined") return;
+      // setClients((prev) => [...prev, username]);
+      // socketInstance.emit(CONNECTED_USERS, clients); // Emit User Array
     });
 
     // Set connected users
-    socketInstance.on(CONNECTED_USERS, handleConnectedUsers);
+    // socketInstance.on(CONNECTED_USERS, handleConnectedUsers);
 
     return () => {
       socketInstance.off(CONNECTED_USERS);
@@ -94,11 +84,6 @@ const SchedulingTable = () => {
     return Promise.resolve(); // 또는 필요한 기본 반환값
   };
 
-  const updateFnMapping: Record<TableType, UseMutateFunction<void, Error, PRecord, void>> = {
-    Ready: updateReadyPRecord,
-    ExceptReady: updateExceptReadyPRecord,
-    Archive: dummyUpdateArchivePRecord,
-  };
   const createFnMapping: Record<TableType, UseMutateFunction<void, Error, PRecord, void>> = {
     Ready: createReadyPRecord,
     ExceptReady: createExceptReadyPRecord,
@@ -120,31 +105,6 @@ const SchedulingTable = () => {
     Archive: dummyUpdateArchivePRecordStringWithDB,
   };
 
-  const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
-    setOpenAssignModal(true);
-    actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-    if (actionPRecord.current) {
-      emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user, SCHEDULING_ROOM_ID);
-    }
-  };
-  const handleCloseAssignModal = () => {
-    setOpenAssignModal(false);
-    if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, SCHEDULING_ROOM_ID);
-    }
-    actionPRecord.current = undefined;
-  };
-  const handleConfirmAssign = async () => {
-    if (actionPRecord.current) {
-      actionPRecord.current.doctor = user.id;
-      actionPRecord.current.opReadiness = "P";
-      emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
-      emitCreateRecord(actionPRecord.current, "ExceptReady", socket, SCHEDULING_ROOM_ID);
-      await dbUpdateFnMapping["Ready"](actionPRecord.current);
-      createFnMapping["ExceptReady"](actionPRecord.current);
-    }
-    handleCloseAssignModal();
-  };
   const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
     setOpenDeleteModal(true);
     actionPRecord.current = JSON.parse(JSON.stringify(row.original));
@@ -196,27 +156,12 @@ const SchedulingTable = () => {
   };
 
   return (
-    <div className="w-full h-full gap-2 flex flex-col">
-      <audio className="hidden" ref={audioRef} src={"../assets/sounds/new_record_ready_noti.mp3"} controls />
+    <div className="w-full h-full gap-2 flex flex-col pb-5">
       {/* Assignment Modal */}
       <ChangeStatusDialog handleCloseModal={handleCloseStatusChangeModal} handleConfirmModal={handleConfirmStatusChange} openModal={openChangeStatusModal} actionPRecord={actionPRecord} />
-      <AssignmentDialog handleCloseModal={handleCloseAssignModal} handleConfirmModal={handleConfirmAssign} openModal={openAssignModal} actionPRecord={actionPRecord} />
       <DeleteRecordDialog handleCloseModal={handleCloseDeleteModal} handleConfirmModal={handleConfirmDelete} openModal={openDeleteModal} actionPRecord={actionPRecord} />
-      <ReadyTable
-        originalPRecord={originalPRecord}
-        setOpenChangeStatusModal={setOpenChangeStatusModal}
-        handleOpenAssignModal={handleOpenAssignModal}
-        handleOpenDeleteModal={handleOpenDeleteModal}
-        playAudio={playAudio}
-        socket={socket}
-      />
-      <ExceptReadyTable
-        originalPRecord={originalPRecord}
-        setOpenChangeStatusModal={setOpenChangeStatusModal}
-        handleOpenAssignModal={handleOpenAssignModal}
-        handleOpenDeleteModal={handleOpenDeleteModal}
-        socket={socket}
-      />
+      <ReadyTable originalPRecord={originalPRecord} actionPRecord={actionPRecord} setOpenChangeStatusModal={setOpenChangeStatusModal} handleOpenDeleteModal={handleOpenDeleteModal} socket={socket} />
+      <ExceptReadyTable originalPRecord={originalPRecord} setOpenChangeStatusModal={setOpenChangeStatusModal} handleOpenDeleteModal={handleOpenDeleteModal} socket={socket} />
     </div>
   );
 };

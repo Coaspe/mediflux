@@ -8,6 +8,7 @@ import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord } 
 import { Socket } from "socket.io-client";
 import { MutableRefObject } from "react";
 import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
+import dayjs, { Dayjs } from "dayjs";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -125,6 +126,9 @@ export const handleSavePRecord = async (
 
   let otherType: TableType = tableType === "Ready" ? "ExceptReady" : "Ready";
   if (!isInvalidOpReadiessWithTable(precord, undefined, otherType)) {
+    if (otherType === "Ready") {
+      precord.readyTime = dayjs().unix();
+    }
     createFn(precord);
     emitCreateRecord(precord, otherType, socket, SCHEDULING_ROOM_ID);
     emitDeleteRecord(precord.id, tableType, socket, user, SCHEDULING_ROOM_ID);

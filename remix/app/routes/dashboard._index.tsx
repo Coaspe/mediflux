@@ -1,3 +1,3 @@
 export default function DashboardIndexRoute() {
-  return <></>;
+  return <div></div>;
 }

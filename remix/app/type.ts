@@ -38,6 +38,7 @@ export type PRecord = {
   consultant?: string; // VARCHAR (50)
   commentCaution?: string; // VARCHAR (300), optional
   LockingUser?: User | null;
+  readyTime?: number;
   [key: string]: any;
 };
 export type TableType = "Ready" | "ExceptReady" | "Archive";

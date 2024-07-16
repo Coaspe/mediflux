@@ -9,7 +9,6 @@ import { ROLE } from "~/constant";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
 import { getBrowserType } from "~/utils/utils";
-import { query } from "~/utils/db";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -32,8 +31,7 @@ function validateUrl(url: string) {
 }
 
 export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
-  const result = await query("SELECT * FROM TABLE");
-  return null;
+  return "a";
 };
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
@@ -122,10 +120,9 @@ export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
   const setUser = useSetRecoilState(userState);
-  const user = useRecoilValue(userState);
+
   useEffect(() => {
     const browser = getBrowserType();
-    console.log(browser);
 
     if (browser === "Google Chrome") {
       setUser({ id: "1", name: "COCODO", role: ROLE.DOCTOR });
@@ -134,9 +131,6 @@ export default function Index() {
     }
   }, []);
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center ">

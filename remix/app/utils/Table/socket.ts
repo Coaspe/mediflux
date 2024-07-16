@@ -88,14 +88,16 @@ export const onCreateRecord = (
   { record, tableType }: { record: string; tableType: TableType },
   createFn: UseMutateFunction<void, Error, PRecord, void>,
   curTableType: TableType,
-  playAudio?: () => void
+  audioRef?: React.RefObject<HTMLAudioElement>
 ) => {
   if (tableType !== curTableType) return;
   const precord: PRecord = JSON.parse(record);
   precord.LockingUser = null;
   createFn(precord);
-  if (curTableType === "Ready" && playAudio) {
-    playAudio();
+  if (tableType === "Ready" && audioRef) {
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
   }
 };
 

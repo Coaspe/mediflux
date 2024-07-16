@@ -1,13 +1,11 @@
-/** @format */
-
 import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
-import { ROLE } from "~/constant";
+import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, NEW_READY_RECORD_COLOR, ROLE, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
 import { PRecord } from "~/type";
-import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
+import { emitCreateRecord, emitDeleteRecord, emitLockRecord, emitUnLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useState } from "react";
+import React, { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -29,25 +27,28 @@ import {
 import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
-import { handleCreatePRecord, handleEditingCancel, handleSavePRecord } from "~/utils/utils";
+import { getTableType, handleCreatePRecord, handleEditingCancel, handleSavePRecord } from "~/utils/utils";
 import { Socket } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
+import dayjs from "dayjs";
+import { AssignmentDialog } from "./Dialogs";
 
 type props = {
   originalPRecord: MutableRefObject<PRecord | undefined>;
+  actionPRecord: MutableRefObject<PRecord | undefined>;
   setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>;
-  handleOpenAssignModal: (row: MRT_Row<PRecord>) => void;
   handleOpenDeleteModal: (row: MRT_Row<PRecord>) => void;
-  playAudio: () => void;
   socket: Socket | null;
 };
 
-const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenAssignModal, handleOpenDeleteModal, playAudio, socket }) => {
+const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenChangeStatusModal, handleOpenDeleteModal, socket }) => {
   const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
   const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
   const { mutate: updateReadyPRecord, mutateAsync: updateReadyPRecordWithDB, isPending: isUpdatingReadyPRecord, error: updateError } = useUpdatePRecord("Ready_PRecord");
   const { mutate: deleteReadyPRecord, mutateAsync: _, isPending: isDeletingReadyPRecord } = useDeletePRecord("Ready_PRecord");
   const { mutate: createExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [openAssignModal, setOpenAssignModal] = useState(false);
 
   const user = useRecoilValue(userState);
 
@@ -58,7 +59,7 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, readyTable, updateReadyPRecord, "Ready"));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, readyTable, updateReadyPRecord, "Ready"));
     socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, readyTable, updateReadyPRecord, "Ready"));
-    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, createReadyPRecord, "Ready", playAudio));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, createReadyPRecord, "Ready", audioRef));
     socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, deleteReadyPRecord, "Ready"));
 
     return () => {
@@ -99,11 +100,12 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
     columns: readyColumns,
     data: fetchedReadyPRecords ? fetchedReadyPRecords : [],
     localization: MRT_Localization_KO,
+    enableBottomToolbar: true,
     initialState: {
       columnPinning: { left: ["mrt-row-actions"] },
       density: "compact",
       pagination: {
-        pageSize: 30,
+        pageSize: 10,
         pageIndex: 0,
       },
     },
@@ -120,16 +122,22 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
       },
     },
     muiTableContainerProps: ({ table }) => {
-      const { isFullScreen } = table.getState();
       return {
         sx: {
-          height: isFullScreen ? "100%" : "500px",
+          height: TABLE_CONTAINER_HEIGHT,
         },
       };
     },
     muiTableProps: ({}) => ({
       sx: {
         width: "0px",
+        height: TABLE_HEIGHT,
+      },
+    }),
+    muiTablePaperProps: ({}) => ({
+      sx: {
+        height: TABLE_PAPER_HEIGHT,
+        maxHeight: "800px",
       },
     }),
     muiToolbarAlertBannerProps: isLoadingReadyPRecordsError
@@ -140,9 +148,16 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
       : undefined,
     muiTableBodyRowProps: ({ row, table }) => {
       const { density } = table.getState();
+      let backgroundColor = DEFAULT_RECORD_COLOR;
+      let add5m = dayjs().add(5, "minute").unix();
+      if (row.original.LockingUser && row.original.LockingUser.id != user.id) {
+        backgroundColor = EDITING_RECORD_COLOR;
+      } else if (row.original.readyTime && row.original.readyTime <= add5m && row.original.opReadiness === "Y") {
+        backgroundColor = NEW_READY_RECORD_COLOR;
+      }
       return {
         sx: {
-          backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "gray" : "white",
+          backgroundColor,
           pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
@@ -187,10 +202,43 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
     },
   });
 
-  useEffect(() => {
-    console.log("Reaeraeraeraera");
-  }, [readyTable]);
-  return <MaterialReactTable table={readyTable} />;
+  const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
+    setOpenAssignModal(true);
+
+    actionPRecord.current = JSON.parse(JSON.stringify(row.original));
+    if (actionPRecord.current) {
+      emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user, SCHEDULING_ROOM_ID);
+    }
+  };
+  const handleCloseAssignModal = () => {
+    setOpenAssignModal(false);
+    if (actionPRecord.current) {
+      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, SCHEDULING_ROOM_ID);
+    }
+    actionPRecord.current = undefined;
+  };
+  const handleConfirmAssign = async () => {
+    if (actionPRecord.current) {
+      actionPRecord.current.doctor = user.id;
+      actionPRecord.current.opReadiness = "P";
+
+      // Socket events
+      emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
+      emitCreateRecord(actionPRecord.current, "ExceptReady", socket, SCHEDULING_ROOM_ID);
+
+      // User and server events
+      await updateReadyPRecordWithDB(actionPRecord.current);
+      createExceptReadyPRecord(actionPRecord.current);
+    }
+    handleCloseAssignModal();
+  };
+  return (
+    <>
+      <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />
+      <AssignmentDialog handleCloseModal={handleCloseAssignModal} handleConfirmModal={handleConfirmAssign} openModal={openAssignModal} actionPRecord={actionPRecord} />
+      <MaterialReactTable table={readyTable} />;
+    </>
+  );
 };
 
 export default ReadyTable;

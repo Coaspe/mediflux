@@ -1,9 +1,7 @@
-/** @format */
-
 import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
-import { ROLE } from "~/constant";
+import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, ROLE, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
 import { PRecord } from "~/type";
 import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
@@ -36,12 +34,11 @@ import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 type props = {
   originalPRecord: MutableRefObject<PRecord | undefined>;
   setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>;
-  handleOpenAssignModal: (row: MRT_Row<PRecord>) => void;
   handleOpenDeleteModal: (row: MRT_Row<PRecord>) => void;
   socket: Socket | null;
 };
 
-const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenAssignModal, handleOpenDeleteModal, socket }) => {
+const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenDeleteModal, socket }) => {
   const { mutate: createReadyPRecord } = useCreatePRecord("Ready_PRecord");
 
   const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
@@ -56,6 +53,7 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
   const user = useRecoilValue(userState);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+  console.log("Except");
 
   useEffect(() => {
     if (!socket) return;
@@ -105,7 +103,7 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
       columnPinning: { left: ["mrt-row-actions"] },
       density: "compact",
       pagination: {
-        pageSize: 30,
+        pageSize: 10,
         pageIndex: 0,
       },
     },
@@ -125,13 +123,20 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
       const { isFullScreen } = table.getState();
       return {
         sx: {
-          height: isFullScreen ? "100%" : "500px",
+          height: TABLE_CONTAINER_HEIGHT,
         },
       };
     },
     muiTableProps: ({}) => ({
       sx: {
         width: "0px",
+        height: TABLE_HEIGHT,
+      },
+    }),
+    muiTablePaperProps: ({}) => ({
+      sx: {
+        height: TABLE_PAPER_HEIGHT,
+        maxHeight: "800px",
       },
     }),
     muiToolbarAlertBannerProps: isLoadingExceptReadyPRecordsError
@@ -144,12 +149,11 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
       const { density } = table.getState();
       return {
         sx: {
-          backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "gray" : "white",
+          backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,
           pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
         },
-        onDoubleClick: () => handleOpenAssignModal(row),
       };
     },
     muiTableBodyCellProps: ({ row }) => ({

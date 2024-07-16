@@ -98,7 +98,7 @@ const OpReadinessChip = ({
       <Chip onClick={handleClick} style={{ cursor: "pointer", transition: "transform 0.2s ease-in-out" }} sx={{ "&:hover": { transform: "scale(1.1)" } }} size={size} label={label} color={color} />
     </div>
   ) : (
-    <></>
+    <div></div>
   );
 };
 

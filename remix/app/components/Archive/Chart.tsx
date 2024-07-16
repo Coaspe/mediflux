@@ -34,7 +34,6 @@ type props = {
 
 const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate }) => {
   const [chartData, setChartData] = useState<ChartData[]>();
-
   const calIntervalAndSetChartData = (interval: Interval, numOfInterval: number): void => {
     let mapping: { [key: number]: ChartData } = {};
     let date = dayjs(baseDate).startOf(interval).unix();
