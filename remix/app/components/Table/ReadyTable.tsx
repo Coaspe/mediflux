@@ -1,9 +1,11 @@
+/** @format */
+
 import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
-import { SCHEDULING_ROOM_ID } from "shared";
+import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
 import { ROLE } from "~/constant";
-import { PRecord, TableType, User } from "~/type";
-import { emitLockRecord } from "~/utils/Table/socket";
+import { PRecord } from "~/type";
+import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
 import React, { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
@@ -25,32 +27,50 @@ import {
   commentCautionColumn,
 } from "~/utils/Table/columnDef";
 import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
-import { useRecoilValue, useSetRecoilState } from "recoil";
-import { readyTableState, userState } from "~/recoil_state";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 import { handleCreatePRecord, handleEditingCancel, handleSavePRecord } from "~/utils/utils";
 import { Socket } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
-import { UseMutateFunction } from "@tanstack/react-query";
 
 type props = {
   originalPRecord: MutableRefObject<PRecord | undefined>;
   setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>;
   handleOpenAssignModal: (row: MRT_Row<PRecord>) => void;
   handleOpenDeleteModal: (row: MRT_Row<PRecord>) => void;
+  playAudio: () => void;
   socket: Socket | null;
 };
 
-const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenAssignModal, handleOpenDeleteModal, socket }) => {
+const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenAssignModal, handleOpenDeleteModal, playAudio, socket }) => {
   const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
   const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
   const { mutate: updateReadyPRecord, mutateAsync: updateReadyPRecordWithDB, isPending: isUpdatingReadyPRecord, error: updateError } = useUpdatePRecord("Ready_PRecord");
   const { mutate: deleteReadyPRecord, mutateAsync: _, isPending: isDeletingReadyPRecord } = useDeletePRecord("Ready_PRecord");
-  const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
+  const { mutate: createExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
 
   const user = useRecoilValue(userState);
-  const setTable = useSetRecoilState(readyTableState);
 
-  useEffect(() => { }, []);
+  console.log("Ready Rerender");
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, readyTable, updateReadyPRecord, "Ready"));
+    socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, readyTable, updateReadyPRecord, "Ready"));
+    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, readyTable, updateReadyPRecord, "Ready"));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, createReadyPRecord, "Ready", playAudio));
+    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, deleteReadyPRecord, "Ready"));
+
+    return () => {
+      socket.off(LOCK_RECORD);
+      socket.off(UNLOCK_RECORD);
+      socket.off(SAVE_RECORD);
+      socket.off(CREATE_RECORD);
+      socket.off(DELETE_RECORD);
+      socket.disconnect();
+    };
+  }, [socket]);
+
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
   const readyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
@@ -107,16 +127,16 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
         },
       };
     },
-    muiTableProps: ({ }) => ({
+    muiTableProps: ({}) => ({
       sx: {
         width: "0px",
       },
     }),
     muiToolbarAlertBannerProps: isLoadingReadyPRecordsError
       ? {
-        color: "error",
-        children: "Error loading data",
-      }
+          color: "error",
+          children: "Error loading data",
+        }
       : undefined,
     muiTableBodyRowProps: ({ row, table }) => {
       const { density } = table.getState();
@@ -167,43 +187,9 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal
     },
   });
 
-  const onLockRecord = ({ recordId, locker, table, updateFn }: { recordId: string; locker: User; table: MRT_TableInstance<PRecord>, updateFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-    const row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
-    if (row) {
-      row.LockingUser = locker;
-      updateFn(row)
-    }
-  };
-  const onUnlockRecord = ({ recordId, table, updateFn }: { recordId: string; tableType: TableType; table: MRT_TableInstance<PRecord>, updateFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-    const row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
-    if (row) {
-      row.LockingUser = null;
-      updateFn(row)
-    }
-  };
-
-  const onSaveRecord = ({ recordId, record, table, updateFn }: { recordId: string; record: string; table: MRT_TableInstance<PRecord>, updateFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-    const precord: PRecord = JSON.parse(record);
-    precord.LockingUser = null;
-    const row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
-    if (row) {
-      row = precord;
-      updateFn(row)
-    }
-  };
-  const onCreateRecord = ({ record, createFn }: { record: string, createFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-    const precord: PRecord = JSON.parse(record);
-    precord.LockingUser = null;
-    createFn(precord)
-    if (precord.opReadiness === "Y") {
-      playAudio();
-    }
-  };
-
-  const onDeleteRecord = ({ recordId, deleteFn }: { recordId: string; deleteFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-    deleteFn(recordId)
-  };
-  setTable(readyTable);
+  useEffect(() => {
+    console.log("Reaeraeraeraera");
+  }, [readyTable]);
   return <MaterialReactTable table={readyTable} />;
 };
 

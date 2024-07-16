@@ -1,3 +1,5 @@
+/** @format */
+
 import { UseMutateFunction } from "@tanstack/react-query";
 import { MRT_TableInstance } from "material-react-table";
 import { LOCK_RECORD, SCHEDULING_ROOM_ID, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
@@ -39,38 +41,65 @@ export const emitUnLockRecord = (recordId: string, tableType: TableType, socket:
   socket?.emit(UNLOCK_RECORD, { recordId, roomId, tableType });
 };
 
-export const onLockRecord = ({ recordId, locker, table, updateFn }: { recordId: string; locker: User; table: MRT_TableInstance<PRecord>, updateFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-  const row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
+export const onLockRecord = (
+  { recordId, locker, tableType }: { recordId: string; locker: User; tableType: TableType },
+  table: MRT_TableInstance<PRecord>,
+  updateFn: UseMutateFunction<void, Error, PRecord, void>,
+  curTableType: TableType
+) => {
+  if (curTableType !== tableType) return;
+  const row = JSON.parse(JSON.stringify(table.getRow(recordId).original));
   if (row) {
     row.LockingUser = locker;
-    updateFn(row)
+    updateFn(row);
   }
 };
-export const onUnlockRecord = ({ recordId, table, updateFn }: { recordId: string; tableType: TableType; table: MRT_TableInstance<PRecord>, updateFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-  const row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
+
+export const onUnlockRecord = (
+  { recordId, tableType }: { recordId: string; tableType: TableType },
+  table: MRT_TableInstance<PRecord>,
+  updateFn: UseMutateFunction<void, Error, PRecord, void>,
+  curTableType: TableType
+) => {
+  if (curTableType !== tableType) return;
+  const row = JSON.parse(JSON.stringify(table.getRow(recordId).original));
   if (row) {
     row.LockingUser = null;
-    updateFn(row)
+    updateFn(row);
   }
 };
-export const onSaveRecord = ({ recordId, record, table, updateFn }: { recordId: string; record: string; table: MRT_TableInstance<PRecord>, updateFn: UseMutateFunction<void, Error, PRecord, void> }) => {
+
+export const onSaveRecord = (
+  { recordId, record, tableType }: { recordId: string; record: string; tableType: TableType },
+  table: MRT_TableInstance<PRecord>,
+  updateFn: UseMutateFunction<void, Error, PRecord, void>,
+  curTableType: TableType
+) => {
+  if (curTableType !== tableType) return;
   const precord: PRecord = JSON.parse(record);
   precord.LockingUser = null;
-  const row = JSON.parse(JSON.stringify(table.getRow(recordId).original))
+  let row = JSON.parse(JSON.stringify(table.getRow(recordId).original));
   if (row) {
     row = precord;
-    updateFn(row)
+    updateFn(row);
   }
 };
-export const onCreateRecord = ({ record, createFn }: { record: string, createFn: UseMutateFunction<void, Error, PRecord, void> }) => {
+export const onCreateRecord = (
+  { record, tableType }: { record: string; tableType: TableType },
+  createFn: UseMutateFunction<void, Error, PRecord, void>,
+  curTableType: TableType,
+  playAudio?: () => void
+) => {
+  if (tableType !== curTableType) return;
   const precord: PRecord = JSON.parse(record);
   precord.LockingUser = null;
-  createFn(precord)
-  if (precord.opReadiness === "Y") {
+  createFn(precord);
+  if (curTableType === "Ready" && playAudio) {
     playAudio();
   }
 };
 
-export const onDeleteRecord = ({ recordId, deleteFn }: { recordId: string; deleteFn: UseMutateFunction<void, Error, PRecord, void> }) => {
-  deleteFn(recordId)
+export const onDeleteRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }, deleteFn: UseMutateFunction<void, Error, string, void>, curTableType: TableType) => {
+  if (tableType !== curTableType) return;
+  deleteFn(recordId);
 };

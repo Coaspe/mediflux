@@ -1,3 +1,5 @@
+/** @format */
+
 import { MRT_Row, MRT_TableInstance, LiteralUnion } from "material-react-table";
 import { SCHEDULING_ROOM_ID } from "shared";
 import { EMPTY_SEARCHHELP, ROLE, SIDE_MENU } from "~/constant";
@@ -66,7 +68,6 @@ export const isInvalidOpReadiessWithTable = (precord: PRecord, queryDataName?: Q
 
 export const getBrowserType = () => {
   const userAgent = navigator.userAgent;
-
   if (userAgent.indexOf("Firefox") > -1) {
     return "Mozilla Firefox";
   } else if (userAgent.indexOf("SamsungBrowser") > -1) {
@@ -75,7 +76,7 @@ export const getBrowserType = () => {
     return "Opera";
   } else if (userAgent.indexOf("Trident") > -1) {
     return "Microsoft Internet Explorer";
-  } else if (userAgent.indexOf("Edge") > -1) {
+  } else if (userAgent.indexOf("Edg") > -1) {
     return "Microsoft Edge";
   } else if (userAgent.indexOf("Chrome") > -1) {
     return "Google Chrome";

@@ -1,23 +1,24 @@
+/** @format */
+
 import { useEffect, useRef, useState } from "react";
 import { type MRT_Row } from "material-react-table";
 import { Socket, io } from "socket.io-client";
-import { LOCK_RECORD, CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, PORT, SCHEDULING_ROOM_ID } from "shared";
-import { OpReadiness, PRecord, TableType, User } from "~/type";
-
+import { CONNECT, CONNECTED_USERS, JOIN_ROOM, USER_JOINED, PORT, SCHEDULING_ROOM_ID } from "shared";
+import { OpReadiness, PRecord, TableType } from "~/type";
 import { getTableType } from "~/utils/utils";
 import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord, emitLockRecord } from "~/utils/Table/socket";
 import { UseMutateFunction, UseMutateAsyncFunction } from "@tanstack/react-query";
-import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
+import { useCreatePRecord, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
 import { ChangeStatusDialog, AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { exceptReadyTableState, readyTableState, userState } from "~/recoil_state";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 import ReadyTable from "./ReadyTable";
 import ExceptReadyTable from "./ExecptReadyTable";
 
 const SchedulingTable = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [clients, setClients] = useState<String[]>([]);
-  const [user, setUser] = useRecoilState(userState);
+  const user = useRecoilValue(userState);
 
   // Assign and Delete Dialogs
   const [openAssignModal, setOpenAssignModal] = useState(false);
@@ -27,11 +28,6 @@ const SchedulingTable = () => {
   const actionPRecord = useRef<PRecord>();
   const originalPRecord = useRef<PRecord>();
   const audioRef = useRef<HTMLAudioElement>(null);
-
-  const readyTable = useRecoilValue(readyTableState);
-  const exceptReadyTable = useRecoilValue(exceptReadyTableState);
-
-  console.log("Rerender");
 
   const playAudio = () => {
     if (audioRef.current) {
@@ -66,36 +62,19 @@ const SchedulingTable = () => {
 
     // Set connected users
     socketInstance.on(CONNECTED_USERS, handleConnectedUsers);
-    socketInstance.on(LOCK_RECORD, onLockRecord);
-    socketInstance.on(UNLOCK_RECORD, onUnlockRecord);
-    socketInstance.on(SAVE_RECORD, onSaveRecord);
-    socketInstance.on(CREATE_RECORD, onCreateRecord);
-    socketInstance.on(DELETE_RECORD, onDeleteRecord);
 
     return () => {
       socketInstance.off(CONNECTED_USERS);
-      socketInstance.off(LOCK_RECORD);
-      socketInstance.off(UNLOCK_RECORD);
-      socketInstance.off(SAVE_RECORD);
-      socketInstance.off(CREATE_RECORD);
-      socketInstance.off(DELETE_RECORD);
       socketInstance.disconnect();
     };
   }, []);
 
-  const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
-  const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
+  const { mutate: createReadyPRecord, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
   const { mutate: updateReadyPRecord, mutateAsync: updateReadyPRecordWithDB, isPending: isUpdatingReadyPRecord, error: updateError } = useUpdatePRecord("Ready_PRecord");
   const { mutate: deleteReadyPRecord, mutateAsync: deleteReadyPRecordWithDB, isPending: isDeletingReadyPRecord } = useDeletePRecord("Ready_PRecord");
 
-  const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
-
-  const {
-    mutate: updateExceptReadyPRecord,
-    mutateAsync: updateExceptReadyPRecordWithDB,
-    isPending: isUpdatingExceptReadyPRecord,
-    error: updateExceptReadyError,
-  } = useUpdatePRecord("ExceptReady_PRecord");
+  const { mutate: updateExceptReadyPRecord, mutateAsync: updateExceptReadyPRecordWithDB, isPending: isUpdatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
+  const { mutate: createExceptReadyPRecord, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
   const { mutate: deleteExceptReadyPRecord, mutateAsync: deleteExceptReadyPRecordWithDB, isPending: isDeletingExceptReadyPRecord } = useDeletePRecord("ExceptReady_PRecord");
 
   const dummyUpdateArchivePRecord: UseMutateFunction<void, Error, PRecord, void> = () => {
@@ -140,58 +119,6 @@ const SchedulingTable = () => {
     ExceptReady: deleteExceptReadyPRecordWithDB,
     Archive: dummyUpdateArchivePRecordStringWithDB,
   };
-  // Start ---------------------------------------------- On socket event
-  const setTableAndGetRow = (tableType: TableType, recordId: string) => {
-    let table = readyTable;
-    if (tableType == "ExceptReady") {
-      table = exceptReadyTable;
-    }
-    try {
-      let row = JSON.parse(JSON.stringify(table.getRow(recordId).original));
-      return row;
-    } catch (error) {
-      return undefined;
-    }
-  };
-
-  const onLockRecord = ({ recordId, locker, tableType }: { recordId: string; locker: User; tableType: TableType }) => {
-    const row = setTableAndGetRow(tableType, recordId);
-    if (row) {
-      row.LockingUser = locker;
-      updateFnMapping[tableType](row);
-    }
-  };
-  const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }) => {
-    const row = setTableAndGetRow(tableType, recordId);
-    if (row) {
-      row.LockingUser = null;
-      updateFnMapping[tableType](row);
-    }
-  };
-
-  const onSaveRecord = ({ recordId, record, tableType }: { recordId: string; record: string; tableType: TableType }) => {
-    const precord: PRecord = JSON.parse(record);
-
-    precord.LockingUser = null;
-    let row = setTableAndGetRow(tableType, recordId);
-    if (row) {
-      row = precord;
-      updateFnMapping[tableType](row);
-    }
-  };
-  const onCreateRecord = ({ record, tableType }: { record: string; tableType: TableType }) => {
-    const precord: PRecord = JSON.parse(record);
-    precord.LockingUser = null;
-    createFnMapping[tableType](precord);
-    if (precord.opReadiness === "Y") {
-      playAudio();
-    }
-  };
-
-  const onDeleteRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }) => {
-    deleteFnMapping[tableType](recordId);
-  };
-  // End ---------------------------------------------- On socket event
 
   const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
     setOpenAssignModal(true);
@@ -280,6 +207,7 @@ const SchedulingTable = () => {
         setOpenChangeStatusModal={setOpenChangeStatusModal}
         handleOpenAssignModal={handleOpenAssignModal}
         handleOpenDeleteModal={handleOpenDeleteModal}
+        playAudio={playAudio}
         socket={socket}
       />
       <ExceptReadyTable

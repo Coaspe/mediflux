@@ -1,10 +1,12 @@
+/** @format */
+
 import type { ActionFunction, ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, login, register } from "~/services/session.server";
 import { ROLE } from "~/constant";
-import { useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
 import { getBrowserType } from "~/utils/utils";
 import { query } from "~/utils/db";
@@ -120,16 +122,21 @@ export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
   const setUser = useSetRecoilState(userState);
-
+  const user = useRecoilValue(userState);
   useEffect(() => {
     const browser = getBrowserType();
-    if (browser === "Apple Safari") {
+    console.log(browser);
+
+    if (browser === "Google Chrome") {
       setUser({ id: "1", name: "COCODO", role: ROLE.DOCTOR });
     } else {
       setUser({ id: "2", name: "Kim", role: ROLE.STAFF });
     }
   }, []);
 
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center ">

@@ -1,11 +1,13 @@
+/** @format */
+
 import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
-import { SCHEDULING_ROOM_ID } from "shared";
+import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
 import { ROLE } from "~/constant";
 import { PRecord } from "~/type";
-import { emitLockRecord } from "~/utils/Table/socket";
+import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { Dispatch, MutableRefObject, SetStateAction, useMemo, useState } from "react";
+import React, { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -25,8 +27,8 @@ import {
   commentCautionColumn,
 } from "~/utils/Table/columnDef";
 import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
-import { useRecoilValue, useSetRecoilState } from "recoil";
-import { exceptReadyTableState, readyTableState, userState } from "~/recoil_state";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 import { handleCreatePRecord, handleEditingCancel, handleSavePRecord } from "~/utils/utils";
 import { Socket } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
@@ -40,7 +42,7 @@ type props = {
 };
 
 const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenAssignModal, handleOpenDeleteModal, socket }) => {
-  const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
+  const { mutate: createReadyPRecord } = useCreatePRecord("Ready_PRecord");
 
   const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
   const {
@@ -49,12 +51,29 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
     isFetching: isFetchingExceptReadyPRecords,
     isLoading: isLoadingExceptReadyPRecords,
   } = useGetPRecords("ExceptReady_PRecord");
-  const { mutate: _, mutateAsync: updateExceptReadyPRecordWithDB, isPending: isUpdatingExceptReadyPRecord, error: updateError } = useUpdatePRecord("ExceptReady_PRecord");
-  const { mutate: __, mutateAsync: ___, isPending: isDeletingExceptReadyPRecord } = useDeletePRecord("ExceptReady_PRecord");
+  const { mutate: updateExceptReadyPRecord, mutateAsync: updateExceptReadyPRecordWithDB, isPending: isUpdatingExceptReadyPRecord, error: updateError } = useUpdatePRecord("ExceptReady_PRecord");
+  const { mutate: deleteExceptReadyPRecord, isPending: isDeletingExceptReadyPRecord } = useDeletePRecord("ExceptReady_PRecord");
   const user = useRecoilValue(userState);
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
-  const setTable = useSetRecoilState(exceptReadyTableState);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, ExceptReadyTable, updateExceptReadyPRecord, "ExceptReady"));
+    socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, ExceptReadyTable, updateExceptReadyPRecord, "ExceptReady"));
+    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, ExceptReadyTable, updateExceptReadyPRecord, "ExceptReady"));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, createExceptReadyPRecord, "ExceptReady"));
+    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, deleteExceptReadyPRecord, "ExceptReady"));
+
+    return () => {
+      socket.off(LOCK_RECORD);
+      socket.off(UNLOCK_RECORD);
+      socket.off(SAVE_RECORD);
+      socket.off(CREATE_RECORD);
+      socket.off(DELETE_RECORD);
+      socket.disconnect();
+    };
+  }, [socket]);
 
   const ExceptReadyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
     () => [
@@ -170,7 +189,6 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
     },
   });
 
-  setTable(ExceptReadyTable);
   return <MaterialReactTable table={ExceptReadyTable} />;
 };
 
