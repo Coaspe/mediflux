@@ -1,18 +1,14 @@
 import { ROLE } from "~/constant";
-import { SideMenu, User } from "~/type";
+import { SideMenu } from "~/type";
 import { getMenuName, getRoleName } from "~/utils/utils";
 import DropdownMenu from "./Dropdown";
 import { useState } from "react";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 
-const mockUser: User = {
-  id: "123",
-  name: "이우람",
-  image: "",
-  role: ROLE.DOCTOR,
-};
-
-function DashboardUser({ user }: { user: User }) {
+function DashboardUser() {
   let [doesAlarmExist, setDoesAlarmExist] = useState(true);
+  const user = useRecoilValue(userState);
 
   return (
     <div className="flex items-center gap-3 font-work">
@@ -42,7 +38,7 @@ export default function DashboardHeader({ selectedMenu }: { selectedMenu: SideMe
       </div>
       <div className="flex gap-10">
         <DropdownMenu />
-        <DashboardUser user={mockUser} />
+        <DashboardUser />
       </div>
     </header>
   );

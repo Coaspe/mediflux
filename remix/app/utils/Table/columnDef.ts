@@ -65,6 +65,17 @@ export const checkinTimeColumn = (originalPRecord: MutableRefObject<PRecord | un
     muiTableBodyCellProps: {
       align: "center",
     },
+    muiEditTextFieldProps: {
+      required: true,
+      // error: !!validationErrors?.email,
+      // helperText: validationErrors?.email,
+      // //remove any previous validation errors when user focuses on the input
+      // onFocus: () =>
+      //   setValidationErrors({
+      //     ...validationErrors,
+      //     email: undefined,
+      //   }),
+    },
   };
 };
 export const chartNumberColumn: MRT_ColumnDef<PRecord> = {
@@ -76,6 +87,14 @@ export const chartNumberColumn: MRT_ColumnDef<PRecord> = {
   },
   muiEditTextFieldProps: {
     required: true,
+    // error: !!validationErrors?.CHART_NUMBER,
+    // helperText: validationErrors?.CHART_NUMBER,
+    // //remove any previous validation errors when user focuses on the input
+    // onFocus: () =>
+    //   setValidationErrors({
+    //     ...validationErrors,
+    //     email: undefined,
+    //   }),
   },
 };
 export const patientNameColumn: MRT_ColumnDef<PRecord> = {
@@ -89,18 +108,20 @@ export const patientNameColumn: MRT_ColumnDef<PRecord> = {
     required: true,
   },
 };
-export const opReadinessColumn = (setOpenStatusModal: Dispatch<SetStateAction<boolean>>, actionPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
+export const opReadinessColumn = (actionPRecord: MutableRefObject<PRecord | undefined>, tableType: TableType, setOpenStatusModal?: Dispatch<SetStateAction<boolean>>): MRT_ColumnDef<PRecord> => {
   return {
     accessorKey: OP_READINESS,
     header: OP_READINESS_H,
     editVariant: "select",
-    // editSelectOptions: ({}) => tableType === 'Ready' ? [{ label: '준비 완료', value: 'Y' }] : [{ label: '준비 미완료', value: 'N' }, { label: '시술 완료', value: 'C' }, { label: "시술 중", value: 'P' }],
-    editSelectOptions: [
-      { label: "준비 완료 (Y)", value: "Y" },
-      { label: "준비 미완료 (N)", value: "N" },
-      { label: "시술 완료 (C)", value: "C" },
-      { label: "시술 중 (P)", value: "P" },
-    ],
+    editSelectOptions: ({}) =>
+      tableType === "Ready"
+        ? [{ label: "준비 완료 (Y)", value: "Y" }]
+        : [
+            { label: "준비 완료 (Y)", value: "Y" },
+            { label: "준비 미완료 (N)", value: "N" },
+            { label: "시술 완료 (C)", value: "C" },
+            { label: "시술 중 (P)", value: "P" },
+          ],
     Cell: opReadinessCell,
     size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
     muiTableHeadCellProps: {
@@ -110,9 +131,11 @@ export const opReadinessColumn = (setOpenStatusModal: Dispatch<SetStateAction<bo
       return {
         align: "center",
         onDoubleClick: (event) => {
-          event.stopPropagation();
-          actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-          setOpenStatusModal(true);
+          if (setOpenStatusModal) {
+            event.stopPropagation();
+            actionPRecord.current = JSON.parse(JSON.stringify(row.original));
+            setOpenStatusModal(true);
+          }
         },
       };
     },

@@ -3,9 +3,9 @@ import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
 import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, NEW_READY_RECORD_COLOR, ROLE, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
 import { PRecord } from "~/type";
-import { emitCreateRecord, emitDeleteRecord, emitLockRecord, emitUnLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
+import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -31,24 +31,24 @@ import { getTableType, handleCreatePRecord, handleEditingCancel, handleSavePReco
 import { Socket } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import dayjs from "dayjs";
-import { AssignmentDialog } from "./Dialogs";
+import { AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
 
 type props = {
-  originalPRecord: MutableRefObject<PRecord | undefined>;
-  actionPRecord: MutableRefObject<PRecord | undefined>;
-  setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>;
-  handleOpenDeleteModal: (row: MRT_Row<PRecord>) => void;
   socket: Socket | null;
 };
 
-const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenChangeStatusModal, handleOpenDeleteModal, socket }) => {
+const ReadyTable: React.FC<props> = ({ socket }) => {
   const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
   const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
   const { mutate: updateReadyPRecord, mutateAsync: updateReadyPRecordWithDB, isPending: isUpdatingReadyPRecord, error: updateError } = useUpdatePRecord("Ready_PRecord");
   const { mutate: deleteReadyPRecord, mutateAsync: _, isPending: isDeletingReadyPRecord } = useDeletePRecord("Ready_PRecord");
   const { mutate: createExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const [openAssignModal, setOpenAssignModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+
+  const actionPRecord = useRef<PRecord>();
 
   const user = useRecoilValue(userState);
 
@@ -76,21 +76,21 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenCh
 
   const readyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
     () => [
-      checkinTimeColumn(originalPRecord),
+      checkinTimeColumn(actionPRecord),
       chartNumberColumn,
       patientNameColumn,
-      opReadinessColumn(setOpenChangeStatusModal, originalPRecord),
-      treatment1Column(originalPRecord),
+      opReadinessColumn(actionPRecord, "Ready"),
+      treatment1Column(actionPRecord),
       quantitytreat1Column,
       treatmentRoomColumn,
-      doctorColumn(originalPRecord),
+      doctorColumn(actionPRecord),
       anesthesiaNoteColumn,
-      skincareSpecialist1Column(originalPRecord),
-      skincareSpecialist2Column(originalPRecord),
-      nursingStaff1Column(originalPRecord),
-      nursingStaff2Column(originalPRecord),
-      coordinatorColumn(originalPRecord),
-      consultantColumn(originalPRecord),
+      skincareSpecialist1Column(actionPRecord),
+      skincareSpecialist2Column(actionPRecord),
+      nursingStaff1Column(actionPRecord),
+      nursingStaff2Column(actionPRecord),
+      coordinatorColumn(actionPRecord),
+      consultantColumn(actionPRecord),
       commentCautionColumn,
     ],
     [validationErrors]
@@ -162,7 +162,14 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenCh
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
         },
-        onDoubleClick: () => handleOpenAssignModal(row),
+        onDoubleClick: () => {
+          if (user.role === ROLE.DOCTOR) {
+            handleOpenAssignModal(row);
+          } else {
+            actionPRecord.current = JSON.parse(JSON.stringify(row.original));
+            table.setEditingRow(row);
+          }
+        },
       };
     },
     muiTableBodyCellProps: ({ row }) => ({
@@ -173,15 +180,15 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenCh
       },
     }),
     onCreatingRowCancel: () => {
-      originalPRecord.current = undefined;
+      actionPRecord.current = undefined;
       setValidationErrors({});
     },
-    onCreatingRowSave: ({ table, values }) => handleCreatePRecord(table, createReadyPRecordWithDB, socket, "Ready", values, originalPRecord),
-    onEditingRowCancel: ({ row }) => handleEditingCancel(row, "Ready", socket, originalPRecord),
-    onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, "Ready", values, originalPRecord, updateReadyPRecordWithDB, createExceptReadyPRecord, socket, user),
+    onCreatingRowSave: ({ table, values }) => handleCreatePRecord(table, createReadyPRecordWithDB, socket, "Ready", values, actionPRecord),
+    onEditingRowCancel: ({ row }) => handleEditingCancel(row, "Ready", socket, actionPRecord),
+    onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, "Ready", values, actionPRecord, updateReadyPRecordWithDB, createExceptReadyPRecord, socket, user),
     renderRowActions: ({ row, table }) => (
       <SchedulingTableRow
-        originalPRecord={originalPRecord}
+        originalPRecord={actionPRecord}
         row={row}
         table={table}
         user={user}
@@ -192,7 +199,7 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenCh
         roomId={SCHEDULING_ROOM_ID}
       />
     ),
-    renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="Ready" />,
+    renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={actionPRecord} table={table} tableType="Ready" />,
     getRowId: (originalRow) => originalRow.id,
     state: {
       isLoading: isLoadingReadyPRecords,
@@ -210,33 +217,21 @@ const ReadyTable: React.FC<props> = ({ originalPRecord, actionPRecord, setOpenCh
       emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user, SCHEDULING_ROOM_ID);
     }
   };
-  const handleCloseAssignModal = () => {
-    setOpenAssignModal(false);
-    if (actionPRecord.current) {
-      emitUnLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, SCHEDULING_ROOM_ID);
-    }
-    actionPRecord.current = undefined;
-  };
-  const handleConfirmAssign = async () => {
-    if (actionPRecord.current) {
-      actionPRecord.current.doctor = user.id;
-      actionPRecord.current.opReadiness = "P";
 
-      // Socket events
-      emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
-      emitCreateRecord(actionPRecord.current, "ExceptReady", socket, SCHEDULING_ROOM_ID);
-
-      // User and server events
-      await updateReadyPRecordWithDB(actionPRecord.current);
-      createExceptReadyPRecord(actionPRecord.current);
+  const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
+    setOpenDeleteModal(true);
+    actionPRecord.current = JSON.parse(JSON.stringify(row.original));
+    if (actionPRecord.current) {
+      emitLockRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
     }
-    handleCloseAssignModal();
   };
+
   return (
     <>
       <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />
-      <AssignmentDialog handleCloseModal={handleCloseAssignModal} handleConfirmModal={handleConfirmAssign} openModal={openAssignModal} actionPRecord={actionPRecord} />
-      <MaterialReactTable table={readyTable} />;
+      <AssignmentDialog createExceptReadyFn={createExceptReadyPRecord} modalOpen={openAssignModal} setModalOpen={setOpenAssignModal} actionPRecord={actionPRecord} socket={socket} />
+      <DeleteRecordDialog modalOpen={openDeleteModal} setModalOpen={setOpenDeleteModal} deleteFn={deleteReadyPRecord} actionPRecord={actionPRecord} socket={socket} />
+      <MaterialReactTable table={readyTable} />
     </>
   );
 };

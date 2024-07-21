@@ -5,7 +5,7 @@ import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, ROLE, TABLE_CONTAINER_HEIGH
 import { PRecord } from "~/type";
 import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useState } from "react";
+import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -30,15 +30,13 @@ import { userState } from "~/recoil_state";
 import { handleCreatePRecord, handleEditingCancel, handleSavePRecord } from "~/utils/utils";
 import { Socket } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
+import { ChangeStatusDialog, DeleteRecordDialog } from "./Dialogs";
 
 type props = {
-  originalPRecord: MutableRefObject<PRecord | undefined>;
-  setOpenChangeStatusModal: Dispatch<SetStateAction<boolean>>;
-  handleOpenDeleteModal: (row: MRT_Row<PRecord>) => void;
   socket: Socket | null;
 };
 
-const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatusModal, handleOpenDeleteModal, socket }) => {
+const ExceptReadyTable: React.FC<props> = ({ socket }) => {
   const { mutate: createReadyPRecord } = useCreatePRecord("Ready_PRecord");
 
   const { mutate: createExceptReadyPRecord, mutateAsync: createExceptReadyPRecordWithDB, isPending: isCreatingExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
@@ -50,10 +48,16 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
   } = useGetPRecords("ExceptReady_PRecord");
   const { mutate: updateExceptReadyPRecord, mutateAsync: updateExceptReadyPRecordWithDB, isPending: isUpdatingExceptReadyPRecord, error: updateError } = useUpdatePRecord("ExceptReady_PRecord");
   const { mutate: deleteExceptReadyPRecord, isPending: isDeletingExceptReadyPRecord } = useDeletePRecord("ExceptReady_PRecord");
+
   const user = useRecoilValue(userState);
 
+  const actionPRecord = useRef<PRecord>();
+  const originalPRecord = useRef<PRecord>();
+
+  const [openChangeStatusModal, setOpenChangeStatusModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
-  console.log("Except");
 
   useEffect(() => {
     if (!socket) return;
@@ -78,7 +82,7 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
       checkinTimeColumn(originalPRecord),
       chartNumberColumn,
       patientNameColumn,
-      opReadinessColumn(setOpenChangeStatusModal, originalPRecord),
+      opReadinessColumn(originalPRecord, "ExceptReady", setOpenChangeStatusModal),
       treatment1Column(originalPRecord),
       quantitytreat1Column,
       treatmentRoomColumn,
@@ -119,13 +123,10 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
         },
       },
     },
-    muiTableContainerProps: ({ table }) => {
-      const { isFullScreen } = table.getState();
-      return {
-        sx: {
-          height: TABLE_CONTAINER_HEIGHT,
-        },
-      };
+    muiTableContainerProps: {
+      sx: {
+        height: TABLE_CONTAINER_HEIGHT,
+      },
     },
     muiTableProps: ({}) => ({
       sx: {
@@ -147,12 +148,17 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
       : undefined,
     muiTableBodyRowProps: ({ row, table }) => {
       const { density } = table.getState();
+
       return {
         sx: {
           backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,
           pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
+        },
+        onDoubleClick: () => {
+          originalPRecord.current = JSON.parse(JSON.stringify(row.original));
+          table.setEditingRow(row);
         },
       };
     },
@@ -193,7 +199,28 @@ const ExceptReadyTable: React.FC<props> = ({ originalPRecord, setOpenChangeStatu
     },
   });
 
-  return <MaterialReactTable table={ExceptReadyTable} />;
+  const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
+    setOpenDeleteModal(true);
+    actionPRecord.current = JSON.parse(JSON.stringify(row.original));
+    if (actionPRecord.current) {
+      emitLockRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
+    }
+  };
+
+  return (
+    <>
+      <ChangeStatusDialog
+        modalOpen={openChangeStatusModal}
+        setModalOpen={setOpenChangeStatusModal}
+        deleteFn={deleteExceptReadyPRecord}
+        updateDbFn={updateExceptReadyPRecordWithDB}
+        actionPRecord={originalPRecord}
+        socket={socket}
+      />
+      <DeleteRecordDialog modalOpen={openDeleteModal} setModalOpen={setOpenDeleteModal} deleteFn={deleteExceptReadyPRecord} actionPRecord={actionPRecord} socket={socket} />
+      <MaterialReactTable table={ExceptReadyTable} />;
+    </>
+  );
 };
 
 export default ExceptReadyTable;

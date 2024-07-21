@@ -147,7 +147,6 @@ export const handleSavePRecord = async (
 
 export const handleCreatePRecord = async (
   currentTable: MRT_TableInstance<PRecord>,
-  // anotherTable: MRT_TableInstance<PRecord>,
   dbCreateFn: UseMutateAsyncFunction<void, Error, PRecord, void>,
   socket: Socket | null,
   tableType: TableType,
@@ -167,12 +166,9 @@ export const handleCreatePRecord = async (
 
   precord.id = id.toString();
   id += 1;
-
-  // if (isInvalidOpReadiessWithTable(precord, undefined, tableType)) {
-  //   tableType = tableType === "Ready" ? "ExceptReady" : "Ready";
-  //   table = anotherTable;
-  // }
-
+  if (precord.opReadiness == "Y") {
+    precord.readyTime = dayjs().unix();
+  }
   await dbCreateFn(precord);
   emitCreateRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
   originalPRecord.current = undefined;

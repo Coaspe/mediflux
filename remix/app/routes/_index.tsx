@@ -6,9 +6,10 @@ import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, login, register } from "~/services/session.server";
 import { ROLE } from "~/constant";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
 import { getBrowserType } from "~/utils/utils";
+import { User } from "~/type";
 
 function validateUsername(username: string) {
   if (username.length < 3) {
@@ -65,19 +66,19 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
   switch (requestType) {
     case "login": {
-      let user = await login({ username, password });
+      let result = await (await login({ username, password })).json();
 
-      if (!user) {
+      if (result.status !== 200) {
         return badRequest({
           fieldErrors: null,
           fields,
-          formError: `Username/Password combination is incorrect`,
+          formError: result.message,
         });
       }
-
+      const user = result.user as User;
       fields["role"] = ROLE.DOCTOR;
-      fields["username"] = "Dococo";
-      fields["id"] = "1";
+      fields["username"] = user.name;
+      fields["id"] = user.id;
 
       return await createUserSession(user, redirectTo);
     }

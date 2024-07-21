@@ -1,4 +1,4 @@
-import { PRecord, SearchHelp } from "./type";
+import { OpReadiness, PRecord, SearchHelp } from "./type";
 
 export const SIDE_MENU = {
   SCHEDULING: "scheduling",
@@ -63,7 +63,7 @@ export const FIELDS_STAFF = ["피부1", "피부2", "코디", "상담"];
 export const FIELDS_NURSE = ["간호1", "간호2"];
 export const FIELDS_DOCTOR = ["의사"];
 export const FIELDS_PAITENT = ["고객 이름"];
-
+export const OP_READINESS_ENTRIES: OpReadiness[] = ["Y", "N", "C", "P"];
 export const DOCTORS: SearchHelp[] = [
   { id: "1", group: "", title: "이우람" },
   { id: "2", group: "", title: "강승완" },

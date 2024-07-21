@@ -1,41 +1,41 @@
 import { createCookieSessionStorage, json, redirect } from "@remix-run/node";
 import { ROLE } from "~/constant";
-// import bcrypt from "bcryptjs";
-// import { db } from "./db.server";
+import axios from "axios";
+import { User } from "~/type";
 
 type LoginForm = {
   username: string;
   password: string;
 };
+
 type RegisgerForm = {
   email: string;
   username: string;
   password: string;
 };
-export async function login({ username, password }: LoginForm) {
-  // const user = await db.user.findUnique({
-  //   where: { username },
-  // });
-  // if (!user) {
-  //   return null;
-  // }
-  // const isCorrectPassword = await bcrypt.compare(password, user.passwordHash);
-  // if (!isCorrectPassword) {
-  //   return null;
-  // }
 
-  return { id: password, username: username, role: ROLE.DOCTOR };
+export async function login({ username, password }: LoginForm) {
+  try {
+    const response = await axios.post("http://localhost:5000/api/login", { userId: username, password }, { withCredentials: true });
+    console.log(response);
+    if (response.status === 200) {
+      return json({ user: response.data, status: response.status, message: undefined });
+    }
+    return json({ status: response.status, message: response.data, user: undefined });
+  } catch (error) {
+    return redirect("/login");
+  }
 }
 
 // const sessionSecret = process.env.SESSION_SECRET;
-const sessionSecret = "xx";
+const sessionSecret = "remxe12i2mfdmx";
 if (!sessionSecret) {
   throw new Error("SESSION_SECRET must be set");
 }
 
 const storage = createCookieSessionStorage({
   cookie: {
-    name: "RJ_session",
+    name: "__session",
     // normally you want this to be `secure: true`
     // but that doesn't work on localhost for Safari
     // https://web.dev/when-to-use-local-https/
@@ -48,16 +48,9 @@ const storage = createCookieSessionStorage({
   },
 });
 
-export async function createUserSession(
-  user: {
-    id: string;
-    username: string;
-    role: "doctor";
-  },
-  redirectTo: string
-) {
+export async function createUserSession(user: User, redirectTo: string) {
   const session = await storage.getSession();
-  session.set("username", user.username);
+  session.set("username", user.name);
   session.set("id", user.id);
   session.set("role", user.role);
 

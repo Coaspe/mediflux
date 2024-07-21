@@ -24,9 +24,7 @@ export const checkInTimeCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) 
 
 export const checkInTimeEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRefObject<PRecord | undefined>) => {
   const onChange = (value: Dayjs | null) => {
-    if (originalPRecord.current == undefined) {
-      originalPRecord.current = JSON.parse(JSON.stringify(row.original));
-    }
+    originalPRecord.current = JSON.parse(JSON.stringify(row.original));
 
     if (!value) {
       value = dayjs();
@@ -62,7 +60,6 @@ const OpReadinessChip = ({
   size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides>;
   color: OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;
 }) => {
-  const STATUS_OPTIONS = ["Y", "N", "P", "C"];
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLElement | null>(null);
   const popperRef = useRef<HTMLDivElement | null>(null);
@@ -139,9 +136,7 @@ export const treatmentEdit = (row: MRT_Row<PRecord>, originalPRecord: MutableRef
       title: string;
     } | null
   ) => {
-    if (originalPRecord.current == undefined) {
-      originalPRecord.current = JSON.parse(JSON.stringify(row.original));
-    }
+    originalPRecord.current = JSON.parse(JSON.stringify(row.original));
     originalPRecord.current!.treatment1 = value?.id;
   };
 
