@@ -10,7 +10,7 @@ import * as fs from "fs";
 
 dotenv.config();
 
-const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
+const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
 
 const pool = new Pool({
@@ -20,7 +20,7 @@ const pool = new Pool({
   password: PGPASSWORD,
   port: PGPORT ? parseInt(PGPORT) : 5432,
   ssl: {
-    ca: fs.readFileSync("/Users/coaspe/Documents/GitHub/mediflux/express/global-bundle.pem"),
+    ca: fs.readFileSync(PEMPATH ? PEMPATH : ""),
     rejectUnauthorized: false,
   },
 });
