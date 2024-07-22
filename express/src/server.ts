@@ -8,21 +8,7 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
-import {
-  CONNECTED_USERS,
-  CONNECTION,
-  CREATE_RECORD,
-  DELETE_RECORD,
-  JOIN_ROOM,
-  LOCK_RECORD,
-  SAVE_RECORD,
-  USER_JOINED,
-  UNLOCK_RECORD,
-  SCHEDULING_ROOM_ID,
-  PORT,
-  ARCHIVE_ROOM_ID,
-  ServerUser,
-} from "shared";
+import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 
 dotenv.config();
 
@@ -40,8 +26,8 @@ const pool = new Pool({
     rejectUnauthorized: false,
   },
 });
-
 const app: Express = express();
+
 app.use(cors());
 app.use(express.json());
 
@@ -56,7 +42,6 @@ const roomUsers: { [key: string]: { [key: string]: string } } = {};
 
 roomUsers[SCHEDULING_ROOM_ID] = {};
 roomUsers[ARCHIVE_ROOM_ID] = {};
-// pool.query("select * from admin.user").then((result) => console.log(result.rows[0] as ServerUser));
 
 io.on(CONNECTION, (socket) => {
   socket.on(JOIN_ROOM, ({ userId, username, roomId }: { userId: number; username: string; roomId: string }) => {

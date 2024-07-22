@@ -16,7 +16,7 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
-import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID, } from "shared";
+import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
@@ -43,7 +43,6 @@ const io = new Server(server, {
 const roomUsers = {};
 roomUsers[SCHEDULING_ROOM_ID] = {};
 roomUsers[ARCHIVE_ROOM_ID] = {};
-// pool.query("select * from admin.user").then((result) => console.log(result.rows[0] as ServerUser));
 io.on(CONNECTION, (socket) => {
     socket.on(JOIN_ROOM, ({ userId, username, roomId }) => {
         socket.join(roomId);

@@ -4,6 +4,7 @@ import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SessionExpiredModal } from "./components/Modals";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },

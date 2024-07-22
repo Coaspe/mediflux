@@ -8,10 +8,10 @@ import { SideMenu, User } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
 import axios from "axios";
-import { useRecoilState } from "recoil";
-import { userState } from "~/recoil_state";
-import { LoaderFunctionArgs } from "@remix-run/node";
-import { getUserSession } from "~/services/session.server";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { sessionExpireModalOpenState, userState } from "~/recoil_state";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { checkSessionExists, getUserSession } from "~/services/session.server";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
   return (
@@ -27,12 +27,12 @@ const isSideMenu = (value: any): value is SideMenu => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let id = await getUserSession(request);
-  if (!id) {
-    return null;
+  let idOrRedirect = await checkSessionExists(request);
+  if (typeof idOrRedirect !== "string") {
+    return "session";
   }
   try {
-    const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { id } });
+    const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { idOrRedirect } });
 
     if (result.status === 200) {
       const user = result.data.user;
@@ -48,7 +48,8 @@ export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>();
   const location = useLocation();
   const [user, setUser] = useRecoilState(userState);
-  const loadData = useLoaderData<User | null>();
+  const loadData = useLoaderData();
+  const setModalOpen = useSetRecoilState(sessionExpireModalOpenState);
 
   useEffect(() => {
     const path = location.pathname.split("/");
@@ -56,12 +57,6 @@ export default function Dashboard() {
       setClickedMenu(path[path.length - 1] as SideMenu);
     }
   }, []);
-
-  useEffect(() => {
-    if (loadData) {
-      setUser(loadData as User);
-    }
-  }, [loadData]);
 
   return (
     user && (

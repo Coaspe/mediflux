@@ -151,10 +151,10 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
 
       return {
         sx: {
-          backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,
-          pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
+          backgroundColor: row.original.LockingUser && user && row.original.LockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,
+          pointerEvents: row.original.LockingUser && user && row.original.LockingUser?.id != user.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
-          cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
+          cursor: user && user.role === ROLE.DOCTOR ? "pointer" : "default",
         },
         onDoubleClick: () => {
           originalPRecord.current = JSON.parse(JSON.stringify(row.original));
@@ -176,19 +176,20 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
     onCreatingRowSave: ({ table, values }) => handleCreatePRecord(table, createExceptReadyPRecordWithDB, socket, "ExceptReady", values, originalPRecord),
     onEditingRowCancel: ({ row }) => handleEditingCancel(row, "ExceptReady", socket, originalPRecord),
     onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, "ExceptReady", values, originalPRecord, updateExceptReadyPRecordWithDB, createReadyPRecord, socket, user),
-    renderRowActions: ({ row, table }) => (
-      <SchedulingTableRow
-        originalPRecord={originalPRecord}
-        row={row}
-        table={table}
-        user={user}
-        emitLockRecord={emitLockRecord}
-        socket={socket}
-        openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
-        tableType="ExceptReady"
-        roomId={SCHEDULING_ROOM_ID}
-      />
-    ),
+    renderRowActions: ({ row, table }) =>
+      user && (
+        <SchedulingTableRow
+          originalPRecord={originalPRecord}
+          row={row}
+          table={table}
+          user={user}
+          emitLockRecord={emitLockRecord}
+          socket={socket}
+          openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
+          tableType="ExceptReady"
+          roomId={SCHEDULING_ROOM_ID}
+        />
+      ),
     renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={originalPRecord} table={table} tableType="ExceptReady" />,
     getRowId: (originalRow) => originalRow.id,
     state: {
@@ -202,7 +203,7 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
   const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
     setOpenDeleteModal(true);
     actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-    if (actionPRecord.current) {
+    if (actionPRecord.current && user) {
       emitLockRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
     }
   };

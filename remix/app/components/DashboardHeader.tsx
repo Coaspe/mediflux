@@ -21,7 +21,7 @@ function DashboardUser() {
           <span className="material-symbols-rounded text-4xl">person</span>
         </div>
         <div className="flex flex-col justify-between">
-          <span className="text-sm">{user.name}</span>
+          <span className="text-sm">{user && user.name}</span>
           <span className="text-xs text-gray-500">{getRoleName(ROLE.DOCTOR)}</span>
         </div>
       </div>

@@ -8,7 +8,7 @@ import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord } 
 import { Socket } from "socket.io-client";
 import { MutableRefObject } from "react";
 import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -102,8 +102,12 @@ export const handleSavePRecord = async (
   dbUpdateFn: UseMutateAsyncFunction<void, Error, PRecord, void>,
   createFn: UseMutateFunction<void, Error, PRecord, void>,
   socket: Socket | null,
-  user: User
+  user: User | undefined
 ) => {
+  if (!user) {
+    return;
+  }
+
   let precord = values as PRecord;
 
   if (precord.id === undefined) {

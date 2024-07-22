@@ -18,8 +18,8 @@ const SchedulingTable = () => {
     // Default
     socketInstance.on(CONNECT, () => {
       socketInstance.emit(JOIN_ROOM, {
-        userId: user.id,
-        username: user.name,
+        userId: user && user.id,
+        username: user && user.name,
         roomId: SCHEDULING_ROOM_ID,
       });
     });

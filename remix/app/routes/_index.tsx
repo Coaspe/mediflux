@@ -1,13 +1,16 @@
-/** @format */
-
 import type { ActionFunction, ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
-import { createUserSession, login, register } from "~/services/session.server";
+import { createUserSession, getUserSession, login, register } from "~/services/session.server";
 import { ROLE } from "~/constant";
 import { LoginResponse, User } from "~/type";
 import { ServerUser } from "shared";
+import axios from "axios";
+import { useLoaderData, useNavigate } from "@remix-run/react";
+import { useRecoilState } from "recoil";
+import { userState } from "~/recoil_state";
+import { SessionExpiredModal } from "~/components/Modals";
 
 function validateUserid(userid: string) {
   if (userid.length < 3) {
@@ -22,11 +25,24 @@ function validatePassword(password: string) {
 }
 
 function validateUrl(url: string) {
-  // const urls = ["/jokes", "/", "https://remix.run"];
-  // if (urls.includes(url)) {
-  //   return url;
-  // }
   return url;
+}
+export async function loader({ request }: LoaderFunctionArgs) {
+  let id = await getUserSession(request);
+  if (!id) {
+    return null;
+  }
+  try {
+    const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { id } });
+
+    if (result.status === 200) {
+      const user = result.data.user;
+      const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR, name: user.first_name + user.last_name } as User;
+      return clientUser;
+    }
+  } catch (error: any) {
+    return null;
+  }
 }
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
@@ -49,7 +65,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
   switch (requestType) {
     case "login": {
       let result = (await login({ userId, password })) as LoginResponse;
-      console.log(result.status);
 
       if (result.status !== 200) {
         const fieldErrors = {
@@ -126,8 +141,22 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const loadData = useLoaderData();
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
+  const [user, setUser] = useRecoilState(userState);
+  const navigator = useNavigate();
 
+  useEffect(() => {
+    if (loadData) {
+      setUser(loadData as User);
+    }
+  }, [loadData]);
+
+  useEffect(() => {
+    if (user) {
+      navigator("/dashboard/scheduling");
+    }
+  }, [user]);
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center ">
@@ -137,7 +166,7 @@ export default function Index() {
           <LoginButton onClose={setIsModalOpenNot} name="Get started" />
         </div>
       </div>
-
+      <SessionExpiredModal />
       {/* Login Modal */}
       <LoginModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
     </div>

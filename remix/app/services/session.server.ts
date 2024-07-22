@@ -1,5 +1,3 @@
-/** @format */
-
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { ROLE } from "~/constant";
 import { LoginForm, RegisgerForm, User } from "~/type";
@@ -59,5 +57,13 @@ export async function register({ email, userId, password }: RegisgerForm) {
 
 export async function getUserSession(request: Request) {
   const session = await storage.getSession(request.headers.get("Cookie"));
-  return session.get("id");
+  return session.get("id") as string;
+}
+
+export async function checkSessionExists(request: Request) {
+  let id = await getUserSession(request);
+  if (!id) {
+    return "session";
+  }
+  return id;
 }

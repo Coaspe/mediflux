@@ -8,6 +8,7 @@ export const ICONS = {
   DASHBOARD: "team_dashboard",
   NOTIFICATION: "notifications",
 };
+
 type ICON = (typeof ICONS)[keyof typeof ICONS];
 
 type props = {

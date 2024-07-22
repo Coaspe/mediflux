@@ -44,7 +44,7 @@ export const AssignmentDialog: React.FC<AssignmentDialogProps> = ({ createExcept
     actionPRecord.current = undefined;
   };
   const handleConfirmAssign = async () => {
-    if (actionPRecord.current) {
+    if (actionPRecord.current && user) {
       actionPRecord.current.doctor = user.id;
       actionPRecord.current.opReadiness = "P";
 
@@ -105,7 +105,7 @@ export const ChangeStatusDialog: React.FC<ChangeStatusDialogProps> = ({ deleteFn
   };
 
   const handleConfirmStatusChange = async (newStatus?: OpReadiness) => {
-    if (actionPRecord.current && actionPRecord.current.opReadiness !== newStatus) {
+    if (actionPRecord.current && actionPRecord.current.opReadiness !== newStatus && user) {
       let tableType = getTableType(actionPRecord.current.opReadiness);
       if (actionPRecord.current.opReadiness === "Y" || newStatus === "Y") {
         actionPRecord.current.opReadiness = newStatus;
@@ -185,7 +185,7 @@ export const DeleteRecordDialog: React.FC<DeleteRecordDialogProps> = ({ modalOpe
     actionPRecord.current = undefined;
   };
   const handleConfirmModal = async () => {
-    if (actionPRecord.current) {
+    if (actionPRecord.current && user) {
       const tableType = getTableType(actionPRecord.current.opReadiness);
       deleteFn(actionPRecord.current.id);
       emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);

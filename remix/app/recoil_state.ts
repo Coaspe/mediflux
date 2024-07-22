@@ -1,18 +1,12 @@
 import { atom } from "recoil";
-import { PRecord, User } from "./type";
-import { MRT_TableInstance } from "material-react-table";
+import { User } from "./type";
 
-export const userState = atom<User>({
+export const userState = atom<User | undefined>({
   key: "userState", // unique ID (with respect to other atoms/selectors)
   default: undefined, // default value (aka initial value)
 });
 
-export const readyTableState = atom<MRT_TableInstance<PRecord>>({
-  key: "readyTableState",
-  default: undefined,
-});
-
-export const exceptReadyTableState = atom<MRT_TableInstance<PRecord>>({
-  key: "exceptReadyTableState",
-  default: undefined,
+export const sessionExpireModalOpenState = atom<boolean>({
+  key: "sessionExpireModalOpenState",
+  default: true,
 });

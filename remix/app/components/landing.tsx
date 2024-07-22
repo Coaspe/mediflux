@@ -9,7 +9,8 @@ export const LoginButton = ({ name, onClose }: { name: string; onClose: () => vo
   return (
     <button
       onClick={onClose}
-      className="bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]">
+      className="bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]"
+    >
       {name}
     </button>
   );
@@ -99,12 +100,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
       enterTo="opacity-100"
       leave="transition-opacity duration-300 ease-in-out"
       leaveFrom="opacity-100"
-      leaveTo="opacity-0 none">
+      leaveTo="opacity-0 none"
+    >
       <div onClick={closeModal} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center`}>
         <div
           onClick={(event) => event.stopPropagation()}
           style={{ height: isLoginMode ? "400px" : "500px" }}
-          className={`flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] transition-all`}>
+          className={`flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] transition-all`}
+        >
           <Icon onClick={closeModal} className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"} iconName={ICONS.CLOSE} />
           <span className="font-work font-semibold text-2xl">{isLoginMode ? "Login" : "Register"}</span>
           <div className="flex flex-col justify-evenly items-center h-full">
@@ -133,11 +136,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                   <AlertP msg={actionData?.fieldErrors?.password} />
                 </div>
                 <input className="hidden" id="logintype-input" type="text" name="requestType" defaultValue={"login"} />
-                <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard"} />
+                <input className="hidden" id="logintype-input" type="text" name="redirectTo" defaultValue={"/dashboard/scheduling"} />
               </div>
               <button
                 className="bg-button hover:bg-blue-800 text-gray-200  font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
-                type="submit">
+                type="submit"
+              >
                 Log in
               </button>
             </Form>
