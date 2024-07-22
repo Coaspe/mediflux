@@ -1,3 +1,5 @@
+/** @format */
+
 declare module "shared" {
   export const JOIN_ROOM: string;
   export const CONNECTED_USERS: string;
@@ -32,15 +34,12 @@ declare module "shared" {
   //         // materialCategory: MaterialCategory;
   //     };
 
-  export type TreatmentCategory =
-    | typeof SHURINK
-    | typeof INMODE
-    | typeof OLIGIO
-    | typeof ULTHERA
-    | typeof THERMAGE
-    | typeof LDM
-    | typeof LIFTING
-    | typeof LASER_TONING
-    | typeof TATTOO_LASER
-    | typeof DOT_LASER;
+  export type TreatmentCategory = SHURINK | INMODE | OLIGIO | ULTHERA | THERMAGE | LDM | LIFTING | LASER_TONING | TATTOO_LASER | DOT_LASER;
+  export type ServerUser = {
+    contact_id: string;
+    first_name: string;
+    last_name: string;
+    login_id: string;
+    login_pw: string;
+  };
 }

@@ -1,3 +1,4 @@
+/** @format */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -10,14 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
-import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 import cors from "cors";
 import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
+import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID, } from "shared";
 dotenv.config();
-const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE } = process.env;
+const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
 const pool = new Pool({
     user: PGUSER,
@@ -26,7 +27,7 @@ const pool = new Pool({
     password: PGPASSWORD,
     port: PGPORT ? parseInt(PGPORT) : 5432,
     ssl: {
-        ca: fs.readFileSync("/Users/coaspe/Documents/GitHub/mediflux/express/global-bundle.pem"),
+        ca: fs.readFileSync(PEMPATH ? PEMPATH : ""),
         rejectUnauthorized: false,
     },
 });
@@ -42,7 +43,7 @@ const io = new Server(server, {
 const roomUsers = {};
 roomUsers[SCHEDULING_ROOM_ID] = {};
 roomUsers[ARCHIVE_ROOM_ID] = {};
-pool.query("select * from admin.user").then((result) => console.log(result));
+// pool.query("select * from admin.user").then((result) => console.log(result.rows[0] as ServerUser));
 io.on(CONNECTION, (socket) => {
     socket.on(JOIN_ROOM, ({ userId, username, roomId }) => {
         socket.join(roomId);
@@ -85,26 +86,38 @@ app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, functi
         return res.status(400).json({ error: error.message });
     }
 }));
-app.get("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, password } = req.body;
-    const client = yield pool.connect();
     try {
-        const users = yield pool.query(`SELECT contact_id FROM admin.user where login_id = ${userId};`);
+        const users = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
         if (users.rowCount == 0) {
-            return res.status(400).json({ error: "해당 아이디가 존재하지않습니다." });
+            return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
         }
         const user = users.rows[0];
-        const isMatch = yield bcrypt.compare(password, user.password);
+        const isMatch = yield bcrypt.compare(password, user.login_pw);
         if (!isMatch) {
-            return res.status(401).json({ error: "비밀번호가 틀렸습니다." });
+            return res.status(401).json({ message: "비밀번호가 틀렸습니다.", errorType: 2 });
         }
         return res.status(200).json({ user });
     }
     catch (error) {
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error", errorType: 3 });
     }
     finally {
-        client.release();
+    }
+}));
+app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.id;
+    try {
+        const users = yield pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
+        if (users.rowCount == 0) {
+            return res.status(401).json({ message: "해당 유저가 존재하지않습니다." });
+        }
+        const user = users.rows[0];
+        return res.status(200).json({ user });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
     }
 }));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

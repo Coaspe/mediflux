@@ -1,29 +1,18 @@
-import { createCookieSessionStorage, json, redirect } from "@remix-run/node";
+/** @format */
+
+import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { ROLE } from "~/constant";
+import { LoginForm, RegisgerForm, User } from "~/type";
 import axios from "axios";
-import { User } from "~/type";
 
-type LoginForm = {
-  username: string;
-  password: string;
-};
-
-type RegisgerForm = {
-  email: string;
-  username: string;
-  password: string;
-};
-
-export async function login({ username, password }: LoginForm) {
+export async function login({ userId, password }: LoginForm) {
   try {
-    const response = await axios.post("http://localhost:5000/api/login", { userId: username, password }, { withCredentials: true });
-    console.log(response);
+    const response = await axios.post("http://localhost:5000/api/login", { userId, password }, { withCredentials: true });
     if (response.status === 200) {
-      return json({ user: response.data, status: response.status, message: undefined });
+      return { status: response.status, user: response.data.user };
     }
-    return json({ status: response.status, message: response.data, user: undefined });
-  } catch (error) {
-    return redirect("/login");
+  } catch (error: any) {
+    return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
   }
 }
 
@@ -50,7 +39,7 @@ const storage = createCookieSessionStorage({
 
 export async function createUserSession(user: User, redirectTo: string) {
   const session = await storage.getSession();
-  session.set("username", user.name);
+  session.set("userid", user.userid);
   session.set("id", user.id);
   session.set("role", user.role);
 
@@ -61,9 +50,14 @@ export async function createUserSession(user: User, redirectTo: string) {
   });
 }
 
-export async function register({ email, username, password }: RegisgerForm) {
+export async function register({ email, userId, password }: RegisgerForm) {
   // Check userEmail exists and assign new id to user email.
   // if same email exists, return empty object
   let id = email;
-  return { id, username, role: ROLE.DOCTOR };
+  return { id, userId, role: ROLE.DOCTOR };
+}
+
+export async function getUserSession(request: Request) {
+  const session = await storage.getSession(request.headers.get("Cookie"));
+  return session.get("id");
 }

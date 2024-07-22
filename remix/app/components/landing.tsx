@@ -1,18 +1,15 @@
-import { Form, useActionData, useNavigate } from "@remix-run/react";
-import React, { Dispatch, HTMLInputTypeAttribute, useEffect, useState } from "react";
+/** @format */
+
+import { Form, useActionData } from "@remix-run/react";
+import React, { Dispatch, HTMLInputTypeAttribute, useState } from "react";
 import Icon, { ICONS } from "./Icons";
 import { Transition } from "@headlessui/react";
-import { useRecoilState } from "recoil";
-import { userState } from "~/recoil_state";
-import { User } from "~/type";
-import { ROLE } from "~/constant";
 
 export const LoginButton = ({ name, onClose }: { name: string; onClose: () => void }) => {
   return (
     <button
       onClick={onClose}
-      className="bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]"
-    >
+      className="bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]">
       {name}
     </button>
   );
@@ -31,7 +28,7 @@ type LoginInputProps = {
   type: HTMLInputTypeAttribute | undefined;
   placeholder: string | undefined;
   name: string | undefined;
-  defaultValue: string | undefined;
+  defaultValue?: string;
   ariaInvalid: boolean;
   ariaErrorMessage: string | undefined;
 };
@@ -71,66 +68,58 @@ type LoginModalProps = {
 type LoginAction = {
   fieldErrors: {
     password: string | undefined;
-    username: string | undefined;
+    userId: string | undefined;
   };
   fields: {
     password: string;
     user: string;
-    username: string;
+    userId: string;
   };
   formError: null;
 };
 
 export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalOpen }) => {
   let actionData = useActionData<LoginAction>();
-  const [user, setUser] = useRecoilState(userState);
-  const navigtor = useNavigate();
-
-  useEffect(() => {
-    if (actionData === undefined || actionData?.fields?.username !== undefined) {
-      setUser({ id: "1", name: "이우람", role: ROLE.DOCTOR } as User);
-    }
-  }, [actionData]);
-
-  useEffect(() => {
-    if (user) {
-      navigtor("/dashboard/scheduling");
-    }
-  }, [user]);
 
   const closeModal = () => {
     actionData = undefined;
     setIsModalOpen(false);
   };
 
+  const changeMode = () => {
+    setIsLoginMode((origin) => !origin);
+  };
+  const [isLoginMode, setIsLoginMode] = useState(true);
+
   return (
     <Transition
       show={isModalOpen}
       enter="transition-opacity duration-300 ease-in-out"
-      enterFrom="opacity-0"
+      enterFrom="opacity-0 block"
       enterTo="opacity-100"
       leave="transition-opacity duration-300 ease-in-out"
       leaveFrom="opacity-100"
-      leaveTo="opacity-0"
-    >
+      leaveTo="opacity-0 none">
       <div onClick={closeModal} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center`}>
-        <div onClick={(event) => event.stopPropagation()} className="flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] h-[400px] transition-all duration-100 transform">
+        <div
+          onClick={(event) => event.stopPropagation()}
+          style={{ height: isLoginMode ? "400px" : "500px" }}
+          className={`flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] transition-all`}>
           <Icon onClick={closeModal} className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"} iconName={ICONS.CLOSE} />
-          <span className="font-work font-semibold text-2xl">Login</span>
-          <div className="flex flex-col justify-center items-center h-full">
+          <span className="font-work font-semibold text-2xl">{isLoginMode ? "Login" : "Register"}</span>
+          <div className="flex flex-col justify-evenly items-center h-full">
             <Form method="post">
               <div className="w-[300px] flex flex-col justify-center items-center mb-8 gap-4 text-sm ">
                 <div className="w-full">
                   <LoginInput
-                    id="username-input"
+                    id="userId-input"
                     type="text"
                     placeholder="아이디"
-                    name="username"
-                    defaultValue={actionData?.fields?.username}
-                    ariaInvalid={Boolean(actionData?.fieldErrors?.username)}
-                    ariaErrorMessage={actionData?.fieldErrors?.username ? "username-error" : undefined}
+                    name="userId"
+                    ariaInvalid={Boolean(actionData?.fieldErrors?.userId)}
+                    ariaErrorMessage={actionData?.fieldErrors?.userId ? "userId-error" : undefined}
                   />
-                  <AlertP msg={actionData?.fieldErrors?.username} />
+                  <AlertP msg={actionData?.fieldErrors?.userId} />
                 </div>
                 <div className="w-full">
                   <LoginInput
@@ -138,7 +127,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
                     type="password"
                     placeholder="패스워드"
                     name="password"
-                    defaultValue={actionData?.fields?.password}
                     ariaInvalid={Boolean(actionData?.fieldErrors?.password)}
                     ariaErrorMessage={actionData?.fieldErrors?.password ? "password-error" : undefined}
                   />
@@ -149,13 +137,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen, isModalO
               </div>
               <button
                 className="bg-button hover:bg-blue-800 text-gray-200  font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
-                type="submit"
-              >
+                type="submit">
                 Log in
               </button>
             </Form>
-            <p className="text-blue-500 hover:underline cursor-pointer pt-5" onClick={closeModal}>
-              Create account
+            <p className="text-blue-500 hover:underline cursor-pointer pt-5" onClick={changeMode}>
+              {isLoginMode ? "Create account" : "Login"}
             </p>
           </div>
         </div>

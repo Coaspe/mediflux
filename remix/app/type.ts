@@ -1,11 +1,15 @@
+/** @format */
+
 import { ROLE, SIDE_MENU } from "~/constant";
 import { OverridableStringUnion } from "@mui/types";
 import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
+import { ServerUser } from "shared";
 
 export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
 export type Role = (typeof ROLE)[keyof typeof ROLE];
 export type User = {
   id: string;
+  userid: string;
   name: string;
   image?: string;
   role?: Role;
@@ -51,3 +55,24 @@ export type SearchHelp = {
   title: string;
 };
 export type Interval = "day" | "week" | "month" | "year";
+export type LoginForm = {
+  userId: string;
+  password: string;
+};
+
+export type RegisgerForm = {
+  email: string;
+  userId: string;
+  password: string;
+};
+
+export type IdError = 1;
+export type PasswordError = 2;
+export type EtcError = 3;
+
+export type LoginResponse = {
+  errorType?: IdError | PasswordError | EtcError;
+  message?: string;
+  status: number;
+  user: ServerUser;
+};

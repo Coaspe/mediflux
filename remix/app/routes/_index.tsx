@@ -6,13 +6,11 @@ import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, login, register } from "~/services/session.server";
 import { ROLE } from "~/constant";
-import { useSetRecoilState } from "recoil";
-import { userState } from "~/recoil_state";
-import { getBrowserType } from "~/utils/utils";
-import { User } from "~/type";
+import { LoginResponse, User } from "~/type";
+import { ServerUser } from "shared";
 
-function validateUsername(username: string) {
-  if (username.length < 3) {
+function validateUserid(userid: string) {
+  if (userid.length < 3) {
     return "Usernames must be at least 3 characters long";
   }
 }
@@ -31,18 +29,14 @@ function validateUrl(url: string) {
   return url;
 }
 
-export const loader: LoaderFunction = async ({ request }: LoaderFunctionArgs) => {
-  return "a";
-};
-
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const requestType = form.get("requestType");
   const password = form.get("password");
-  const username = form.get("username");
+  const userId = form.get("userId");
   const redirectTo = validateUrl((form.get("redirectTo") as string) || "/");
 
-  if (typeof password !== "string" || typeof username !== "string") {
+  if (typeof password !== "string" || typeof userId !== "string") {
     return badRequest({
       fieldErrors: null,
       fields: null,
@@ -50,51 +44,64 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
     });
   }
 
-  let fields: { [key: string]: string } = { password, username };
-  const fieldErrors = {
-    password: validatePassword(password),
-    username: validateUsername(username),
-  };
-
-  if (Object.values(fieldErrors).some(Boolean)) {
-    return badRequest({
-      fieldErrors,
-      fields,
-      formError: null,
-    });
-  }
+  let fields: { [key: string]: string } = { password, userId };
 
   switch (requestType) {
     case "login": {
-      let result = await (await login({ username, password })).json();
+      let result = (await login({ userId, password })) as LoginResponse;
+      console.log(result.status);
 
       if (result.status !== 200) {
+        const fieldErrors = {
+          userId: result.errorType === 1 ? result.message : undefined,
+          password: result.errorType === 2 ? result.message : undefined,
+        };
+
         return badRequest({
-          fieldErrors: null,
+          fieldErrors,
           fields,
           formError: result.message,
         });
       }
-      const user = result.user as User;
-      fields["role"] = ROLE.DOCTOR;
-      fields["username"] = user.name;
-      fields["id"] = user.id;
 
-      return await createUserSession(user, redirectTo);
+      const user = result.user as ServerUser;
+      fields["role"] = ROLE.DOCTOR;
+      fields["name"] = user.first_name + user.last_name;
+      fields["id"] = user.contact_id;
+      const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR } as User;
+
+      return await createUserSession(clientUser, redirectTo);
     }
 
     case "register": {
+      const firstName = form.get("firstName");
+      const lastName = form.get("lastName");
+      const role = form.get("role");
+
+      const fieldErrors = {
+        password: validatePassword(password),
+        userId: validateUserid(userId),
+      };
+
+      if (Object.values(fieldErrors).some(Boolean)) {
+        return badRequest({
+          fieldErrors,
+          fields,
+          formError: null,
+        });
+      }
+
       let email = form.get("useremail");
       if (!email || typeof email !== "string") {
         return badRequest({
           fieldErrors: null,
           fields,
-          formError: `Username/Password combination is incorrect`,
+          formError: `User ID/Password combination is incorrect`,
         });
       }
 
       fields["email"] = email;
-      let user = await register({ username, email, password });
+      let user = await register({ userId, email, password });
 
       if (!user) {
         badRequest({
@@ -120,17 +127,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
-  const setUser = useSetRecoilState(userState);
-
-  useEffect(() => {
-    const browser = getBrowserType();
-
-    if (browser === "Google Chrome") {
-      setUser({ id: "1", name: "COCODO", role: ROLE.DOCTOR });
-    } else {
-      setUser({ id: "2", name: "Kim", role: ROLE.STAFF });
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">

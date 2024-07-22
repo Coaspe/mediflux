@@ -1,3 +1,4 @@
+/** @format */
 // Socket event
 export const JOIN_ROOM = "join-room";
 export const CONNECTED_USERS = "connected-users";

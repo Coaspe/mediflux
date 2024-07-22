@@ -1,4 +1,12 @@
-import { OpReadiness, PRecord, SearchHelp } from "./type";
+/** @format */
+
+import { OpReadiness, PRecord, SearchHelp, User } from "./type";
+
+export const SERVERUSER_CLIENTUSER_MAPPING = {
+  login_id: "userid" as keyof User,
+  login_pw: "password" as keyof User,
+  contact_id: "id" as keyof User,
+};
 
 export const SIDE_MENU = {
   SCHEDULING: "scheduling",
