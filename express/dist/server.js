@@ -72,14 +72,15 @@ io.on(CONNECTION, (socket) => {
     });
 });
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, username, password, firstName, last_name } = req.body;
-    const checkExists = yield pool.query(`SELECT contact_id FROM admin.user where login_id = ${userId};`);
+    const { userId, role, password, firstName, lastName } = req.body;
+    console.log(userId, role, password, firstName, lastName);
     try {
-        if (checkExists.rowCount && checkExists.rowCount > 0) {
-            return res.status(400).json({ error: "해당 아이디가 이미 존재합니다." });
-        }
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const insertResult = yield pool.query(`INSERT INTO admin.user (first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4)`, [firstName, last_name, userId, hashedPassword]);
+        const insertResult = yield pool.query(`INSERT INTO admin.user (role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
+        console.log(insertResult.rows);
+        if (insertResult.rowCount !== 0) {
+            return res.status(200).json({ user: insertResult.rows[0] });
+        }
     }
     catch (error) {
         return res.status(400).json({ error: error.message });
@@ -87,8 +88,10 @@ app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, functi
 }));
 app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, password } = req.body;
+    console.log(userId, password);
     try {
         const users = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
+        console.log(users);
         if (users.rowCount == 0) {
             return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
         }
@@ -114,6 +117,19 @@ app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, func
         }
         const user = users.rows[0];
         return res.status(200).json({ user });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.query.userId;
+    try {
+        const users = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
+        if (users.rowCount !== 0) {
+            return res.status(401).json({ message: "동일한 아이디가 존재합니다." });
+        }
+        return res.status(200).json({});
     }
     catch (error) {
         return res.status(500).json({ message: "Internal server error" });

@@ -8,10 +8,10 @@ import { SideMenu, User } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
 import axios from "axios";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { checkSessionExists, getUserSession } from "~/services/session.server";
+import { LoaderFunctionArgs } from "@remix-run/node";
+import { checkSessionExists } from "~/services/session.server";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
   return (
@@ -29,7 +29,7 @@ const isSideMenu = (value: any): value is SideMenu => {
 export async function loader({ request }: LoaderFunctionArgs) {
   let idOrRedirect = await checkSessionExists(request);
   if (typeof idOrRedirect !== "string") {
-    return "session";
+    return "sessionExpire";
   }
   try {
     const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { idOrRedirect } });
@@ -52,6 +52,9 @@ export default function Dashboard() {
   const setModalOpen = useSetRecoilState(sessionExpireModalOpenState);
 
   useEffect(() => {
+    if (loadData === "sessionExpire") {
+      setModalOpen(true);
+    }
     const path = location.pathname.split("/");
     if (isSideMenu(path[path.length - 1])) {
       setClickedMenu(path[path.length - 1] as SideMenu);

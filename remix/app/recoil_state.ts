@@ -1,3 +1,5 @@
+/** @format */
+
 import { atom } from "recoil";
 import { User } from "./type";
 
@@ -8,5 +10,5 @@ export const userState = atom<User | undefined>({
 
 export const sessionExpireModalOpenState = atom<boolean>({
   key: "sessionExpireModalOpenState",
-  default: true,
+  default: false,
 });

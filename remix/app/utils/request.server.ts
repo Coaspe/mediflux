@@ -1,3 +1,5 @@
+/** @format */
+
 import { json } from "@remix-run/node";
 
 /**

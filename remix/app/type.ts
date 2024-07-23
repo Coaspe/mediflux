@@ -61,9 +61,11 @@ export type LoginForm = {
 };
 
 export type RegisgerForm = {
-  email: string;
   userId: string;
   password: string;
+  role: string;
+  firstName: string;
+  lastName: string;
 };
 
 export type IdError = 1;

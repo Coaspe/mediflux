@@ -1,3 +1,5 @@
+/** @format */
+
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { ROLE } from "~/constant";
 import { LoginForm, RegisgerForm, User } from "~/type";
@@ -37,9 +39,7 @@ const storage = createCookieSessionStorage({
 
 export async function createUserSession(user: User, redirectTo: string) {
   const session = await storage.getSession();
-  session.set("userid", user.userid);
   session.set("id", user.id);
-  session.set("role", user.role);
 
   return redirect(redirectTo, {
     headers: {
@@ -48,11 +48,13 @@ export async function createUserSession(user: User, redirectTo: string) {
   });
 }
 
-export async function register({ email, userId, password }: RegisgerForm) {
-  // Check userEmail exists and assign new id to user email.
-  // if same email exists, return empty object
-  let id = email;
-  return { id, userId, role: ROLE.DOCTOR };
+export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
+  try {
+    let result = await axios.post("http://localhost:5000/register", { userId, password, role, firstName, lastName });
+    return result;
+  } catch (error: any) {
+    return error.message;
+  }
 }
 
 export async function getUserSession(request: Request) {
@@ -63,7 +65,7 @@ export async function getUserSession(request: Request) {
 export async function checkSessionExists(request: Request) {
   let id = await getUserSession(request);
   if (!id) {
-    return "session";
+    return undefined;
   }
   return id;
 }

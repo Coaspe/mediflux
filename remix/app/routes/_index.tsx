@@ -1,4 +1,6 @@
-import type { ActionFunction, ActionFunctionArgs, LoaderFunction, LoaderFunctionArgs } from "@remix-run/node";
+/** @format */
+
+import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
@@ -10,23 +12,38 @@ import axios from "axios";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
-import { SessionExpiredModal } from "~/components/Modals";
 
-function validateUserid(userid: string) {
-  if (userid.length < 3) {
-    return "Usernames must be at least 3 characters long";
+async function validateUserid(userId: string) {
+  if (userId.length <= 3) {
+    return "아이디는 4글자 이상이어야합니다.";
+  }
+
+  try {
+    const result = await axios.get(`http://localhost:5000/api/checkSameIDExists`, { params: { userId } });
+    if (result.status === 200) {
+      return undefined;
+    } else {
+      return result.data.message;
+    }
+  } catch (error: any) {
+    return error.response.data.message;
   }
 }
 
 function validatePassword(password: string) {
   if (password.length < 6) {
-    return "Passwords must be at least 6 characters long";
+    return "비밀번호는 7자 이상이어야합니다.";
   }
 }
-
+function validateConfirm(password: string, confirm: string) {
+  if (password !== confirm) {
+    return "비밀번호가 일치하지 않습니다.";
+  }
+}
 function validateUrl(url: string) {
   return url;
 }
+
 export async function loader({ request }: LoaderFunctionArgs) {
   let id = await getUserSession(request);
   if (!id) {
@@ -48,6 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
   const requestType = form.get("requestType");
+
   const password = form.get("password");
   const userId = form.get("userId");
   const redirectTo = validateUrl((form.get("redirectTo") as string) || "/");
@@ -65,7 +83,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
   switch (requestType) {
     case "login": {
       let result = (await login({ userId, password })) as LoginResponse;
-
       if (result.status !== 200) {
         const fieldErrors = {
           userId: result.errorType === 1 ? result.message : undefined,
@@ -80,8 +97,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
       }
 
       const user = result.user as ServerUser;
-      fields["role"] = ROLE.DOCTOR;
-      fields["name"] = user.first_name + user.last_name;
+
       fields["id"] = user.contact_id;
       const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR } as User;
 
@@ -92,10 +108,20 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
       const firstName = form.get("firstName");
       const lastName = form.get("lastName");
       const role = form.get("role");
+      const confirm = form.get("confirm");
+
+      if (typeof confirm !== "string" || typeof role !== "string" || typeof lastName !== "string" || typeof firstName !== "string") {
+        return badRequest({
+          fieldErrors: null,
+          fields: null,
+          formError: "Form not submitted correctly.",
+        });
+      }
 
       const fieldErrors = {
+        userId: await validateUserid(userId),
         password: validatePassword(password),
-        userId: validateUserid(userId),
+        confirm: validateConfirm(password, confirm),
       };
 
       if (Object.values(fieldErrors).some(Boolean)) {
@@ -106,27 +132,14 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         });
       }
 
-      let email = form.get("useremail");
-      if (!email || typeof email !== "string") {
-        return badRequest({
-          fieldErrors: null,
-          fields,
-          formError: `User ID/Password combination is incorrect`,
-        });
+      let result = await register({ userId, password, role, firstName, lastName });
+      if (result.status === 200) {
+        const user = result.data.user as ServerUser;
+        let clientUser = { id: user.contact_id, name: firstName + lastName, role } as User;
+        return await createUserSession(clientUser, redirectTo);
       }
 
-      fields["email"] = email;
-      let user = await register({ userId, email, password });
-
-      if (!user) {
-        badRequest({
-          fieldErrors: null,
-          fields,
-          formError: `Already exists user`,
-        });
-      }
-
-      return user;
+      return null;
     }
 
     default: {
@@ -142,7 +155,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const loadData = useLoaderData();
-  const setIsModalOpenNot = () => setIsModalOpen((origin) => !origin);
   const [user, setUser] = useRecoilState(userState);
   const navigator = useNavigate();
 
@@ -157,18 +169,23 @@ export default function Index() {
       navigator("/dashboard/scheduling");
     }
   }, [user]);
+
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center ">
         <div className="rounded-lg shadow-lg p-8 font-noto">
           <h2 className="text-9xl font-bold font-playfair mb-10">Efficient care,</h2>
           <h2 className="text-9xl font-bold font-playfair mb-10">Every time</h2>
-          <LoginButton onClose={setIsModalOpenNot} name="Get started" />
+          <LoginButton
+            onClick={() => {
+              setIsModalOpen(true);
+            }}
+            name="Get started"
+          />
         </div>
       </div>
-      <SessionExpiredModal />
       {/* Login Modal */}
-      <LoginModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />
+      {isModalOpen && <LoginModal setIsModalOpen={setIsModalOpen} isModalOpen={isModalOpen} />}
     </div>
   );
 }

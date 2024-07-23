@@ -1,3 +1,5 @@
+/** @format */
+
 import { Links, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import { RecoilRoot } from "recoil";
 import type { LinksFunction } from "@remix-run/node";
@@ -54,6 +56,7 @@ export default function App() {
           <StyledEngineProvider injectFirst>
             <QueryClientProvider client={queryClient}>
               <Outlet />
+              <SessionExpiredModal />
             </QueryClientProvider>
             <ScrollRestoration />
             <Scripts />

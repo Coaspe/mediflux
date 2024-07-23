@@ -18,9 +18,11 @@ type props = {
 };
 const Icon: React.FC<props> = ({ iconName, onClick, className }) => {
   return (
-    <span onClick={onClick} className={`material-symbols-outlined ${className}`}>
-      {iconName}
-    </span>
+    <button type="submit">
+      <span onClick={onClick} className={`material-symbols-outlined ${className}`}>
+        {iconName}
+      </span>
+    </button>
   );
 };
 
