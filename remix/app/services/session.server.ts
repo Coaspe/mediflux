@@ -52,7 +52,7 @@ export async function register({ userId, password, role, firstName, lastName }: 
     let result = await axios.post("http://localhost:5000/api/register", { userId, password, role, firstName, lastName });
     return result;
   } catch (error: any) {
-    return error.message;
+    return error;
   }
 }
 

@@ -7,6 +7,8 @@ import stylesheet from "~/tailwind.css?url";
 import { StyledEngineProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionExpiredModal } from "./components/Modals";
+import { ClientOnly } from "remix-utils/client-only";
+import GlobalSnackbar from "./components/Snackbar";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -57,6 +59,7 @@ export default function App() {
             <QueryClientProvider client={queryClient}>
               <Outlet />
               <SessionExpiredModal />
+              <ClientOnly>{() => <GlobalSnackbar />}</ClientOnly>
             </QueryClientProvider>
             <ScrollRestoration />
             <Scripts />

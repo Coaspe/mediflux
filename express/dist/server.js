@@ -76,13 +76,7 @@ app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, functi
     console.log(userId, role, password, firstName, lastName);
     try {
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const insertResult = yield pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, user_role ) VALUES($1, $2, $3, $4)`, [
-            role,
-            firstName,
-            lastName,
-            userId,
-            hashedPassword,
-        ]);
+        const insertResult = yield pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, role ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
         console.log(insertResult.rows);
         if (insertResult.rowCount !== 0) {
             return res.status(200).json({ user: insertResult.rows[0] });

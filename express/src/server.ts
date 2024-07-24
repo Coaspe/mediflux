@@ -86,13 +86,7 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const insertResult = await pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, user_role ) VALUES($1, $2, $3, $4)`, [
-      role,
-      firstName,
-      lastName,
-      userId,
-      hashedPassword,
-    ]);
+    const insertResult = await pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, role ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
     console.log(insertResult.rows);
     if (insertResult.rowCount !== 0) {
       return res.status(200).json({ user: insertResult.rows[0] });

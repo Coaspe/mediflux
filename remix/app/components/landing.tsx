@@ -7,6 +7,8 @@ import { Transition } from "@headlessui/react";
 import "./css/LoginModal.css";
 import { useSubmit } from "@remix-run/react";
 import { ROLE, Role } from "shared";
+import { useSetRecoilState } from "recoil";
+import { globalSnackbarState } from "~/recoil_state";
 
 export const LoginButton = ({ name, onClick }: { name: string; onClick: () => void }) => {
   return (
@@ -71,7 +73,6 @@ export const LoginInput: React.FC<LoginInputProps> = ({ id, type, placeholder, n
 
 type LoginModalProps = {
   setIsModalOpen: Dispatch<boolean>;
-
   isModalOpen: boolean;
 };
 
@@ -88,7 +89,8 @@ type LoginAction = {
     password?: string | undefined;
     userId?: string | undefined;
   };
-  formError: null;
+  formError?: null;
+  serverError?: boolean;
 };
 
 export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
@@ -97,6 +99,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
   const [role, setRole] = useState<Role>(ROLE.DOCTOR);
   const submit = useSubmit();
   const divRef = useRef<HTMLDivElement | null>(null);
+  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   const closeModal = () => {
     setOpen(false);
@@ -116,6 +119,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
   useEffect(() => {
     if (isLoading) {
       setIsLoading(false);
+    }
+    if (actionData?.serverError) {
+      setGlobalSnackBar({ open: true, msg: "서버 오류", severity: "error" });
     }
   }, [actionData]);
 

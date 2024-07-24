@@ -22,10 +22,12 @@ async function validateUserid(userId: string) {
     if (result.status === 200) {
       return undefined;
     } else {
+      console.log(result);
+
       return result.data.message;
     }
   } catch (error: any) {
-    return error.response.data.message;
+    return error.response?.data?.message ? error.response?.data?.message : "서버 오류";
   }
 }
 
@@ -142,8 +144,12 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         let clientUser = { id: user.contact_id, name: firstName + lastName, role } as User;
         return await createUserSession(clientUser, redirectTo);
       }
-
-      return null;
+      return badRequest({
+        fieldErrors: null,
+        fields: null,
+        formError: null,
+        serverError: true,
+      });
     }
 
     default: {
@@ -160,6 +166,7 @@ export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const loadData = useLoaderData();
   const [user, setUser] = useRecoilState(userState);
+
   const navigator = useNavigate();
 
   useEffect(() => {
@@ -173,9 +180,9 @@ export default function Index() {
       navigator("/dashboard/scheduling");
     }
   }, [user]);
-
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+      {/* <GlobalSnackbar /> */}
       <div className="flex justify-center ">
         <div className="rounded-lg shadow-lg p-8 font-noto">
           <h2 className="text-9xl font-bold font-playfair mb-10">Efficient care,</h2>
