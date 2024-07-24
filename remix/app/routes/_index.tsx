@@ -2,15 +2,14 @@
 
 import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, getUserSession, login, register } from "~/services/session.server";
 import { LoginResponse, User } from "~/type";
 import { ROLE, ServerUser } from "shared";
 import axios from "axios";
-import { json, useLoaderData, useNavigate } from "@remix-run/react";
-import { useRecoilState } from "recoil";
-import { userState } from "~/recoil_state";
+import { json } from "@remix-run/react";
+import { redirect } from "@remix-run/node";
 
 async function validateUserid(userId: string) {
   if (userId.length <= 3) {
@@ -22,8 +21,6 @@ async function validateUserid(userId: string) {
     if (result.status === 200) {
       return undefined;
     } else {
-      console.log(result);
-
       return result.data.message;
     }
   } catch (error: any) {
@@ -47,20 +44,11 @@ function validateUrl(url: string) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let id = await getUserSession(request);
+
   if (!id) {
     return null;
   }
-  try {
-    const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { id } });
-
-    if (result.status === 200) {
-      const user = result.data.user;
-      const clientUser = { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;
-      return clientUser;
-    }
-  } catch (error: any) {
-    return null;
-  }
+  return redirect("/dashboard/scheduling");
 }
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
@@ -84,8 +72,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
     });
   }
 
-  let fields: { [key: string]: string } = { password, userId };
-
   switch (requestType) {
     case "login": {
       let result = (await login({ userId, password })) as LoginResponse;
@@ -97,14 +83,12 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
         return badRequest({
           fieldErrors,
-          fields,
           formError: result.message,
         });
       }
 
       const user = result.user as ServerUser;
 
-      fields["id"] = user.contact_id;
       const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR } as User;
 
       return await createUserSession(clientUser, redirectTo);
@@ -133,20 +117,21 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
       if (Object.values(fieldErrors).some(Boolean)) {
         return badRequest({
           fieldErrors,
-          fields,
           formError: null,
         });
       }
 
       let result = await register({ userId, password, role, firstName, lastName });
+
       if (result.status === 200) {
         const user = result.data.user as ServerUser;
-        let clientUser = { id: user.contact_id, name: firstName + lastName, role } as User;
+        const clientUser = { id: user.contact_id, name: firstName + lastName, role: user.user_role } as User;
+
         return await createUserSession(clientUser, redirectTo);
       }
+
       return badRequest({
         fieldErrors: null,
-        fields: null,
         formError: null,
         serverError: true,
       });
@@ -155,7 +140,6 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
     default: {
       return badRequest({
         fieldErrors: null,
-        fields,
         formError: "Login type invalid",
       });
     }
@@ -164,22 +148,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
 export default function Index() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const loadData = useLoaderData();
-  const [user, setUser] = useRecoilState(userState);
 
-  const navigator = useNavigate();
-
-  useEffect(() => {
-    if (loadData) {
-      setUser(loadData as User);
-    }
-  }, [loadData]);
-
-  useEffect(() => {
-    if (user) {
-      navigator("/dashboard/scheduling");
-    }
-  }, [user]);
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       {/* <GlobalSnackbar /> */}

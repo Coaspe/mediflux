@@ -22,7 +22,7 @@ export const LoginButton = ({ name, onClick }: { name: string; onClick: () => vo
 
 export const AlertP = ({ msg }: { msg: string | undefined }) => {
   return (
-    <p className={`h-2 text-red-400 text-xs transition-opacity ${msg ? "opacity-100" : "opacity-0"} duration-200 `} role="alert">
+    <p className={`h-2 absolute bottom-0 text-red-400 text-xs transition-opacity ${msg ? "opacity-100" : "opacity-0"} duration-200 translate-y-full`} role="alert">
       {msg}
     </p>
   );
@@ -85,10 +85,6 @@ type LoginAction = {
     role?: string | undefined;
     confirm?: string | undefined;
   };
-  fields: {
-    password?: string | undefined;
-    userId?: string | undefined;
-  };
   formError?: null;
   serverError?: boolean;
 };
@@ -97,6 +93,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
   const actionData = useActionData<LoginAction>();
   const [open, setOpen] = useState(true);
   const [role, setRole] = useState<Role>(ROLE.DOCTOR);
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const submit = useSubmit();
   const divRef = useRef<HTMLDivElement | null>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
@@ -113,8 +111,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
     setIsLoginMode((origin) => !origin);
     clearActionData();
   };
-  const [isLoginMode, setIsLoginMode] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isLoading) {
@@ -156,7 +152,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                 {!isLoginMode && (
                   <>
                     <div className="flex justify-between items-center w-full gap-2">
-                      <div className="w-full">
+                      <div className="w-2/5 relative">
                         <LoginInput
                           id="first-name-input"
                           type="text"
@@ -168,7 +164,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                         />
                         <AlertP msg={actionData?.fieldErrors?.firstName} />
                       </div>
-                      <div className="w-full">
+                      <div className="w-2/5 relative">
                         <LoginInput
                           id="last-name-input"
                           type="text"
@@ -181,6 +177,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                         <AlertP msg={actionData?.fieldErrors?.lastName} />
                       </div>
                       <select
+                        className="w-1/5 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                         onChange={(event) => {
                           setRole(event.target.value as Role);
                         }}
@@ -192,7 +189,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                     </div>
                   </>
                 )}
-                <div className="w-full">
+                <div className="w-full relative">
                   <LoginInput
                     id="userId-input"
                     type="text"
@@ -204,7 +201,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                   />
                   <AlertP msg={actionData?.fieldErrors?.userId} />
                 </div>
-                <div className="w-full">
+                <div className="w-full relative">
                   <LoginInput
                     id="password"
                     type="password"
@@ -217,7 +214,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                   <AlertP msg={actionData?.fieldErrors?.password} />
                 </div>
                 {!isLoginMode && (
-                  <div className="w-full">
+                  <div className="w-full relative">
                     <LoginInput
                       id="confirm-input"
                       type="password"

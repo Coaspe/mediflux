@@ -1,9 +1,11 @@
+/** @format */
+
 import { type MRT_Row, type MRT_Column, type MRT_Cell } from "material-react-table";
-import { ChipColor, OpReadiness, PRecord, Role, SearchHelp } from "../../type";
+import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
-import { TREATMENTS } from "shared";
-import { CONSULTANT, COORDINATOR, DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, ROLE, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
+import { ROLE, Role, TREATMENTS } from "shared";
+import { CONSULTANT, COORDINATOR, DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";

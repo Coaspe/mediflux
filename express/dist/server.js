@@ -17,6 +17,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
+import { getUserByLoginID } from "./utils.js";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
@@ -73,30 +74,37 @@ io.on(CONNECTION, (socket) => {
 });
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, role, password, firstName, lastName } = req.body;
-    console.log(userId, role, password, firstName, lastName);
     try {
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const insertResult = yield pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, role ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
-        console.log(insertResult.rows);
+        const insertResult = yield pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5)`, [
+            role,
+            firstName,
+            lastName,
+            userId,
+            hashedPassword,
+        ]);
         if (insertResult.rowCount !== 0) {
-            return res.status(200).json({ user: insertResult.rows[0] });
+            const users = yield getUserByLoginID(pool, userId);
+            if (users.rowCount === 1) {
+                return res.status(200).json({ user: users.rows[0] });
+            }
+            else {
+                return res.status(400).json({ message: "Database 에러" });
+            }
         }
     }
     catch (error) {
-        console.log(error);
         return res.status(400).json({ error: error.message });
     }
 }));
 app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, password } = req.body;
-    console.log(userId, password);
     try {
         const users = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
         if (users.rowCount == 0) {
             return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
         }
         const user = users.rows[0];
-        console.log(user);
         const isMatch = yield bcrypt.compare(password, user.login_pw);
         if (!isMatch) {
             return res.status(401).json({ message: "비밀번호가 틀렸습니다.", errorType: 2 });
@@ -104,7 +112,7 @@ app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function*
         return res.status(200).json({ user });
     }
     catch (error) {
-        return res.status(500).json({ message: "Internal server error", errorType: 3 });
+        return res.status(500).json({ message: "서버 에러", errorType: 3 });
     }
     finally {
     }

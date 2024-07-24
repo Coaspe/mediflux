@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
+import { getUserByLoginID } from "./utils.js";
 
 dotenv.config();
 
@@ -82,24 +83,31 @@ io.on(CONNECTION, (socket) => {
 
 app.post("/api/register", async (req, res) => {
   const { userId, role, password, firstName, lastName } = req.body;
-  console.log(userId, role, password, firstName, lastName);
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const insertResult = await pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, role ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
-    console.log(insertResult.rows);
+    const insertResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5)`, [
+      role,
+      firstName,
+      lastName,
+      userId,
+      hashedPassword,
+    ]);
     if (insertResult.rowCount !== 0) {
-      return res.status(200).json({ user: insertResult.rows[0] });
+      const users = await getUserByLoginID(pool, userId);
+      if (users.rowCount === 1) {
+        return res.status(200).json({ user: users.rows[0] });
+      } else {
+        return res.status(400).json({ message: "Database 에러" });
+      }
     }
   } catch (error) {
-    console.log(error);
     return res.status(400).json({ error: (error as Error).message });
   }
 });
 
 app.post("/api/login", async (req, res) => {
   const { userId, password } = req.body;
-  console.log(userId, password);
 
   try {
     const users = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
@@ -109,7 +117,6 @@ app.post("/api/login", async (req, res) => {
     }
 
     const user = users.rows[0];
-    console.log(user);
 
     const isMatch = await bcrypt.compare(password, user.login_pw);
 
@@ -118,7 +125,7 @@ app.post("/api/login", async (req, res) => {
     }
     return res.status(200).json({ user });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error", errorType: 3 });
+    return res.status(500).json({ message: "서버 에러", errorType: 3 });
   } finally {
   }
 });

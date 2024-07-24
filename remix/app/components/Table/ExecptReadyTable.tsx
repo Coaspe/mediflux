@@ -1,7 +1,9 @@
+/** @format */
+
 import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
-import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
-import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, ROLE, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
+import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, ROLE, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
+import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
 import { PRecord } from "~/type";
 import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
@@ -182,7 +184,6 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
           originalPRecord={originalPRecord}
           row={row}
           table={table}
-          user={user}
           emitLockRecord={emitLockRecord}
           socket={socket}
           openDeleteConfirmModal={() => handleOpenDeleteModal(row)}

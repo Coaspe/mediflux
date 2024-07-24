@@ -1,3 +1,5 @@
+/** @format */
+
 import { FC, MutableRefObject } from "react";
 import { PRecord, TableType, User } from "~/type";
 import { Box, IconButton } from "@mui/material";
@@ -12,11 +14,12 @@ import MenuButton from "@mui/joy/MenuButton";
 import MenuItem from "@mui/joy/MenuItem";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 
 interface Props {
   row: MRT_Row<PRecord>;
   table: MRT_TableInstance<PRecord>;
-  user: User;
   originalPRecord: MutableRefObject<PRecord | undefined>;
   emitLockRecord: (id: string, tableType: TableType, socket: Socket | null, user: User, roomId: string) => void;
   openDeleteConfirmModal: (row: MRT_Row<PRecord>) => void;
@@ -25,8 +28,12 @@ interface Props {
   roomId: string;
 }
 
-const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket, roomId }) => {
+const SchedulingTableRowAction: FC<Props> = ({ table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket, roomId }) => {
+  const user = useRecoilValue(userState);
   const onClickEditIcon = () => {
+    if (!user) {
+      return;
+    }
     if (row.original.LockingUser) {
       return;
     }
@@ -35,39 +42,40 @@ const SchedulingTableRowAction: FC<Props> = ({ user, table, row, emitLockRecord,
     emitLockRecord(row.id, tableType, socket, user, roomId);
   };
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 100,
-        width: "100%",
-      }}
-    >
-      {row.original.LockingUser && row.original.LockingUser.id != user.id ? (
-        nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)
-      ) : (
-        <Dropdown>
-          <MenuButton slots={{ root: IconButton }} slotProps={{ root: { variant: "outlined", color: "neutral" } }}>
-            <MoreHoriz />
-          </MenuButton>
-          <Menu>
-            <MenuItem onClick={onClickEditIcon}>
-              <ListItemDecorator>
-                <EditIcon />
-              </ListItemDecorator>
-              수정
-            </MenuItem>
-            <MenuItem color="danger" onClick={() => openDeleteConfirmModal(row)}>
-              <ListItemDecorator>
-                <DeleteIcon />
-              </ListItemDecorator>
-              삭제
-            </MenuItem>
-          </Menu>
-        </Dropdown>
-      )}
-    </Box>
+    user && (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 100,
+          width: "100%",
+        }}>
+        {row.original.LockingUser && row.original.LockingUser.id != user.id ? (
+          nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)
+        ) : (
+          <Dropdown>
+            <MenuButton slots={{ root: IconButton }} slotProps={{ root: { variant: "outlined", color: "neutral" } }}>
+              <MoreHoriz />
+            </MenuButton>
+            <Menu>
+              <MenuItem onClick={onClickEditIcon}>
+                <ListItemDecorator>
+                  <EditIcon />
+                </ListItemDecorator>
+                수정
+              </MenuItem>
+              <MenuItem color="danger" onClick={() => openDeleteConfirmModal(row)}>
+                <ListItemDecorator>
+                  <DeleteIcon />
+                </ListItemDecorator>
+                삭제
+              </MenuItem>
+            </Menu>
+          </Dropdown>
+        )}
+      </Box>
+    )
   );
 };
 

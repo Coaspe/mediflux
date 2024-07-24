@@ -1,11 +1,13 @@
+/** @format */
+
 import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
-import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
-import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, NEW_READY_RECORD_COLOR, ROLE, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
+import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, ROLE, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
+import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, NEW_READY_RECORD_COLOR, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
 import { PRecord } from "~/type";
 import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -51,8 +53,6 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
   const actionPRecord = useRef<PRecord>();
 
   const user = useRecoilValue(userState);
-
-  console.log("Ready Rerender");
 
   useEffect(() => {
     if (!socket) return;
@@ -121,7 +121,7 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
         },
       },
     },
-    muiTableContainerProps: ({ table }) => {
+    muiTableContainerProps: () => {
       return {
         sx: {
           height: TABLE_CONTAINER_HEIGHT,
@@ -150,7 +150,7 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
       const { density } = table.getState();
       let backgroundColor = DEFAULT_RECORD_COLOR;
       let add5m = dayjs().add(5, "minute").unix();
-      if (row.original.LockingUser && row.original.LockingUser.id != user.id) {
+      if (row.original.LockingUser && row.original.LockingUser.id != user?.id) {
         backgroundColor = EDITING_RECORD_COLOR;
       } else if (row.original.readyTime && row.original.readyTime <= add5m && row.original.opReadiness === "Y") {
         backgroundColor = NEW_READY_RECORD_COLOR;
@@ -158,12 +158,12 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
       return {
         sx: {
           backgroundColor,
-          pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
+          pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user?.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
-          cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
+          cursor: user?.role === ROLE.DOCTOR ? "pointer" : "default",
         },
         onDoubleClick: () => {
-          if (user.role === ROLE.DOCTOR) {
+          if (user?.role === ROLE.DOCTOR) {
             handleOpenAssignModal(row);
           } else {
             actionPRecord.current = JSON.parse(JSON.stringify(row.original));
@@ -191,7 +191,6 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
         originalPRecord={actionPRecord}
         row={row}
         table={table}
-        user={user}
         emitLockRecord={emitLockRecord}
         socket={socket}
         openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
@@ -227,12 +226,15 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
   };
 
   return (
-    <>
-      <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />
-      <AssignmentDialog createExceptReadyFn={createExceptReadyPRecord} modalOpen={openAssignModal} setModalOpen={setOpenAssignModal} actionPRecord={actionPRecord} socket={socket} />
-      <DeleteRecordDialog modalOpen={openDeleteModal} setModalOpen={setOpenDeleteModal} deleteFn={deleteReadyPRecord} actionPRecord={actionPRecord} socket={socket} />
-      <MaterialReactTable table={readyTable} />
-    </>
+    user &&
+    readyTable && (
+      <>
+        <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />
+        <AssignmentDialog createExceptReadyFn={createExceptReadyPRecord} modalOpen={openAssignModal} setModalOpen={setOpenAssignModal} actionPRecord={actionPRecord} socket={socket} />
+        <DeleteRecordDialog modalOpen={openDeleteModal} setModalOpen={setOpenDeleteModal} deleteFn={deleteReadyPRecord} actionPRecord={actionPRecord} socket={socket} />
+        <MaterialReactTable table={readyTable} />
+      </>
+    )
   );
 };
 

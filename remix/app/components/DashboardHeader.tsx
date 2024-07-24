@@ -1,10 +1,12 @@
-import { ROLE } from "~/constant";
+/** @format */
+
 import { SideMenu } from "~/type";
 import { getMenuName, getRoleName } from "~/utils/utils";
 import DropdownMenu from "./Dropdown";
 import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
+import { ROLE } from "shared";
 
 function DashboardUser() {
   let [doesAlarmExist, setDoesAlarmExist] = useState(true);
@@ -24,6 +26,7 @@ function DashboardUser() {
           <span className="text-sm">{user && user.name}</span>
           <span className="text-xs text-gray-500">{getRoleName(ROLE.DOCTOR)}</span>
         </div>
+        <span className="material-symbols-outlined text-4xl">logout</span>
       </div>
     </div>
   );

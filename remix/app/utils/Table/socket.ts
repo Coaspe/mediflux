@@ -6,12 +6,18 @@ import { LOCK_RECORD, SCHEDULING_ROOM_ID, DELETE_RECORD, SAVE_RECORD, CREATE_REC
 import { Socket } from "socket.io-client";
 import { TableType, PRecord, User } from "~/type";
 
-export const emitLockRecord = (recordId: string, tableType: TableType, socket: Socket | null, user: User, roomId: string) => {
+export const emitLockRecord = (recordId: string, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
+  if (!user) {
+    return;
+  }
   const locker = { id: user.id, name: user.name };
   socket?.emit(LOCK_RECORD, { recordId, locker, roomId: SCHEDULING_ROOM_ID, tableType });
 };
 
-export const emitDeleteRecord = (recordId: string, tableType: TableType, socket: Socket | null, user: User, roomId: string) => {
+export const emitDeleteRecord = (recordId: string, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
+  if (!user) {
+    return;
+  }
   socket?.emit(DELETE_RECORD, {
     recordId,
     userId: user.id,
