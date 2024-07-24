@@ -1,12 +1,11 @@
 /** @format */
 
-import { ROLE, SIDE_MENU } from "~/constant";
+import { SIDE_MENU } from "~/constant";
 import { OverridableStringUnion } from "@mui/types";
 import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
-import { ServerUser } from "shared";
+import { ServerUser, Role } from "shared";
 
 export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
-export type Role = (typeof ROLE)[keyof typeof ROLE];
 export type User = {
   id: string;
   userid: string;

@@ -35,6 +35,11 @@ export const POTENZA = "포텐자";
 export const ERBIUM = "어븀";
 export const ECT = "기타";
 export const TREATMENT_CATEGORY = [SHURINK, INMODE, ULTHERA, TITANIUM, JUVEDERM, EXCELV, PICOSURE, BOOSTER, FILLER, BOTOX, IV_THERAPY, OLIGIO, POTENZA, ERBIUM, ECT];
+export const ROLE = {
+    DOCTOR: "doctor",
+    NURSE: "nurse",
+    STAFF: "staff",
+};
 export const TREATMENTS = [
     { id: "1", group: SHURINK, title: "슈링크 유니버스 울트라 MP모드 100샷" },
     { id: "2", group: SHURINK, title: "슈링크 유니버스 부스터 모드 100샷" },

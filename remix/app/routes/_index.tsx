@@ -5,11 +5,10 @@ import { LoginButton, LoginModal } from "~/components/Landing";
 import { useEffect, useState } from "react";
 import { badRequest } from "~/utils/request.server";
 import { createUserSession, getUserSession, login, register } from "~/services/session.server";
-import { ROLE } from "~/constant";
 import { LoginResponse, User } from "~/type";
-import { ServerUser } from "shared";
+import { ROLE, ServerUser } from "shared";
 import axios from "axios";
-import { useLoaderData, useNavigate } from "@remix-run/react";
+import { json, useLoaderData, useNavigate } from "@remix-run/react";
 import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
 
@@ -54,7 +53,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     if (result.status === 200) {
       const user = result.data.user;
-      const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR, name: user.first_name + user.last_name } as User;
+      const clientUser = { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;
       return clientUser;
     }
   } catch (error: any) {
@@ -64,8 +63,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export const action: ActionFunction = async ({ request }: ActionFunctionArgs) => {
   const form = await request.formData();
-  const requestType = form.get("requestType");
+  const clear = form.get("clear");
 
+  if (clear === "true") {
+    return json({ fieldErrors: null, fields: null, formError: null }, { status: 200 });
+  }
+
+  const requestType = form.get("requestType");
   const password = form.get("password");
   const userId = form.get("userId");
   const redirectTo = validateUrl((form.get("redirectTo") as string) || "/");

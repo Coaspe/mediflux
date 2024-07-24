@@ -86,12 +86,19 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const insertResult = await pool.query(`INSERT INTO admin.user (role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
+    const insertResult = await pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, user_role ) VALUES($1, $2, $3, $4)`, [
+      role,
+      firstName,
+      lastName,
+      userId,
+      hashedPassword,
+    ]);
     console.log(insertResult.rows);
     if (insertResult.rowCount !== 0) {
       return res.status(200).json({ user: insertResult.rows[0] });
     }
   } catch (error) {
+    console.log(error);
     return res.status(400).json({ error: (error as Error).message });
   }
 });
@@ -102,13 +109,14 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const users = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
-    console.log(users);
 
     if (users.rowCount == 0) {
       return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
     }
 
     const user = users.rows[0];
+    console.log(user);
+
     const isMatch = await bcrypt.compare(password, user.login_pw);
 
     if (!isMatch) {

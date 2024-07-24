@@ -5,8 +5,8 @@ import React, { Dispatch, HTMLInputTypeAttribute, useEffect, useRef, useState } 
 import Icon, { ICONS } from "./Icons";
 import { Transition } from "@headlessui/react";
 import "./css/LoginModal.css";
-import { Role } from "~/type";
-import { ROLE } from "~/constant";
+import { useSubmit } from "@remix-run/react";
+import { ROLE, Role } from "shared";
 
 export const LoginButton = ({ name, onClick }: { name: string; onClick: () => void }) => {
   return (
@@ -34,10 +34,16 @@ type LoginInputProps = {
   defaultValue?: string;
   ariaInvalid: boolean;
   ariaErrorMessage: string | undefined;
+  isLoginMode: boolean;
 };
 
-export const LoginInput: React.FC<LoginInputProps> = ({ id, type, placeholder, name, defaultValue, ariaErrorMessage, ariaInvalid }) => {
+export const LoginInput: React.FC<LoginInputProps> = ({ id, type, placeholder, name, defaultValue, ariaErrorMessage, ariaInvalid, isLoginMode }) => {
   const [value, setValue] = useState<string | undefined>();
+
+  useEffect(() => {
+    setValue("");
+  }, [isLoginMode]);
+
   return (
     <div className="relative group/item">
       <input
@@ -86,18 +92,23 @@ type LoginAction = {
 };
 
 export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
-  let actionData = useActionData<LoginAction>();
+  const actionData = useActionData<LoginAction>();
   const [open, setOpen] = useState(true);
-  let [role, setRole] = useState<Role>(ROLE.DOCTOR);
+  const [role, setRole] = useState<Role>(ROLE.DOCTOR);
+  const submit = useSubmit();
   const divRef = useRef<HTMLDivElement | null>(null);
-  const clear = useRef(false);
+
   const closeModal = () => {
-    clear.current = true;
     setOpen(false);
   };
-
+  const clearActionData = () => {
+    const formData = new FormData();
+    formData.append("clear", "true");
+    submit(formData);
+  };
   const changeMode = () => {
     setIsLoginMode((origin) => !origin);
+    clearActionData();
   };
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +133,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
         onTransitionEnd={() => {
           if (!open) {
             setIsModalOpen(false);
+            clearActionData();
           }
         }}
         onClick={closeModal}
@@ -146,6 +158,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                           name="firstName"
                           ariaInvalid={Boolean(actionData?.fieldErrors?.firstName)}
                           ariaErrorMessage={actionData?.fieldErrors?.firstName ? "firstName-error" : undefined}
+                          isLoginMode={isLoginMode}
                         />
                         <AlertP msg={actionData?.fieldErrors?.firstName} />
                       </div>
@@ -157,6 +170,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                           name="lastName"
                           ariaInvalid={Boolean(actionData?.fieldErrors?.lastName)}
                           ariaErrorMessage={actionData?.fieldErrors?.lastName ? "lastName-error" : undefined}
+                          isLoginMode={isLoginMode}
                         />
                         <AlertP msg={actionData?.fieldErrors?.lastName} />
                       </div>
@@ -180,6 +194,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                     name="userId"
                     ariaInvalid={Boolean(actionData?.fieldErrors?.userId)}
                     ariaErrorMessage={actionData?.fieldErrors?.userId ? "userId-error" : undefined}
+                    isLoginMode={isLoginMode}
                   />
                   <AlertP msg={actionData?.fieldErrors?.userId} />
                 </div>
@@ -191,6 +206,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                     name="password"
                     ariaInvalid={Boolean(actionData?.fieldErrors?.password)}
                     ariaErrorMessage={actionData?.fieldErrors?.password ? "password-error" : undefined}
+                    isLoginMode={isLoginMode}
                   />
                   <AlertP msg={actionData?.fieldErrors?.password} />
                 </div>
@@ -203,12 +219,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                       name="confirm"
                       ariaInvalid={Boolean(actionData?.fieldErrors?.confirm)}
                       ariaErrorMessage={actionData?.fieldErrors?.confirm ? "confirm-error" : undefined}
+                      isLoginMode={isLoginMode}
                     />
                     <AlertP msg={actionData?.fieldErrors?.confirm} />
                   </div>
                 )}
                 <input className="hidden" id="role-input" type="text" name="role" onChange={() => {}} value={role} />
-                {clear && <input className="hidden" id="clear-input" type="text" name="clear" onChange={() => {}} value={"clear"} />}
                 <input className="hidden" id="logintype-input" type="text" name="requestType" onChange={() => {}} value={isLoginMode ? "login" : "register"} />
                 <input className="hidden" id="redirectTo-input" type="text" name="redirectTo" defaultValue={"/dashboard/scheduling"} />
               </div>

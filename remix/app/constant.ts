@@ -13,12 +13,6 @@ export const SIDE_MENU = {
   ARCHIVE: "archive",
 } as const;
 
-export const ROLE = {
-  DOCTOR: "doctor",
-  NURSE: "nurse",
-  STAFF: "staff",
-} as const;
-
 export const TABLE_CONTAINER_HEIGHT = "78%";
 export const TABLE_HEIGHT = "100%";
 export const TABLE_PAPER_HEIGHT = "50%";

@@ -76,13 +76,20 @@ app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, functi
     console.log(userId, role, password, firstName, lastName);
     try {
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const insertResult = yield pool.query(`INSERT INTO admin.user (role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4)`, [role, firstName, lastName, userId, hashedPassword]);
+        const insertResult = yield pool.query(`INSERT INTO admin.user ( first_name, last_name, login_id, login_pw, user_role ) VALUES($1, $2, $3, $4)`, [
+            role,
+            firstName,
+            lastName,
+            userId,
+            hashedPassword,
+        ]);
         console.log(insertResult.rows);
         if (insertResult.rowCount !== 0) {
             return res.status(200).json({ user: insertResult.rows[0] });
         }
     }
     catch (error) {
+        console.log(error);
         return res.status(400).json({ error: error.message });
     }
 }));
@@ -91,11 +98,11 @@ app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function*
     console.log(userId, password);
     try {
         const users = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
-        console.log(users);
         if (users.rowCount == 0) {
             return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
         }
         const user = users.rows[0];
+        console.log(user);
         const isMatch = yield bcrypt.compare(password, user.login_pw);
         if (!isMatch) {
             return res.status(401).json({ message: "비밀번호가 틀렸습니다.", errorType: 2 });

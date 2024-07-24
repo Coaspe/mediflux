@@ -26,6 +26,11 @@ declare module "shared" {
   export const TATTOO_LASER: string;
   export const DOT_LASER: string;
   export const TREATMENTS: { id: string; group: TreatmentCategory; title: string }[];
+  export const ROLE: {
+    readonly DOCTOR: "doctor";
+    readonly NURSE: "nurse";
+    readonly STAFF: "staff";
+  };
   export const PORT: number;
   //     export type Treatment = {
   //         name: string;
@@ -41,5 +46,7 @@ declare module "shared" {
     last_name: string;
     login_id: string;
     login_pw: string;
+    user_role: Role;
   };
+  export type Role = (typeof ROLE)[keyof typeof ROLE];
 }

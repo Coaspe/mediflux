@@ -1,9 +1,9 @@
 /** @format */
 
 import { MRT_Row, MRT_TableInstance, LiteralUnion } from "material-react-table";
-import { SCHEDULING_ROOM_ID } from "shared";
-import { EMPTY_SEARCHHELP, ROLE, SIDE_MENU } from "~/constant";
-import { OpReadiness, PRecord, QueryDataName, Role, SearchHelp, SideMenu, TableType, User } from "~/type";
+import { Role, SCHEDULING_ROOM_ID, ServerUser, ROLE } from "shared";
+import { EMPTY_SEARCHHELP, SIDE_MENU } from "~/constant";
+import { OpReadiness, PRecord, QueryDataName, SearchHelp, SideMenu, TableType, User } from "~/type";
 import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord } from "./Table/socket";
 import { Socket } from "socket.io-client";
 import { MutableRefObject } from "react";
@@ -205,3 +205,7 @@ function areObjectsEqual(obj1: PRecord, obj2: PRecord): boolean {
 
   return true;
 }
+
+export const convertServerUserToClientUser = (user: ServerUser) => {
+  return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;
+};

@@ -1,7 +1,6 @@
 /** @format */
 
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { ROLE } from "~/constant";
 import { LoginForm, RegisgerForm, User } from "~/type";
 import axios from "axios";
 
@@ -50,7 +49,7 @@ export async function createUserSession(user: User, redirectTo: string) {
 
 export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
   try {
-    let result = await axios.post("http://localhost:5000/register", { userId, password, role, firstName, lastName });
+    let result = await axios.post("http://localhost:5000/api/register", { userId, password, role, firstName, lastName });
     return result;
   } catch (error: any) {
     return error.message;

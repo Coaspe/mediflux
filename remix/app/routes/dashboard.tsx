@@ -1,10 +1,10 @@
 /** @format */
 
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
-import { ROLE, SIDE_MENU } from "~/constant";
+import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
-import { SideMenu, User } from "~/type";
+import { SideMenu } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
 import axios from "axios";
@@ -12,6 +12,8 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { checkSessionExists } from "~/services/session.server";
+import { convertServerUserToClientUser } from "~/utils/utils";
+import { ServerUser } from "shared";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
   return (
@@ -35,8 +37,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { idOrRedirect } });
 
     if (result.status === 200) {
-      const user = result.data.user;
-      const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR, name: user.first_name + user.last_name } as User;
+      const user = result.data.user as ServerUser;
+      const clientUser = convertServerUserToClientUser(user);
       return clientUser;
     }
   } catch (error: any) {
