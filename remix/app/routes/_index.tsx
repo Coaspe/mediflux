@@ -4,7 +4,7 @@ import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@re
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
 import { badRequest } from "~/utils/request.server";
-import { createUserSession, getUserSession, login, register } from "~/services/session.server";
+import { createUserSession, getUserID, login, register } from "~/services/session.server";
 import { LoginResponse, User } from "~/type";
 import { ROLE, ServerUser } from "shared";
 import axios from "axios";
@@ -43,7 +43,7 @@ function validateUrl(url: string) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let id = await getUserSession(request);
+  let id = await getUserID(request);
 
   if (!id) {
     return null;

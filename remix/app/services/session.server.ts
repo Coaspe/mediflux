@@ -59,14 +59,30 @@ export async function register({ userId, password, role, firstName, lastName }: 
 }
 
 export async function getUserSession(request: Request) {
-  const session = await storage.getSession(request.headers.get("Cookie"));
+  return await storage.getSession(request.headers.get("Cookie"));
+}
+
+export async function getUserID(request: Request) {
+  const session = await getUserSession(request);
   return session.get("id") as string;
 }
 
 export async function checkSessionExists(request: Request) {
-  let id = await getUserSession(request);
+  let id = await getUserID(request);
   if (!id) {
     return undefined;
   }
   return id;
+}
+
+export async function destroyUserSession(request: Request) {
+  const session = await getUserSession(request);
+  if (session) {
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await storage.destroySession(session),
+      },
+    });
+  }
+  return null;
 }

@@ -7,10 +7,18 @@ import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
 import { ROLE } from "shared";
+import { useSubmit } from "@remix-run/react";
 
 function DashboardUser() {
   let [doesAlarmExist, setDoesAlarmExist] = useState(true);
   const user = useRecoilValue(userState);
+  const submit = useSubmit();
+
+  const logout = () => {
+    const formData = new FormData();
+    formData.append("requestType", "destroySession");
+    submit(formData, { method: "POST" });
+  };
 
   return (
     <div className="flex items-center gap-3 font-work">
@@ -26,7 +34,9 @@ function DashboardUser() {
           <span className="text-sm">{user && user.name}</span>
           <span className="text-xs text-gray-500">{getRoleName(ROLE.DOCTOR)}</span>
         </div>
-        <span className="material-symbols-outlined text-4xl">logout</span>
+        <span onClick={logout} className="material-symbols-outlined text-4xl cursor-pointer block">
+          logout
+        </span>
       </div>
     </div>
   );

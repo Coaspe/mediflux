@@ -1,19 +1,16 @@
 /** @format */
 
-import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
+import { Link, Outlet, useActionData, useLoaderData, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
 import { SideMenu, User } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
-import axios from "axios";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
-import { LoaderFunctionArgs } from "@remix-run/node";
-import { checkSessionExists } from "~/services/session.server";
-import { convertServerUserToClientUser } from "~/utils/utils";
-import { ServerUser } from "shared";
+import { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
+import { checkSessionExists, destroyUserSession, getUserSession } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
@@ -38,6 +35,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return user;
 }
 
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const requestType = formData.get("requestType");
+
+  switch (requestType) {
+    case "destroySession":
+      const result = await destroyUserSession(request);
+      return result;
+
+    default:
+      return null;
+  }
+};
 export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>();
   const location = useLocation();
