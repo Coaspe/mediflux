@@ -7,7 +7,7 @@ import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, TABLE_CONTAINER_HEIGHT, TAB
 import { PRecord } from "~/type";
 import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { MutableRefObject, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   checkinTimeColumn,
   chartNumberColumn,
@@ -103,6 +103,7 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
 
   const ExceptReadyTable: MRT_TableInstance<PRecord> = useMaterialReactTable({
     columns: ExceptReadyColumns,
+    memoMode: "rows",
     data: fetchedExceptReadyPRecords ? fetchedExceptReadyPRecords : [],
     localization: MRT_Localization_KO,
     initialState: {
@@ -132,7 +133,7 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
     },
     muiTableProps: ({}) => ({
       sx: {
-        width: "0px",
+        width: "full",
         height: TABLE_HEIGHT,
       },
     }),
@@ -150,7 +151,7 @@ const ExceptReadyTable: React.FC<props> = ({ socket }) => {
       : undefined,
     muiTableBodyRowProps: ({ row, table }) => {
       const { density } = table.getState();
-
+      console.log(row.original.id);
       return {
         sx: {
           backgroundColor: row.original.LockingUser && user && row.original.LockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,

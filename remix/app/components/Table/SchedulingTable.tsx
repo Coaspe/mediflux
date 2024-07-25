@@ -1,3 +1,5 @@
+/** @format */
+
 import { useEffect, useRef, useState } from "react";
 import { Socket, io } from "socket.io-client";
 import { CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT, SCHEDULING_ROOM_ID } from "shared";

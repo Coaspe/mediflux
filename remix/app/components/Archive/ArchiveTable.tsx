@@ -1,6 +1,7 @@
+/** @format */
+
 import { LiteralUnion, MRT_ColumnDef, MRT_Row, MRT_TableInstance, MaterialReactTable, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_KO } from "material-react-table/locales/ko";
-import { ROLE } from "~/constant";
 import { OpReadiness, PRecord, TableType, User } from "~/type";
 import { emitCreateRecord, emitDeleteRecord, emitLockRecord, emitSaveRecord, emitUnLockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "../Table/SchedulingTableTopToolbar";
@@ -24,11 +25,13 @@ import {
   consultantColumn,
   commentCautionColumn,
 } from "~/utils/Table/columnDef";
-import { PORT, CONNECT, JOIN_ROOM, USER_JOINED, CONNECTED_USERS, LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, ARCHIVE_ROOM_ID } from "shared";
+import { PORT, CONNECT, JOIN_ROOM, USER_JOINED, CONNECTED_USERS, LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, ARCHIVE_ROOM_ID, ROLE } from "shared";
 import { Socket, io } from "socket.io-client";
 import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
 import { ChangeStatusDialog, DeleteRecordDialog } from "../Table/Dialogs";
 import { Dayjs } from "dayjs";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 
 type props = {
   startDate: Dayjs;
@@ -38,12 +41,7 @@ type props = {
 const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [clients, setClients] = useState<String[]>([]);
-  let user: User = {
-    id: "1",
-    name: "이우람",
-    image: "",
-    role: ROLE.DOCTOR,
-  };
+  const user = useRecoilValue(userState);
 
   const handleConnectedUsers = (users: String[]) => {
     setClients(users);
@@ -54,12 +52,12 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
     setSocket(socketInstance);
 
     // Default
-    socketInstance.on(CONNECT, () => {
-      socketInstance.emit(JOIN_ROOM, {
-        userId: user.id,
-        username: user.name,
-      });
-    });
+    // socketInstance.on(CONNECT, () => {
+    //   socketInstance.emit(JOIN_ROOM, {
+    //     userId: user.id,
+    //     username: user.name,
+    //   });
+    // });
 
     // Other user joined
     socketInstance.on(USER_JOINED, (username) => {
@@ -180,7 +178,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
       checkinTimeColumn(originalPRecord),
       chartNumberColumn,
       patientNameColumn,
-      opReadinessColumn(setOpenChangeStatusModal, actionPRecord),
+      opReadinessColumn(actionPRecord, "Archive", setOpenChangeStatusModal),
       treatment1Column(originalPRecord),
       quantitytreat1Column,
       treatmentRoomColumn,
@@ -253,7 +251,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
 
     table.setEditingRow(null); // exit editing mode
 
-    if (precord.LockingUser?.id === user.id) {
+    if (user && precord.LockingUser?.id === user.id) {
       emitUnLockRecord(row.id, tableType, socket, ARCHIVE_ROOM_ID);
     }
 
@@ -327,10 +325,10 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
       const { density } = table.getState();
       return {
         sx: {
-          backgroundColor: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "gray" : "white",
-          pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
+          backgroundColor: user && row.original.LockingUser && row.original.LockingUser?.id != user.id ? "gray" : "white",
+          pointerEvents: user && row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
-          cursor: user.role === ROLE.DOCTOR ? "pointer" : "default",
+          cursor: user && user.role === ROLE.DOCTOR ? "pointer" : "default",
         },
       };
     },
@@ -352,7 +350,6 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
         originalPRecord={originalPRecord}
         row={row}
         table={table}
-        user={user}
         emitLockRecord={emitLockRecord}
         socket={socket}
         openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
@@ -372,8 +369,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
 
   return (
     <>
-      <ChangeStatusDialog handleCloseModal={handleCloseStatusChangeModal} handleConfirmModal={handleConfirmStatusChange} openModal={openChangeStatusModal} actionPRecord={actionPRecord} />
-      <DeleteRecordDialog handleCloseModal={handleCloseDeleteModal} handleConfirmModal={handleConfirmDelete} openModal={openDeleteModal} actionPRecord={actionPRecord} />
+      <DeleteRecordDialog modalOpen={openDeleteModal} setModalOpen={setOpenDeleteModal} deleteFn={deleteArchivePRecord} actionPRecord={actionPRecord} socket={socket} />
       <MaterialReactTable table={archiveTable} />
     </>
   );

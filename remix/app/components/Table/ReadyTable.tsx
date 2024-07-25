@@ -93,11 +93,12 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
       consultantColumn(actionPRecord),
       commentCautionColumn,
     ],
-    [validationErrors]
+    []
   );
 
   const readyTable: MRT_TableInstance<PRecord> = useMaterialReactTable({
     columns: readyColumns,
+    // memoMode: "table",
     data: fetchedReadyPRecords ? fetchedReadyPRecords : [],
     localization: MRT_Localization_KO,
     enableBottomToolbar: true,
@@ -108,6 +109,9 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
         pageSize: 10,
         pageIndex: 0,
       },
+    },
+    muiPaginationProps: {
+      rowsPerPageOptions: [5, 10, 15, 20],
     },
     createDisplayMode: "modal", // ('modal', and 'custom' are also available)
     editDisplayMode: "modal", // ('modal', 'cell', 'table', and 'custom' are also available)
@@ -130,7 +134,7 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
     },
     muiTableProps: ({}) => ({
       sx: {
-        width: "0px",
+        width: "full",
         height: TABLE_HEIGHT,
       },
     }),
@@ -150,14 +154,16 @@ const ReadyTable: React.FC<props> = ({ socket }) => {
       const { density } = table.getState();
       let backgroundColor = DEFAULT_RECORD_COLOR;
       let add5m = dayjs().add(5, "minute").unix();
+
       if (row.original.LockingUser && row.original.LockingUser.id != user?.id) {
         backgroundColor = EDITING_RECORD_COLOR;
       } else if (row.original.readyTime && row.original.readyTime <= add5m && row.original.opReadiness === "Y") {
         backgroundColor = NEW_READY_RECORD_COLOR;
       }
+
       return {
         sx: {
-          backgroundColor,
+          // backgroundColor,
           pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user?.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user?.role === ROLE.DOCTOR ? "pointer" : "default",
