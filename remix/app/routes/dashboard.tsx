@@ -28,6 +28,8 @@ const isSideMenu = (value: any): value is SideMenu => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let idOrRedirect = await checkSessionExists(request);
+  console.log(idOrRedirect);
+
   if (typeof idOrRedirect !== "string") {
     return "sessionExpire";
   }
@@ -67,22 +69,22 @@ export default function Dashboard() {
     }
   }, []);
 
-  return (
-    user && (
-      <div className="flex flex-col pr-5 h-screen w-full">
-        <DashboardHeader selectedMenu={clickedMenu} />
-        <div className="flex max-w-full h-full">
-          <aside className="font-work pr-5 w-[220px]">
-            <Menu>
-              <SubMenu icon={<Icon className={"text-gray-500 "} iconName={ICONS.EVENT_NOTE} />} label="Schedule">
-                <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
-                <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} clickedMenu={clickedMenu} />
-              </SubMenu>
-            </Menu>
-          </aside>
-          <Outlet />
-        </div>
+  return user ? (
+    <div className="flex flex-col pr-5 h-screen w-full">
+      <DashboardHeader selectedMenu={clickedMenu} />
+      <div className="flex max-w-full h-full">
+        <aside className="font-work pr-5 w-[220px]">
+          <Menu>
+            <SubMenu icon={<Icon className={"text-gray-500 "} iconName={ICONS.EVENT_NOTE} />} label="Schedule">
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} clickedMenu={clickedMenu} />
+            </SubMenu>
+          </Menu>
+        </aside>
+        <Outlet />
       </div>
-    )
+    </div>
+  ) : (
+    <></>
   );
 }

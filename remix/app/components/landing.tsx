@@ -8,7 +8,7 @@ import "./css/LoginModal.css";
 import { useSubmit } from "@remix-run/react";
 import { ROLE, Role } from "shared";
 import { useSetRecoilState } from "recoil";
-import { globalSnackbarState } from "~/recoil_state";
+import { globalSnackbarState, sessionExpireModalOpenState } from "~/recoil_state";
 
 export const LoginButton = ({ name, onClick }: { name: string; onClick: () => void }) => {
   return (
@@ -98,14 +98,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
   const submit = useSubmit();
   const divRef = useRef<HTMLDivElement | null>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
-
   const closeModal = () => {
     setOpen(false);
   };
   const clearActionData = () => {
     const formData = new FormData();
     formData.append("clear", "true");
-    submit(formData);
+    submit(formData, { method: "POST" });
   };
   const changeMode = () => {
     setIsLoginMode((origin) => !origin);
