@@ -1,34 +1,58 @@
-/** @format */
-
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ColDef } from "ag-grid-community";
+import { PRecord } from "~/type";
+import { MOCK } from "~/constant";
+import {
+  anesthesiaNoteColumn,
+  chartNumberColumn,
+  checkinTimeColumn,
+  commentCautionColumn,
+  consultantColumn,
+  coordinatorColumn,
+  doctorColumn,
+  nursingStaff1Column,
+  nursingStaff2Column,
+  opReadinessColumn,
+  patientNameColumn,
+  quantitytreat1Column,
+  skincareSpecialist1Column,
+  skincareSpecialist2Column,
+  treatment1Column,
+  treatmentRoomColumn,
+} from "~/utils/Table/columnDef";
 
 const GridExample = () => {
   // Row Data: The data to be displayed.
-  const [rowData, setRowData] = useState([
-    { make: "Tesla", model: "Model Y", price: 64950, electric: true },
-    { make: "Ford", model: "F-Series", price: 33850, electric: false },
-    { make: "Toyota", model: "Corolla", price: 29600, electric: false },
-  ]);
+  const [rowData, setRowData] = useState<PRecord[]>(MOCK);
 
   // Column Definitions: Defines the columns to be displayed.
-  const [colDefs, setColDefs] = useState<ColDef[]>([
-    {
-      field: "make",
-      headerName: "make",
-      cellEditorPopup: true,
-      editable: true,
-      onCellDoubleClicked: ({ rowIndex }) => {
-        console.log(rowIndex);
-      },
-    },
-    { field: "model", headerName: "Custom Text" },
-    { field: "price" },
-    { field: "electric", editable: true },
+  const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
+    { field: "id", headerName: "id", hide: true },
+    checkinTimeColumn,
+    chartNumberColumn,
+    patientNameColumn,
+    opReadinessColumn,
+    treatment1Column,
+    quantitytreat1Column,
+    treatmentRoomColumn,
+    doctorColumn,
+    anesthesiaNoteColumn,
+    skincareSpecialist1Column,
+    skincareSpecialist2Column,
+    nursingStaff1Column,
+    nursingStaff2Column,
+    coordinatorColumn,
+    consultantColumn,
+    commentCautionColumn,
   ]);
+  const defaultColDef = useMemo<ColDef>(() => {
+    return {
+      editable: true,
+    };
+  }, []);
 
   return (
     // wrapping container with theme & size
@@ -36,7 +60,18 @@ const GridExample = () => {
       className="ag-theme-quartz" // applying the Data Grid theme
       style={{ height: 500 }} // the Data Grid will fill the size of the parent container
     >
-      <AgGridReact rowData={rowData} columnDefs={colDefs} />
+      <AgGridReact
+        onCellEditingStopped={(event) => {
+          console.log(event.oldValue, event.newValue);
+        }}
+        defaultColDef={defaultColDef}
+        rowData={rowData}
+        columnDefs={colDefs}
+        getRowId={(params) => params.data.id}
+        pagination={true}
+        paginationPageSize={20}
+      />
+      <button>확인</button>
     </div>
   );
 };

@@ -39,270 +39,131 @@ import {
   SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH,
 } from "~/constant";
-import { SearchHelp, PRecord, TableType, User } from "~/type";
+import { SearchHelp, PRecord, TableType, User, OpReadiness } from "~/type";
 import { getValueWithId } from "../utils";
 import { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { ColDef } from "ag-grid-community";
+import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 
-export const staffFilterFn = (id: unknown, filterValue: any, searchHelp: SearchHelp[]) => {
-  const record = DOCTORS.find((ele) => ele.id === id);
+export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
+  console.log(id, searchHelp);
+
+  const record = searchHelp.find((ele) => ele.id === id);
   const title = record?.title;
-  return title ? title.includes(filterValue) : false;
+  return title;
 };
-export const checkinTimeColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
+export const checkinTimeColumn: ColDef<PRecord, number> = {
+  field: CHECK_IN_TIME,
+  filter: true,
+  headerName: CHECK_IN_TIME_H,
+  cellRenderer: ({ value }: CustomCellRendererProps) => checkInTimeCell(value),
+  cellEditor: ({ value, onValueChange }: CustomCellEditorProps) => checkInTimeEdit(value, onValueChange),
+};
+
+export const chartNumberColumn: ColDef<PRecord, string> = {
+  field: CHART_NUMBER,
+  comparator: (valueA, valueB, nodeA, nodeB, isDescending) => parseInt(valueA ? valueA : "0") - parseInt(valueB ? valueB : "0"),
+  headerName: CHART_NUMBER_H,
+};
+
+export const patientNameColumn: ColDef<PRecord, string> = {
+  field: PATIENT_NAME,
+  headerName: PATIENT_NAME_H,
+};
+
+export const opReadinessColumn: ColDef<PRecord, OpReadiness> = {
+  field: OP_READINESS,
+  headerName: OP_READINESS_H,
+  cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
+  // editSelectOptions: ({}) =>
+  //   tableType === "Ready"
+  //     ? [{ label: "준비 완료 (Y)", value: "Y" }]
+  //     : [
+  //         { label: "준비 완료 (Y)", value: "Y" },
+  //         { label: "준비 미완료 (N)", value: "N" },
+  //         { label: "시술 완료 (C)", value: "C" },
+  //         { label: "시술 중 (P)", value: "P" },
+  //       ],
+  // size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
+  // muiTableHeadCellProps: {
+  //   align: "center",
+  // },
+  // muiTableBodyCellProps: ({ row }) => {
+  //   return {
+  //     align: "center",
+  //     onDoubleClick: (event) => {
+  //       if (setOpenStatusModal) {
+  //         event.stopPropagation();
+  //         actionPRecord.current = JSON.parse(JSON.stringify(row.original));
+  //         setOpenStatusModal(true);
+  //       }
+  //     },
+  //   };
+  // },
+  // muiEditTextFieldProps: {
+  //   required: true,
+  //   defaultValue: "Y",
+  // },
+};
+
+export const treatment1Column: ColDef<PRecord, string> = {
+  field: TREATMENT1,
+  headerName: TREATMENT1_H,
+  cellRenderer: ({ value }: CustomCellRendererProps) => getValueWithId(TREATMENTS, value).title,
+  cellEditor: treatmentEdit,
+};
+export const quantitytreat1Column: ColDef<PRecord, number> = {
+  field: QUANTITYTREAT1,
+  headerName: QUANTITYTREAT1_H,
+};
+export const treatmentRoomColumn: ColDef<PRecord, number> = {
+  field: TREATMENT_ROOM,
+  headerName: TREATMENT_ROOM_H,
+};
+
+const personComparator = (searchHelp: SearchHelp[], valueA: string | null | undefined, valueB: string | null | undefined) => {
+  if (!valueA && !valueB) {
+    return 0;
+  }
+  if (!valueA) {
+    return -1;
+  }
+  if (!valueB) {
+    return 1;
+  }
+  const a = searchHelp[searchHelp.findIndex((val) => val.id === valueA)].title;
+  const b = searchHelp[searchHelp.findIndex((val) => val.id === valueB)].title;
+  if (a <= b) {
+    return 1;
+  } else {
+    return -1;
+  }
+};
+
+export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
   return {
-    // id: 'date',
-    // filterVariant: 'datetime',
-    // filterFn: 'lessThan',
-    accessorKey: CHECK_IN_TIME,
-    header: CHECK_IN_TIME_H,
-    sortingFn: "datetime",
-    Cell: checkInTimeCell,
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => checkInTimeEdit(row, originalPRecord),
-    size: LONG_JUSTIFIED_CENTER_COLUMN_LENGTH, //medium column
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-    muiEditTextFieldProps: {
-      required: true,
-      // error: !!validationErrors?.email,
-      // helperText: validationErrors?.email,
-      // //remove any previous validation errors when user focuses on the input
-      // onFocus: () =>
-      //   setValidationErrors({
-      //     ...validationErrors,
-      //     email: undefined,
-      //   }),
-    },
+    field,
+    headerName,
+    comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
+    cellEditor: ({ colDef, onValueChange, data }: CustomCellEditorProps<PRecord, string>) => StaffEdit(data, searchHelp, colDef.headerName, headerName, onValueChange),
+    cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipCell(colDef?.headerName, searchHelp, value),
   };
 };
-export const chartNumberColumn: MRT_ColumnDef<PRecord> = {
-  accessorKey: CHART_NUMBER,
-  header: CHART_NUMBER_H,
-  size: LONG_JUSTIFIED_CENTER_COLUMN_LENGTH, //medium column
-  muiTableHeadCellProps: {
-    align: "center",
-  },
-  muiEditTextFieldProps: {
-    required: true,
-    // error: !!validationErrors?.CHART_NUMBER,
-    // helperText: validationErrors?.CHART_NUMBER,
-    // //remove any previous validation errors when user focuses on the input
-    // onFocus: () =>
-    //   setValidationErrors({
-    //     ...validationErrors,
-    //     email: undefined,
-    //   }),
-  },
+
+export const doctorColumn: ColDef<PRecord, string> = personColumn(DOCTOR, DOCTOR_H, DOCTORS);
+
+export const anesthesiaNoteColumn: ColDef<PRecord, string> = {
+  field: ANESTHESIANOTE,
+  headerName: ANESTHESIANOTE_H,
 };
-export const patientNameColumn: MRT_ColumnDef<PRecord> = {
-  accessorKey: PATIENT_NAME,
-  header: PATIENT_NAME_H,
-  size: LONG_JUSTIFIED_CENTER_COLUMN_LENGTH,
-  muiTableHeadCellProps: {
-    align: "center",
-  },
-  muiEditTextFieldProps: {
-    required: true,
-  },
-};
-export const opReadinessColumn = (actionPRecord: MutableRefObject<PRecord | undefined>, tableType: TableType, setOpenStatusModal?: Dispatch<SetStateAction<boolean>>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: OP_READINESS,
-    header: OP_READINESS_H,
-    editVariant: "select",
-    editSelectOptions: ({}) =>
-      tableType === "Ready"
-        ? [{ label: "준비 완료 (Y)", value: "Y" }]
-        : [
-            { label: "준비 완료 (Y)", value: "Y" },
-            { label: "준비 미완료 (N)", value: "N" },
-            { label: "시술 완료 (C)", value: "C" },
-            { label: "시술 중 (P)", value: "P" },
-          ],
-    Cell: opReadinessCell,
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, // medium column
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: ({ row }) => {
-      return {
-        align: "center",
-        onDoubleClick: (event) => {
-          if (setOpenStatusModal) {
-            event.stopPropagation();
-            actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-            setOpenStatusModal(true);
-          }
-        },
-      };
-    },
-    muiEditTextFieldProps: {
-      required: true,
-      defaultValue: "Y",
-    },
-  };
-};
-export const treatment1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    Cell: ({ cell }) => getValueWithId(TREATMENTS, cell.getValue<string>()).title,
-    accessorKey: TREATMENT1,
-    header: TREATMENT1_H,
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => treatmentEdit(row, originalPRecord),
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "left",
-    },
-  };
-};
-export const quantitytreat1Column: MRT_ColumnDef<PRecord> = {
-  accessorKey: QUANTITYTREAT1,
-  header: QUANTITYTREAT1_H,
-  size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
-  muiTableHeadCellProps: {
-    align: "center",
-  },
-  muiTableBodyCellProps: {
-    align: "center",
-  },
-};
-export const treatmentRoomColumn: MRT_ColumnDef<PRecord> = {
-  accessorKey: TREATMENT_ROOM,
-  header: TREATMENT_ROOM_H,
-  size: MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
-  muiTableHeadCellProps: {
-    align: "center",
-  },
-  muiTableBodyCellProps: {
-    align: "center",
-  },
-};
-export const doctorColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: DOCTOR,
-    header: DOCTOR_H,
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
-    filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, DOCTOR, DOCTOR_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const anesthesiaNoteColumn: MRT_ColumnDef<PRecord> = {
-  accessorKey: ANESTHESIANOTE,
-  header: ANESTHESIANOTE_H,
-  muiTableHeadCellProps: {
-    align: "center",
-  },
-};
-export const skincareSpecialist1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: SKINCARESPECIALIST1,
-    header: SKINCARESPECIALIST1_H,
-    filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, SKINCARESPECIALIST1, SKINCARESPECIALIST1_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH, //medium column
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const skincareSpecialist2Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: SKINCARESPECIALIST2,
-    header: SKINCARESPECIALIST2_H,
-    filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, SKINCARESPECIALIST2, SKINCARESPECIALIST2_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const nursingStaff1Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: NURSINGSTAFF1,
-    header: NURSINGSTAFF1_H,
-    filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, NURSINGSTAFF1, NURSINGSTAFF1_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const nursingStaff2Column = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: NURSINGSTAFF2,
-    header: NURSINGSTAFF2_H,
-    filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, NURSINGSTAFF2, NURSINGSTAFF2_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const coordinatorColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: COORDINATOR,
-    header: COORDINATOR_H,
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, COORDINATOR, COORDINATOR_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const consultantColumn = (originalPRecord: MutableRefObject<PRecord | undefined>): MRT_ColumnDef<PRecord> => {
-  return {
-    accessorKey: CONSULTANT,
-    header: CONSULTANT_H,
-    filterFn: (row, id, filterValue) => staffFilterFn(row.getValue(id), filterValue, DOCTORS),
-    Edit: ({ row }: { row: MRT_Row<PRecord> }) => StaffEdit(row, originalPRecord, DOCTORS, CONSULTANT, CONSULTANT_H),
-    Cell: ({ cell, column }) => nameChipCell(cell, column, DOCTORS),
-    size: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
-    muiTableHeadCellProps: {
-      align: "center",
-    },
-    muiTableBodyCellProps: {
-      align: "center",
-    },
-  };
-};
-export const commentCautionColumn: MRT_ColumnDef<PRecord> = {
-  accessorKey: COMMENTCAUTION,
-  header: COMMENTCAUTION_H,
-  muiTableHeadCellProps: {
-    align: "center",
-  },
+export const skincareSpecialist1Column: ColDef<PRecord, string> = personColumn(SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, DOCTORS);
+export const skincareSpecialist2Column: ColDef<PRecord, string> = personColumn(SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, DOCTORS);
+export const nursingStaff1Column: ColDef<PRecord, string> = personColumn(NURSINGSTAFF1, NURSINGSTAFF1_H, DOCTORS);
+export const nursingStaff2Column: ColDef<PRecord, string> = personColumn(NURSINGSTAFF2, NURSINGSTAFF2_H, DOCTORS);
+export const coordinatorColumn: ColDef<PRecord, string> = personColumn(COORDINATOR, COMMENTCAUTION_H, DOCTORS);
+export const consultantColumn: ColDef<PRecord, string> = personColumn(CONSULTANT, CONSULTANT_H, DOCTORS);
+
+export const commentCautionColumn: ColDef<PRecord, string> = {
+  field: COMMENTCAUTION,
+  headerName: COMMENTCAUTION_H,
 };
