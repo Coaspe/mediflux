@@ -7,6 +7,8 @@ import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
 import ReadyTable from "./ReadyTable";
 import ExceptReadyTable from "./ExecptReadyTable";
+import GridExample from "./Test";
+import { ClientOnly } from "remix-utils/client-only";
 
 const SchedulingTable = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -35,8 +37,9 @@ const SchedulingTable = () => {
   return (
     <div className="w-full h-full gap-2 flex flex-col pb-5">
       {/* Assignment Modal */}
-      <ReadyTable socket={socket} />
-      <ExceptReadyTable socket={socket} />
+      {/* <ReadyTable socket={socket} />
+      <ExceptReadyTable socket={socket} /> */}
+      <ClientOnly>{() => <GridExample />}</ClientOnly>
     </div>
   );
 };
