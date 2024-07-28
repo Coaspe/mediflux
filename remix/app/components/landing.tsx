@@ -8,7 +8,7 @@ import "./css/LoginModal.css";
 import { useSubmit } from "@remix-run/react";
 import { ROLE, Role } from "shared";
 import { useSetRecoilState } from "recoil";
-import { globalSnackbarState, sessionExpireModalOpenState } from "~/recoil_state";
+import { globalSnackbarState } from "~/recoil_state";
 
 export const LoginButton = ({ name, onClick }: { name: string; onClick: () => void }) => {
   return (

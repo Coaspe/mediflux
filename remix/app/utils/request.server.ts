@@ -2,7 +2,7 @@
 
 import { json } from "@remix-run/node";
 import axios from "axios";
-import { User } from "~/type";
+import { PRecord, User } from "~/type";
 
 /**
  * This helper function helps us to return the accurate HTTP status,

@@ -75,6 +75,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
   switch (requestType) {
     case "login": {
       let result = (await login({ userId, password })) as LoginResponse;
+      
       if (result.status !== 200) {
         const fieldErrors = {
           userId: result.errorType === 1 ? result.message : undefined,
@@ -84,6 +85,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         return badRequest({
           fieldErrors,
           formError: result.message,
+          serverError: result.status === 500
         });
       }
 

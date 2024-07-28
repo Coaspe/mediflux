@@ -91,6 +91,11 @@ const GridExample = ({ socket }: props) => {
         pointerEvents: "none",
       };
     }
+    if (params.data?.deleteYN) {
+      return {
+        display: "none"
+      }
+    }
   };
 
   const [pinnedTopRowData, setPinnedTopRowData] = useState<PRecord[]>([]);

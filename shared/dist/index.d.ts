@@ -48,5 +48,8 @@ declare module "shared" {
     login_pw: string;
     user_role: Role;
   };
+  export type ServerPRecord = {
+    
+  }
   export type Role = (typeof ROLE)[keyof typeof ROLE];
 }

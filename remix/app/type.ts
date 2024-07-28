@@ -25,6 +25,16 @@ export type PRecord = {
   treatment3?: string; // VARCHAR (50), optional
   treatment4?: string; // VARCHAR (50), optional
   treatment5?: string; // VARCHAR (50), optional
+  treatmentReady1?: number,
+  treatmentReady2?: number,
+  treatmentReady3?: number,
+  treatmentReady4?: number,
+  treatmentReady5?: number,
+  treatmentEnd1?: number,
+  treatmentEnd2?: number,
+  treatmentEnd3?: number,
+  treatmentEnd4?: number,
+  treatmentEnd5?: number,
   quantityTreat1?: number; // INTEGER
   quantityTreat2?: number; // INTEGER, optional
   quantityTreat3?: number; // INTEGER, optional
@@ -42,8 +52,51 @@ export type PRecord = {
   commentCaution?: string; // VARCHAR (300), optional
   lockingUser?: User | null;
   readyTime?: number;
+  deleteYN?: boolean
   [key: string]: any;
 };
+export type ServerPRecord = {
+  record_id: string; // Unique record id
+  check_in_time?: number; // TIMESTAMP (e.g., "14:08")
+  chart_num?: string; // VARCHAR (15)
+  patient_name?: string; // VARCHAR (100)
+  op_readiness?: OpReadiness; // BOOLEAN (e.g., "T", "F" interpreted as true/false)
+  treatment_1?: string; // VARCHAR (50)
+  treatment_2?: string; // VARCHAR (50), optional
+  treatment_3?: string; // VARCHAR (50), optional
+  treatment_4?: string; // VARCHAR (50), optional
+  treatment_5?: string; // VARCHAR (50), optional
+  treatment_ready_1?: number,
+  treatment_ready_2?: number,
+  treatment_ready_3?: number,
+  treatment_ready_4?: number,
+  treatment_ready_5?: number,
+  treatment_end_1?: number,
+  treatment_end_2?: number,
+  treatment_end_3?: number,
+  treatment_end_4?: number,
+  treatment_end_5?: number,
+  quantity_treat_1?: number; // INTEGER
+  quantity_treat_2?: number; // INTEGER, optional
+  quantity_treat_3?: number; // INTEGER, optional
+  quantity_treat_4?: number; // INTEGER, optional
+  quantity_treat_5?: number; // INTEGER, optional
+  treatment_room?: number; // INTEGER
+  doctor?: string; // VARCHAR (50)
+  anesthesia_note?: string; // VARCHAR (300), optional
+  skincare_specialist_1?: string; // VARCHAR (50)
+  skincare_specialist_2?: string; // VARCHAR (50), optional
+  nursing_staff_1?: string; // VARCHAR (50)
+  nursing_staff_2?: string; // VARCHAR (50), optional
+  coordinator?: string; // VARCHAR (50)
+  consultant?: string; // VARCHAR (50)
+  comment_caution?: string; // VARCHAR (300), optional
+  locking_user?: User | null;
+  ready_time?: number;
+  delete_yn?: boolean;
+  [key: string]: any;
+};
+
 export type TableType = "Ready" | "ExceptReady" | "Archive";
 export type QueryDataName = "Ready_PRecord" | "ExceptReady_PRecord" | "Archive_PRecord";
 export type ChipColor = OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;

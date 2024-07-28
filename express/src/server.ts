@@ -31,7 +31,6 @@ const app: Express = express();
 
 app.use(cors());
 app.use(express.json());
-
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -114,7 +113,8 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const users = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
-
+    console.log(users);
+    
     if (users.rowCount == 0) {
       return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
     }
@@ -164,4 +164,212 @@ app.get("/api/checkSameIDExists", async (req, res) => {
   }
 });
 
+app.post("/api/insertRecord", async (req, res) => {
+    const {
+    checkInTime,
+    chartNum,
+    patientName,
+    opReadiness,
+    treatment1,
+    treatment2,
+    treatment3,
+    treatment4,
+    treatment5,
+    quantityTreat1,
+    quantityTreat2,
+    quantityTreat3,
+    quantityTreat4,
+    quantityTreat5,
+    treatmentRoom,
+    doctor,
+    anesthesiaNote,
+    skincareSpecialist1,
+    skincareSpecialist2,
+    nursingStaff1,
+    nursingStaff2,
+    coordinator,
+    consultant,
+    commentCaution,
+    lockingUser,
+    deleteYN
+  } = req.body;
+
+  const query = `
+    INSERT INTO GN_SS_BAILOR.CHART_SCHEDULE (
+      chart_num, patient_name, op_readiness,
+      treatment_1, treatment_2, treatment_3, treatment_4, treatment_5,
+      quantity_treat_1, quantity_treat_2, quantity_treat_3, quantity_treat_4, quantity_treat_5,
+      treatment_room, doctor, anesthesia_note,
+      skincare_specialist_1, skincare_specialist_2,
+      nursing_staff_1, nursing_staff_2, coordinator, consultant, comment_caution, locking_user, delete_yn
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+      $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+    )
+    RETURNING *;
+  `;
+
+  const values = [
+    chartNum, patientName, opReadiness,
+    treatment1, treatment2, treatment3, treatment4, treatment5,
+    quantityTreat1, quantityTreat2, quantityTreat3, quantityTreat4, quantityTreat5,
+    treatmentRoom, doctor, anesthesiaNote,
+    skincareSpecialist1, skincareSpecialist2,
+    nursingStaff1, nursingStaff2, coordinator, consultant, commentCaution, lockingUser,deleteYN
+  ];
+
+  try {
+    const result = await pool.query(query, values);
+    console.log(result);
+    return res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Database error' });
+  }
+
+})
+app.put('/updateRecords', async (req, res) => {
+  const records = req.body.records;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN'); // 트랜잭션 시작
+
+    for (const record of records) {
+      const {
+        id,
+        checkInTime,
+        chartNum,
+        patientName,
+        opReadiness,
+        treatment1,
+        treatment2,
+        treatment3,
+        treatment4,
+        treatment5,
+        quantityTreat1,
+        quantityTreat2,
+        quantityTreat3,
+        quantityTreat4,
+        quantityTreat5,
+        treatmentRoom,
+        doctor,
+        anesthesiaNote,
+        skincareSpecialist1,
+        skincareSpecialist2,
+        nursingStaff1,
+        nursingStaff2,
+        coordinator,
+        consultant,
+        commentCaution,
+        lockingUser,
+        readyTime,
+        deleteYN,
+        treatmentReady1,
+        treatmentReady2,
+        treatmentReady3,
+        treatmentReady4,
+        treatmentReady5,
+        treatmentEnd1,
+        treatmentEnd2,
+        treatmentEnd3,
+        treatmentEnd4,
+        treatmentEnd5
+      } = record;
+
+      const query = `
+        UPDATE your_table_name
+        SET check_in_time = $1,
+            chart_num = $2,
+            patient_name = $3,
+            op_readiness = $4,
+            treatment_1 = $5,
+            treatment_2 = $6,
+            treatment_3 = $7,
+            treatment_4 = $8,
+            treatment_5 = $9,
+            quantity_treat_1 = $10,
+            quantity_treat_2 = $11,
+            quantity_treat_3 = $12,
+            quantity_treat_4 = $13,
+            quantity_treat_5 = $14,
+            treatment_room = $15,
+            doctor = $16,
+            anesthesia_note = $17,
+            skincare_specialist_1 = $18,
+            skincare_specialist_2 = $19,
+            nursing_staff_1 = $20,
+            nursing_staff_2 = $21,
+            coordinator = $22,
+            consultant = $23,
+            comment_caution = $24,
+            locking_user = $25,
+            ready_time = $26,
+            delete_yn = $27,
+            treatment_ready_1 = $28,
+            treatment_ready_2 = $29,
+            treatment_ready_3 = $30,
+            treatment_ready_4 = $31,
+            treatment_ready_5 = $32,
+            treatment_end_1 = $33,
+            treatment_end_2 = $34,
+            treatment_end_3 = $35,
+            treatment_end_4 = $36,
+            treatment_end_5 = $37
+        WHERE id = $38
+      `;
+      const values = [
+        checkInTime,
+        chartNum,
+        patientName,
+        opReadiness,
+        treatment1,
+        treatment2,
+        treatment3,
+        treatment4,
+        treatment5,
+        quantityTreat1,
+        quantityTreat2,
+        quantityTreat3,
+        quantityTreat4,
+        quantityTreat5,
+        treatmentRoom,
+        doctor,
+        anesthesiaNote,
+        skincareSpecialist1,
+        skincareSpecialist2,
+        nursingStaff1,
+        nursingStaff2,
+        coordinator,
+        consultant,
+        commentCaution,
+        lockingUser,
+        readyTime,
+        deleteYN,
+        treatmentReady1,
+        treatmentReady2,
+        treatmentReady3,
+        treatmentReady4,
+        treatmentReady5,
+        treatmentEnd1,
+        treatmentEnd2,
+        treatmentEnd3,
+        treatmentEnd4,
+        treatmentEnd5,
+        id,
+      ];
+      await client.query(query, values);
+    }
+
+    await client.query('COMMIT'); // 트랜잭션 커밋
+    res.status(200).send('Records updated successfully.');
+  } catch (error) {
+    await client.query('ROLLBACK'); // 트랜잭션 롤백
+    console.error('Error updating records:', error);
+    res.status(500).send('Error updating records.');
+  } finally {
+    client.release();
+  }
+});
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

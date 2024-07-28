@@ -2,7 +2,7 @@
 
 // Socket event
 export const JOIN_ROOM = "join-room";
-export const CONNECTED_USERS = "connected-users";
+export const CONNETCED_USERS = "connETCed-users";
 export const LOCK_RECORD = "lock-record";
 export const SAVE_RECORD = "save-record";
 export const DELETE_RECORD = "delete-record";
@@ -11,9 +11,9 @@ export const LOCK_EXCEPT_RECORD = "lock-except-record";
 export const SAVE_EXCEPT_RECORD = "save-except-record";
 export const DELETE_EXCEPT_RECORD = "delete-except-record";
 export const CREATE_EXCEPT_RECORD = "create-except-record";
-export const CONNECTION = "connection";
+export const CONNETCION = "connETCion";
 export const USER_JOINED = "user-join";
-export const CONNECT = "connect";
+export const CONNETC = "connETC";
 export const SCHEDULING_ROOM_ID = "100";
 export const ARCHIVE_ROOM_ID = "200";
 export const CANCEL_EDITING = "cancel-editing";
@@ -21,6 +21,13 @@ export const UNLOCK_RECORD = "unlock-record";
 export const PORT = 5000;
 
 // Treatment
+export const TREATMENT_CATEGORY = [SHURINK, INMODE, ULTHERA, TITANIUM, JUVEDERM, EXCELV, PICOSURE, BOOSTER, FILLER, BOTOX, IV_THERAPY, OLIGIO, POTENZA, ERBIUM, ETC];
+export const ROLE = {
+  DOCTOR: "doctor",
+  NURSE: "nurse",
+  STAFF: "staff",
+} as const;
+
 export const SHURINK = "슈링크";
 export const INMODE = "인모드";
 export const ULTHERA = "울쎄라";
@@ -35,13 +42,7 @@ export const IV_THERAPY = "수액";
 export const OLIGIO = "올리지오";
 export const POTENZA = "포텐자";
 export const ERBIUM = "어븀";
-export const ECT = "기타";
-export const TREATMENT_CATEGORY = [SHURINK, INMODE, ULTHERA, TITANIUM, JUVEDERM, EXCELV, PICOSURE, BOOSTER, FILLER, BOTOX, IV_THERAPY, OLIGIO, POTENZA, ERBIUM, ECT];
-export const ROLE = {
-  DOCTOR: "doctor",
-  NURSE: "nurse",
-  STAFF: "staff",
-} as const;
+export const ETC = "기타";
 
 export const TREATMENTS: SearchHelp[] = [
   { id: "1", group: SHURINK, title: "슈링크 유니버스 울트라 MP모드 100샷" },
@@ -143,13 +144,13 @@ export const TREATMENTS: SearchHelp[] = [
   { id: "97", group: ERBIUM, title: "어븀 프락셀 풀페이스" },
   { id: "98", group: ERBIUM, title: "어븀 프락셀 (패키지)" },
   { id: "99", group: ERBIUM, title: "카프리" },
-  { id: "100", group: ECT, title: "카프리 (패키지)" },
-  { id: "101", group: ECT, title: "MTS (스킨부스터)" },
-  { id: "102", group: ECT, title: "MTS (패키지)" },
-  { id: "103", group: ECT, title: "압출" },
-  { id: "104", group: ECT, title: "염증주사" },
-  { id: "105", group: ECT, title: "블루토닝" },
-  { id: "106", group: ECT, title: "블랙필" },
+  { id: "100", group: ETC, title: "카프리 (패키지)" },
+  { id: "101", group: ETC, title: "MTS (스킨부스터)" },
+  { id: "102", group: ETC, title: "MTS (패키지)" },
+  { id: "103", group: ETC, title: "압출" },
+  { id: "104", group: ETC, title: "염증주사" },
+  { id: "105", group: ETC, title: "블루토닝" },
+  { id: "106", group: ETC, title: "블랙필" },
 ];
 
 export type SearchHelp = {
