@@ -142,7 +142,7 @@ export const handleSavePRecord = async (
 
   table.setEditingRow(null); // exit editing mode
 
-  if (precord.LockingUser?.id === user.id) {
+  if (precord.lockingUser?.id === user.id) {
     emitUnLockRecord(row.id, tableType, socket, SCHEDULING_ROOM_ID);
   }
 

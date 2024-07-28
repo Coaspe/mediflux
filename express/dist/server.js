@@ -62,8 +62,8 @@ io.on(CONNECTION, (socket) => {
     socket.on(DELETE_RECORD, ({ recordId, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordId, tableType });
     });
-    socket.on(SAVE_RECORD, ({ recordId, record, tableType, roomId }) => {
-        socket.broadcast.to(roomId).emit(SAVE_RECORD, { recordId, record, tableType });
+    socket.on(SAVE_RECORD, ({ record, recordId, tableType, roomId, propertyName, newValue }) => {
+        socket.broadcast.to(roomId).emit(SAVE_RECORD, { record, recordId, tableType, propertyName, newValue });
     });
     socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });

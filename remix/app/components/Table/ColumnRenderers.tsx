@@ -1,6 +1,5 @@
 /** @format */
 
-import { type MRT_Row, type MRT_Column, type MRT_Cell } from "material-react-table";
 import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
@@ -10,10 +9,10 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { MutableRefObject, ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { ChipPropsColorOverrides, ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
-import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
+import { CustomCellEditorProps } from "ag-grid-react";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -36,19 +35,6 @@ export const checkInTimeEdit = (value: number, onValueChange: (value: number) =>
       <DateTimeField format="YYYY/MM/DD hh:mm A" slotProps={{ textField: { variant: "standard" } }} defaultValue={dayjs(value * 1000)} onChange={onChange} />
     </LocalizationProvider>
   );
-};
-
-export const treatmentCell = ({ cell }: { cell: MRT_Cell<PRecord, unknown> }) => {
-  let idx = -1;
-  for (let i = 0; i < TREATMENTS.length; i++) {
-    const element = TREATMENTS[i];
-    if (element.id === cell.getValue()) {
-      idx = i;
-      break;
-    }
-  }
-
-  return;
 };
 
 const OpReadinessChip = ({
@@ -121,6 +107,37 @@ export const opReadinessCell = (value: OpReadiness) => {
   return <OpReadinessChip label={label} size={size} color={color} />;
 };
 
+type OpReadicnessSearchHelp = {
+  label: string;
+  value: OpReadiness;
+};
+const OPREADINESSE_SEARCH_HELP: OpReadicnessSearchHelp[] = [
+  { label: "준비 완료 (Y)", value: "Y" },
+  { label: "준비 미완료 (N)", value: "N" },
+  { label: "시술 완료 (C)", value: "C" },
+  { label: "시술 중 (P)", value: "P" },
+];
+
+export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps) => {
+  const onChange = (option: OpReadicnessSearchHelp | null) => {
+    if (option) {
+      onValueChange(option.value);
+    }
+  };
+  let idx = OPREADINESSE_SEARCH_HELP.findIndex((element) => element.value === value);
+  return (
+    <Autocomplete
+      sx={{ width: "100%" }}
+      options={OPREADINESSE_SEARCH_HELP}
+      getOptionLabel={(option) => option.label}
+      onChange={(_, option) => onChange(option)}
+      defaultValue={OPREADINESSE_SEARCH_HELP[idx]}
+      value={OPREADINESSE_SEARCH_HELP[idx]}
+      renderInput={(params) => <TextField {...params} variant="standard" />}
+    />
+  );
+};
+
 export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps) => {
   let idx = -1;
   for (let i = 0; i < TREATMENTS.length; i++) {
@@ -150,13 +167,13 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps) =
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
       defaultValue={TREATMENTS[idx]}
-      value={TREATMENTS[value]}
+      value={TREATMENTS[idx]}
       renderInput={(params) => <TextField {...params} variant="standard" />}
     />
   );
 };
 
-export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname: keyof PRecord | undefined, label: string, onValueChange: (value: any) => void) => {
+export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname: keyof PRecord | undefined, onValueChange: (value: any) => void) => {
   let id: string | undefined = "";
   switch (fieldname) {
     case DOCTOR:
@@ -192,6 +209,7 @@ export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname
       break;
     }
   }
+  console.log(idx);
 
   const onChange = (
     value: {
@@ -205,14 +223,25 @@ export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname
   };
 
   return (
-    <Autocomplete
-      sx={{ width: "100%" }}
-      options={searchHelp}
-      getOptionLabel={(option) => option.title}
-      onChange={(_, value) => onChange(value)}
-      defaultValue={searchHelp[idx]}
-      renderInput={(params) => <TextField {...params} label={label} variant="standard" />}
-    />
+    <div className="w-full h-full flex items-center justify-center">
+      <Autocomplete
+        sx={{
+          border: "none",
+          width: "70%",
+          "& .MuiOutlinedInput-root": {
+            "&:before, &:after": {
+              borderBottom: "none",
+            },
+          },
+        }}
+        options={searchHelp}
+        getOptionLabel={(option) => option.title}
+        onChange={(_, value) => onChange(value)}
+        defaultValue={searchHelp[idx]}
+        value={searchHelp[idx]}
+        renderInput={(params) => <TextField {...params} variant="standard" />}
+      />
+    </div>
   );
 };
 export const nameChipRendererByFieldname = (fieldname: string | undefined, searchHelp: SearchHelp[], id?: string) => {
@@ -233,7 +262,13 @@ export const nameChipRendererByFieldname = (fieldname: string | undefined, searc
       title = element.title;
     }
   }
-  return title ? <Chip size="small" color={color} label={title} /> : <></>;
+  return title ? (
+    <div className="w-full h-full flex justify-center items-center">
+      <Chip size="small" color={color} label={title} />
+    </div>
+  ) : (
+    <></>
+  );
 };
 export const nameChipRendererByRole = (role: Role, name?: string) => {
   let color: ChipColor;

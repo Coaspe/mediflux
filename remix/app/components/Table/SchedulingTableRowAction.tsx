@@ -34,7 +34,7 @@ const SchedulingTableRowAction: FC<Props> = ({ table, row, emitLockRecord, openD
     if (!user) {
       return;
     }
-    if (row.original.LockingUser) {
+    if (row.original.lockingUser) {
       return;
     }
     originalPRecord.current = JSON.parse(JSON.stringify(row.original));
@@ -50,9 +50,10 @@ const SchedulingTableRowAction: FC<Props> = ({ table, row, emitLockRecord, openD
           alignItems: "center",
           zIndex: 100,
           width: "100%",
-        }}>
-        {row.original.LockingUser && row.original.LockingUser.id != user.id ? (
-          nameChipRendererByRole(row.original.LockingUser.role!, row.original.LockingUser?.name)
+        }}
+      >
+        {row.original.lockingUser && row.original.lockingUser.id != user.id ? (
+          nameChipRendererByRole(row.original.lockingUser.role!, row.original.lockingUser?.name)
         ) : (
           <Dropdown>
             <MenuButton slots={{ root: IconButton }} slotProps={{ root: { variant: "outlined", color: "neutral" } }}>

@@ -104,21 +104,21 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
   const onLockRecord = ({ recordId, locker, tableType }: { recordId: string; locker: User; tableType: TableType }) => {
     const row = archiveTable.getRow(recordId).original;
     if (row) {
-      row.LockingUser = locker;
+      row.lockingUser = locker;
       updateArchivePRecord(row);
     }
   };
   const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }) => {
     const row = archiveTable.getRow(recordId).original;
     if (row) {
-      row.LockingUser = null;
+      row.lockingUser = null;
       updateArchivePRecord(row);
     }
   };
 
   const onSaveRecord = ({ recordId, record, tableType }: { recordId: string; record: string; tableType: TableType }) => {
     const precord: PRecord = JSON.parse(record);
-    precord.LockingUser = null;
+    precord.lockingUser = null;
     let row = archiveTable.getRow(recordId).original;
     if (row) {
       row = precord;
@@ -127,7 +127,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
   };
   const onCreateRecord = ({ record, tableType }: { record: string; tableType: TableType }) => {
     const precord: PRecord = JSON.parse(record);
-    precord.LockingUser = null;
+    precord.lockingUser = null;
     createArchivePRecord(precord);
     if (precord.opReadiness === "Y") {
       //   playAudio();
@@ -251,7 +251,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
 
     table.setEditingRow(null); // exit editing mode
 
-    if (user && precord.LockingUser?.id === user.id) {
+    if (user && precord.lockingUser?.id === user.id) {
       emitUnLockRecord(row.id, tableType, socket, ARCHIVE_ROOM_ID);
     }
 
@@ -325,8 +325,8 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
       const { density } = table.getState();
       return {
         sx: {
-          backgroundColor: user && row.original.LockingUser && row.original.LockingUser?.id != user.id ? "gray" : "white",
-          pointerEvents: user && row.original.LockingUser && row.original.LockingUser?.id != user.id ? "none" : "default",
+          backgroundColor: user && row.original.lockingUser && row.original.lockingUser?.id != user.id ? "gray" : "white",
+          pointerEvents: user && row.original.lockingUser && row.original.lockingUser?.id != user.id ? "none" : "default",
           height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
           cursor: user && user.role === ROLE.DOCTOR ? "pointer" : "default",
         },
@@ -334,7 +334,7 @@ const ArchiveTable: React.FC<props> = ({ startDate, endDate }) => {
     },
     muiTableBodyCellProps: ({ row }) => ({
       onDoubleClick: async () => {
-        if (row.original.LockingUser) {
+        if (row.original.lockingUser) {
           return;
         }
       },

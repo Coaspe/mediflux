@@ -2,11 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Socket, io } from "socket.io-client";
-import { CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT, SCHEDULING_ROOM_ID } from "shared";
+import { CONNECT, CONNECTED_USERS, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, PORT, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
-import ReadyTable from "./ReadyTable";
-import ExceptReadyTable from "./ExecptReadyTable";
 import GridExample from "./Test";
 import { ClientOnly } from "remix-utils/client-only";
 
@@ -14,7 +12,6 @@ const SchedulingTable = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const user = useRecoilValue(userState);
 
-  // Socket configuration
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);
     setSocket(socketInstance);
@@ -39,7 +36,7 @@ const SchedulingTable = () => {
       {/* Assignment Modal */}
       {/* <ReadyTable socket={socket} />
       <ExceptReadyTable socket={socket} /> */}
-      <ClientOnly>{() => <GridExample />}</ClientOnly>
+      <ClientOnly>{() => <GridExample socket={socket} />}</ClientOnly>
     </div>
   );
 };

@@ -40,7 +40,7 @@ export type PRecord = {
   coordinator?: string; // VARCHAR (50)
   consultant?: string; // VARCHAR (50)
   commentCaution?: string; // VARCHAR (300), optional
-  LockingUser?: User | null;
+  lockingUser?: User | null;
   readyTime?: number;
   [key: string]: any;
 };

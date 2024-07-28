@@ -145,8 +145,8 @@ const ExceptReadyTable = () => {
   //     console.log(row.original.id);
   //     return {
   //       sx: {
-  //         backgroundColor: row.original.LockingUser && user && row.original.LockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,
-  //         pointerEvents: row.original.LockingUser && user && row.original.LockingUser?.id != user.id ? "none" : "default",
+  //         backgroundColor: row.original.lockingUser && user && row.original.lockingUser?.id != user.id ? EDITING_RECORD_COLOR : DEFAULT_RECORD_COLOR,
+  //         pointerEvents: row.original.lockingUser && user && row.original.lockingUser?.id != user.id ? "none" : "default",
   //         height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
   //         cursor: user && user.role === ROLE.DOCTOR ? "pointer" : "default",
   //       },
@@ -158,7 +158,7 @@ const ExceptReadyTable = () => {
   //   },
   //   muiTableBodyCellProps: ({ row }) => ({
   //     onDoubleClick: async () => {
-  //       if (row.original.LockingUser) {
+  //       if (row.original.lockingUser) {
   //         return;
   //       }
   //     },

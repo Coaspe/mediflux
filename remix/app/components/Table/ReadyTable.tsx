@@ -5,7 +5,7 @@ import { MRT_Localization_KO } from "material-react-table/locales/ko";
 import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, ROLE, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
 import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, NEW_READY_RECORD_COLOR, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
 import { PRecord } from "~/type";
-import { emitLockRecord, onCreateRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
+import { emitLockRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
 import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -146,7 +146,7 @@ const ReadyTable = () => {
   //     const { density } = table.getState();
   //     let backgroundColor = DEFAULT_RECORD_COLOR;
   //     let add5m = dayjs().add(5, "minute").unix();
-  //     if (row.original.LockingUser && row.original.LockingUser.id != user?.id) {
+  //     if (row.original.lockingUser && row.original.lockingUser.id != user?.id) {
   //       backgroundColor = EDITING_RECORD_COLOR;
   //     } else if (row.original.readyTime && row.original.readyTime <= add5m && row.original.opReadiness === "Y") {
   //       backgroundColor = NEW_READY_RECORD_COLOR;
@@ -154,7 +154,7 @@ const ReadyTable = () => {
   //     return {
   //       sx: {
   //         // backgroundColor,
-  //         pointerEvents: row.original.LockingUser && row.original.LockingUser?.id != user?.id ? "none" : "default",
+  //         pointerEvents: row.original.lockingUser && row.original.lockingUser?.id != user?.id ? "none" : "default",
   //         height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
   //         cursor: user?.role === ROLE.DOCTOR ? "pointer" : "default",
   //       },
@@ -170,7 +170,7 @@ const ReadyTable = () => {
   //   },
   //   muiTableBodyCellProps: ({ row }) => ({
   //     onDoubleClick: async () => {
-  //       if (row.original.LockingUser) {
+  //       if (row.original.lockingUser) {
   //         return;
   //       }
   //     },
