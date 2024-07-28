@@ -25,16 +25,16 @@ export type PRecord = {
   treatment3?: string; // VARCHAR (50), optional
   treatment4?: string; // VARCHAR (50), optional
   treatment5?: string; // VARCHAR (50), optional
-  treatmentReady1?: number,
-  treatmentReady2?: number,
-  treatmentReady3?: number,
-  treatmentReady4?: number,
-  treatmentReady5?: number,
-  treatmentEnd1?: number,
-  treatmentEnd2?: number,
-  treatmentEnd3?: number,
-  treatmentEnd4?: number,
-  treatmentEnd5?: number,
+  treatmentReady1?: number;
+  treatmentReady2?: number;
+  treatmentReady3?: number;
+  treatmentReady4?: number;
+  treatmentReady5?: number;
+  treatmentEnd1?: number;
+  treatmentEnd2?: number;
+  treatmentEnd3?: number;
+  treatmentEnd4?: number;
+  treatmentEnd5?: number;
   quantityTreat1?: number; // INTEGER
   quantityTreat2?: number; // INTEGER, optional
   quantityTreat3?: number; // INTEGER, optional
@@ -51,8 +51,7 @@ export type PRecord = {
   consultant?: string; // VARCHAR (50)
   commentCaution?: string; // VARCHAR (300), optional
   lockingUser?: User | null;
-  readyTime?: number;
-  deleteYN?: boolean
+  deleteYN?: boolean;
   [key: string]: any;
 };
 export type ServerPRecord = {
@@ -66,16 +65,16 @@ export type ServerPRecord = {
   treatment_3?: string; // VARCHAR (50), optional
   treatment_4?: string; // VARCHAR (50), optional
   treatment_5?: string; // VARCHAR (50), optional
-  treatment_ready_1?: number,
-  treatment_ready_2?: number,
-  treatment_ready_3?: number,
-  treatment_ready_4?: number,
-  treatment_ready_5?: number,
-  treatment_end_1?: number,
-  treatment_end_2?: number,
-  treatment_end_3?: number,
-  treatment_end_4?: number,
-  treatment_end_5?: number,
+  treatment_ready_1?: number;
+  treatment_ready_2?: number;
+  treatment_ready_3?: number;
+  treatment_ready_4?: number;
+  treatment_ready_5?: number;
+  treatment_end_1?: number;
+  treatment_end_2?: number;
+  treatment_end_3?: number;
+  treatment_end_4?: number;
+  treatment_end_5?: number;
   quantity_treat_1?: number; // INTEGER
   quantity_treat_2?: number; // INTEGER, optional
   quantity_treat_3?: number; // INTEGER, optional
@@ -92,7 +91,6 @@ export type ServerPRecord = {
   consultant?: string; // VARCHAR (50)
   comment_caution?: string; // VARCHAR (300), optional
   locking_user?: User | null;
-  ready_time?: number;
   delete_yn?: boolean;
   [key: string]: any;
 };

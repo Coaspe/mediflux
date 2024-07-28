@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { getUserByLoginID } from "./utils.js";
+import { deconstructRecord, deleteAllChart, getUserByLoginID } from "./utils.js";
 
 dotenv.config();
 
@@ -37,7 +37,6 @@ const io = new Server(server, {
     origin: "*",
   },
 });
-
 const roomUsers: { [key: string]: { [key: string]: string } } = {};
 
 roomUsers[SCHEDULING_ROOM_ID] = {};
@@ -114,7 +113,7 @@ app.post("/api/login", async (req, res) => {
   try {
     const users = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
     console.log(users);
-    
+
     if (users.rowCount == 0) {
       return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
     }
@@ -164,120 +163,55 @@ app.get("/api/checkSameIDExists", async (req, res) => {
   }
 });
 
-app.post("/api/insertRecord", async (req, res) => {
-    const {
-    checkInTime,
-    chartNum,
-    patientName,
-    opReadiness,
-    treatment1,
-    treatment2,
-    treatment3,
-    treatment4,
-    treatment5,
-    quantityTreat1,
-    quantityTreat2,
-    quantityTreat3,
-    quantityTreat4,
-    quantityTreat5,
-    treatmentRoom,
-    doctor,
-    anesthesiaNote,
-    skincareSpecialist1,
-    skincareSpecialist2,
-    nursingStaff1,
-    nursingStaff2,
-    coordinator,
-    consultant,
-    commentCaution,
-    lockingUser,
-    deleteYN
-  } = req.body;
+app.post("/api/insertRecords", async (req, res) => {
+  const records: any[] = req.body.records;
+  console.log(records);
 
-  const query = `
-    INSERT INTO GN_SS_BAILOR.CHART_SCHEDULE (
-      chart_num, patient_name, op_readiness,
-      treatment_1, treatment_2, treatment_3, treatment_4, treatment_5,
-      quantity_treat_1, quantity_treat_2, quantity_treat_3, quantity_treat_4, quantity_treat_5,
-      treatment_room, doctor, anesthesia_note,
-      skincare_specialist_1, skincare_specialist_2,
-      nursing_staff_1, nursing_staff_2, coordinator, consultant, comment_caution, locking_user, delete_yn
-    ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-      $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
-    )
-    RETURNING *;
-  `;
-
-  const values = [
-    chartNum, patientName, opReadiness,
-    treatment1, treatment2, treatment3, treatment4, treatment5,
-    quantityTreat1, quantityTreat2, quantityTreat3, quantityTreat4, quantityTreat5,
-    treatmentRoom, doctor, anesthesiaNote,
-    skincareSpecialist1, skincareSpecialist2,
-    nursingStaff1, nursingStaff2, coordinator, consultant, commentCaution, lockingUser,deleteYN
-  ];
+  const client = await pool.connect();
 
   try {
-    const result = await pool.query(query, values);
-    console.log(result);
-    return res.status(200).json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Database error' });
-  }
+    await client.query("BEGIN"); // 트랜잭션 시작
 
-})
-app.put('/updateRecords', async (req, res) => {
+    const insertPromises = records.map((record) => {
+      const query = `
+        INSERT INTO gn_ss_bailor.chart_schedule (
+          check_in_time, chart_num, patient_name, op_readiness, treatment_1, treatment_2, 
+          treatment_3, treatment_4, treatment_5, quantity_treat_1, quantity_treat_2, 
+          quantity_treat_3, quantity_treat_4, quantity_treat_5, treatment_room, doctor, 
+          anesthesia_note, skincare_specialist_1, skincare_specialist_2, nursing_staff_1, 
+          nursing_staff_2, coordinator, consultant, comment_caution, locking_user, 
+          delete_yn, treatment_ready_1, treatment_ready_2, treatment_ready_3, treatment_ready_4, 
+          treatment_ready_5, treatment_end_1, treatment_end_2, treatment_end_3, treatment_end_4, 
+          treatment_end_5
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 
+                  $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, 
+                  $33, $34, $35, $36)
+      `;
+      const values = deconstructRecord(record, false);
+      return client.query(query, values);
+    });
+
+    await Promise.all(insertPromises);
+
+    await client.query("COMMIT"); // 트랜잭션 커밋
+    res.status(200).send("Records inserted successfully.");
+  } catch (error) {
+    await client.query("ROLLBACK"); // 트랜잭션 롤백
+    console.error("Error inserting records:", error);
+    res.status(500).send("Error inserting records.");
+  } finally {
+    client.release();
+  }
+});
+app.put("/api/updateRecords", async (req, res) => {
   const records = req.body.records;
 
   const client = await pool.connect();
 
   try {
-    await client.query('BEGIN'); // 트랜잭션 시작
+    await client.query("BEGIN"); // 트랜잭션 시작
 
     for (const record of records) {
-      const {
-        id,
-        checkInTime,
-        chartNum,
-        patientName,
-        opReadiness,
-        treatment1,
-        treatment2,
-        treatment3,
-        treatment4,
-        treatment5,
-        quantityTreat1,
-        quantityTreat2,
-        quantityTreat3,
-        quantityTreat4,
-        quantityTreat5,
-        treatmentRoom,
-        doctor,
-        anesthesiaNote,
-        skincareSpecialist1,
-        skincareSpecialist2,
-        nursingStaff1,
-        nursingStaff2,
-        coordinator,
-        consultant,
-        commentCaution,
-        lockingUser,
-        readyTime,
-        deleteYN,
-        treatmentReady1,
-        treatmentReady2,
-        treatmentReady3,
-        treatmentReady4,
-        treatmentReady5,
-        treatmentEnd1,
-        treatmentEnd2,
-        treatmentEnd3,
-        treatmentEnd4,
-        treatmentEnd5
-      } = record;
-
       const query = `
         UPDATE your_table_name
         SET check_in_time = $1,
@@ -306,68 +240,64 @@ app.put('/updateRecords', async (req, res) => {
             comment_caution = $24,
             locking_user = $25,
             ready_time = $26,
-            delete_yn = $27,
-            treatment_ready_1 = $28,
-            treatment_ready_2 = $29,
-            treatment_ready_3 = $30,
-            treatment_ready_4 = $31,
-            treatment_ready_5 = $32,
-            treatment_end_1 = $33,
-            treatment_end_2 = $34,
-            treatment_end_3 = $35,
-            treatment_end_4 = $36,
-            treatment_end_5 = $37
-        WHERE id = $38
+            delete_yn = $26,
+            treatment_ready_1 = $27,
+            treatment_ready_2 = $28,
+            treatment_ready_3 = $29,
+            treatment_ready_4 = $30,
+            treatment_ready_5 = $31,
+            treatment_end_1 = $32,
+            treatment_end_2 = $33,
+            treatment_end_3 = $34,
+            treatment_end_4 = $35,
+            treatment_end_5 = $36
+        WHERE id = $37
       `;
-      const values = [
-        checkInTime,
-        chartNum,
-        patientName,
-        opReadiness,
-        treatment1,
-        treatment2,
-        treatment3,
-        treatment4,
-        treatment5,
-        quantityTreat1,
-        quantityTreat2,
-        quantityTreat3,
-        quantityTreat4,
-        quantityTreat5,
-        treatmentRoom,
-        doctor,
-        anesthesiaNote,
-        skincareSpecialist1,
-        skincareSpecialist2,
-        nursingStaff1,
-        nursingStaff2,
-        coordinator,
-        consultant,
-        commentCaution,
-        lockingUser,
-        readyTime,
-        deleteYN,
-        treatmentReady1,
-        treatmentReady2,
-        treatmentReady3,
-        treatmentReady4,
-        treatmentReady5,
-        treatmentEnd1,
-        treatmentEnd2,
-        treatmentEnd3,
-        treatmentEnd4,
-        treatmentEnd5,
-        id,
-      ];
+      const values = deconstructRecord(record, true);
       await client.query(query, values);
     }
 
-    await client.query('COMMIT'); // 트랜잭션 커밋
-    res.status(200).send('Records updated successfully.');
+    await client.query("COMMIT"); // 트랜잭션 커밋
+    res.status(200).send("Records updated successfully.");
   } catch (error) {
-    await client.query('ROLLBACK'); // 트랜잭션 롤백
-    console.error('Error updating records:', error);
-    res.status(500).send('Error updating records.');
+    await client.query("ROLLBACK"); // 트랜잭션 롤백
+    console.error("Error updating records:", error);
+    res.status(500).send("Error updating records.");
+  } finally {
+    client.release();
+  }
+});
+app.get("/api/getAllRecords", async (req, res) => {
+  try {
+    const records = await pool.query("select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL");
+
+    return res.status(200).json({ records });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.put("/api/hideRecords", async (req, res) => {
+  const ids: any[] = req.body.ids;
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN"); // 트랜잭션 시작
+
+    const hidePromises = ids.map((id) => {
+      const query = `update gn_ss_bailor.chart_schedule SET delete_yn=true where record_id=$1`;
+      return client.query(query, [id]);
+    });
+
+    await Promise.all(hidePromises);
+
+    await client.query("COMMIT"); // 트랜잭션 커밋
+    res.status(200).send("Records deleted successfully.");
+  } catch (error) {
+    await client.query("ROLLBACK"); // 트랜잭션 롤백
+    console.error("Error inserting records:", error);
+    res.status(500).send("Error deleting records.");
   } finally {
     client.release();
   }

@@ -2,9 +2,9 @@ import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CellPosition, ColDef, IRowNode, RowClassParams } from "ag-grid-community";
+import { CellPosition, ColDef, RowClassParams } from "ag-grid-community";
 import { PRecord } from "~/type";
-import { MOCK, QUANTITYTREAT1 } from "~/constant";
+import { MOCK } from "~/constant";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -30,15 +30,28 @@ import { Socket } from "socket.io-client";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
+import axios from "axios";
+import { convertServerPRecordtToPRecord } from "~/utils/utils";
 type props = {
   socket: Socket | null;
 };
 
 const GridExample = ({ socket }: props) => {
   const user = useRecoilValue(userState);
-  const [rowData, setRowData] = useState<PRecord[]>(MOCK);
   const focusedCellRef = useRef<CellPosition | null>(null);
   const gridRef = useRef<AgGridReact>(null);
+  const [rowData, setRowData] = useState<PRecord[]>();
+  const getData = async () => {
+    const result = await axios("http://localhost:5000/api/getAllRecords");
+    console.log(result);
+    if (result.status === 200) {
+      setRowData(result.data.records.rows.map((record: any) => convertServerPRecordtToPRecord(record)));
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -93,42 +106,44 @@ const GridExample = ({ socket }: props) => {
     }
     if (params.data?.deleteYN) {
       return {
-        display: "none"
-      }
+        display: "none",
+      };
     }
   };
 
   const [pinnedTopRowData, setPinnedTopRowData] = useState<PRecord[]>([]);
   return (
     // wrapping container with theme & size
-    <div
-      className="ag-theme-quartz" // applying the Data Grid theme
-      style={{ height: 500 }} // the Data Grid will fill the size of the parent container
-    >
-      <TableAction gridRef={gridRef} setPinnedTopRowData={setPinnedTopRowData} socket={socket} />
-      <AgGridReact
-        ref={gridRef}
-        onCellEditingStopped={(event) => {
-          emitSaveRecord("Ready", event.data?.id, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
-        }}
-        onCellEditingStarted={(event) => {
-          emitLockRecord(event.data?.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
-          if (gridRef.current) {
-            focusedCellRef.current = gridRef.current.api.getFocusedCell();
-          }
-        }}
-        onCellValueChanged={(event) => {}}
-        defaultColDef={defaultColDef}
-        rowData={rowData}
-        columnDefs={colDefs}
-        getRowId={(params) => params.data.id}
-        pagination={true}
-        paginationPageSize={20}
-        getRowStyle={getRowStyle}
-        pinnedTopRowData={pinnedTopRowData}
-        rowSelection={"multiple"}
-      />
-    </div>
+    rowData && (
+      <div
+        className="ag-theme-quartz" // applying the Data Grid theme
+        style={{ height: 500 }} // the Data Grid will fill the size of the parent container
+      >
+        <TableAction gridRef={gridRef} setPinnedTopRowData={setPinnedTopRowData} socket={socket} />
+        <AgGridReact
+          ref={gridRef}
+          onCellEditingStopped={(event) => {
+            emitSaveRecord("Ready", event.data?.id, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
+          }}
+          onCellEditingStarted={(event) => {
+            emitLockRecord(event.data?.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
+            if (gridRef.current) {
+              focusedCellRef.current = gridRef.current.api.getFocusedCell();
+            }
+          }}
+          onCellValueChanged={(event) => {}}
+          defaultColDef={defaultColDef}
+          rowData={rowData}
+          columnDefs={colDefs}
+          getRowId={(params) => params.data.id}
+          pagination={true}
+          paginationPageSize={20}
+          getRowStyle={getRowStyle}
+          pinnedTopRowData={pinnedTopRowData}
+          rowSelection={"multiple"}
+        />
+      </div>
+    )
   );
 };
 

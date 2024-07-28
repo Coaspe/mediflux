@@ -137,7 +137,7 @@ export const handleSavePRecord = async (
     emitCreateRecord(precord, otherType, socket, SCHEDULING_ROOM_ID);
     emitDeleteRecord(precord.id, tableType, socket, user, SCHEDULING_ROOM_ID);
   } else {
-    emitSaveRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
+    // emitSaveRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
   }
 
   table.setEditingRow(null); // exit editing mode
@@ -210,9 +210,8 @@ export const convertServerUserToClientUser = (user: ServerUser) => {
   return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;
 };
 
-
-export function converServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
-  if (serverRecord.check_in_time){
+export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
+  if (serverRecord.check_in_time) {
     serverRecord.check_in_time = new Date(serverRecord.check_in_time).getTime() / 1000;
   }
   return {
