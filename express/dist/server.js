@@ -59,8 +59,8 @@ io.on(CONNECTION, (socket) => {
     socket.on(LOCK_RECORD, ({ recordId, locker, isLocked, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType });
     });
-    socket.on(DELETE_RECORD, ({ recordId, tableType, roomId }) => {
-        socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordId, tableType });
+    socket.on(DELETE_RECORD, ({ recordIds, tableType, roomId }) => {
+        socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
     });
     socket.on(SAVE_RECORD, ({ record, recordId, tableType, roomId, propertyName, newValue }) => {
         socket.broadcast.to(roomId).emit(SAVE_RECORD, { record, recordId, tableType, propertyName, newValue });
@@ -68,8 +68,8 @@ io.on(CONNECTION, (socket) => {
     socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
     });
-    socket.on(CREATE_RECORD, ({ record, tableType, roomId }) => {
-        socket.broadcast.to(roomId).emit(CREATE_RECORD, { record, tableType });
+    socket.on(CREATE_RECORD, ({ recordw, tableType, roomId }) => {
+        socket.broadcast.to(roomId).emit(CREATE_RECORD, { recordw, tableType });
     });
 });
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -147,14 +147,13 @@ app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0
 }));
 app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const records = req.body.records;
-    console.log(records);
     const client = yield pool.connect();
     try {
         yield client.query("BEGIN"); // 트랜잭션 시작
         const insertPromises = records.map((record) => {
             const query = `
         INSERT INTO gn_ss_bailor.chart_schedule (
-          check_in_time, chart_num, patient_name, op_readiness, treatment_1, treatment_2, 
+          chart_num, patient_name, op_readiness, treatment_1, treatment_2, 
           treatment_3, treatment_4, treatment_5, quantity_treat_1, quantity_treat_2, 
           quantity_treat_3, quantity_treat_4, quantity_treat_5, treatment_room, doctor, 
           anesthesia_note, skincare_specialist_1, skincare_specialist_2, nursing_staff_1, 
@@ -164,14 +163,14 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
           treatment_end_5
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 
                   $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, 
-                  $33, $34, $35, $36)
+                  $33, $34, $35)
       `;
-            const values = deconstructRecord(record, false);
+            const values = deconstructRecord(record);
             return client.query(query, values);
         });
-        yield Promise.all(insertPromises);
+        let retValue = yield Promise.all(insertPromises);
         yield client.query("COMMIT"); // 트랜잭션 커밋
-        res.status(200).send("Records inserted successfully.");
+        res.status(200).json({ records: retValue });
     }
     catch (error) {
         yield client.query("ROLLBACK"); // 트랜잭션 롤백
@@ -185,6 +184,7 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
 app.put("/api/updateRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const records = req.body.records;
     const client = yield pool.connect();
+    const retRecords = [];
     try {
         yield client.query("BEGIN"); // 트랜잭션 시작
         for (const record of records) {
@@ -229,11 +229,12 @@ app.put("/api/updateRecords", (req, res) => __awaiter(void 0, void 0, void 0, fu
             treatment_end_5 = $36
         WHERE id = $37
       `;
-            const values = deconstructRecord(record, true);
-            yield client.query(query, values);
+            const values = deconstructRecord(record);
+            retRecords.push(client.query(query, values));
         }
+        yield Promise.all(retRecords);
         yield client.query("COMMIT"); // 트랜잭션 커밋
-        res.status(200).send("Records updated successfully.");
+        res.status(200).json({ records: retRecords });
     }
     catch (error) {
         yield client.query("ROLLBACK"); // 트랜잭션 롤백
@@ -244,9 +245,16 @@ app.put("/api/updateRecords", (req, res) => __awaiter(void 0, void 0, void 0, fu
         client.release();
     }
 }));
-app.get("/api/getAllRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const records = yield pool.query("select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL");
+        const where = req.body.where;
+        const values = req.body.values ? req.body.values : [];
+        let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
+        if (where) {
+            baseQuery += " ";
+            baseQuery += where;
+        }
+        const records = yield pool.query(baseQuery, values);
         return res.status(200).json({ records });
     }
     catch (error) {

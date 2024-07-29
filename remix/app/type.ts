@@ -4,6 +4,7 @@ import { SIDE_MENU } from "~/constant";
 import { OverridableStringUnion } from "@mui/types";
 import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
 import { ServerUser, Role } from "shared";
+import { CellPosition } from "ag-grid-community";
 
 export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
 export type User = {
@@ -127,4 +128,9 @@ export type LoginResponse = {
   message?: string;
   status: number;
   user: ServerUser;
+};
+
+export type FocusedRow = {
+  cellPosition: CellPosition;
+  rowId: string;
 };

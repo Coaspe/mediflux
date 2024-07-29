@@ -1,6 +1,6 @@
 /** @format */
 
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect } from "react";
 import { useSetRecoilState } from "recoil";
@@ -10,15 +10,22 @@ import { checkSessionExists } from "~/services/session.server";
 import { User } from "~/type";
 import { getUserByID } from "~/utils/request.server";
 import { redirect } from "@remix-run/node";
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  const uuid = await checkSessionExists(request);
-  if (uuid) {
-    const user = await getUserByID(uuid);
-    return user;
+import axios from "axios";
+import { convertServerPRecordtToPRecord, convertServerUserToClientUser } from "~/utils/utils";
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  try {
+    const uuid = await checkSessionExists(request);
+    if (uuid) {
+      const user = await getUserByID(uuid);
+      return json({ user });
+    } else {
+      return redirect("/");
+    }
+  } catch (error) {
+    return redirect("/");
   }
-  return redirect("/");
-}
+};
+
 export default function Scheduling() {
   const loadData = useLoaderData();
   const setUserState = useSetRecoilState(userState);

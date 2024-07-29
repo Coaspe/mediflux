@@ -1,35 +1,39 @@
-import { Box, Button } from "@mui/joy";
+/** @format */
+
+import { Button } from "@mui/joy";
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
-import { PRecord } from "../../type";
-import { Dispatch, FC, RefObject, SetStateAction, useState } from "react";
+import { PRecord, TableType } from "../../type";
+import { FC, RefObject } from "react";
 import { SCHEDULING_ROOM_ID } from "shared";
-import { emitCreateRecord } from "~/utils/Table/socket";
+import { emitCreateRecords, emitDeleteRecords } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
-import { insertRecord } from "~/utils/request.client";
+import { insertRecords } from "~/utils/request.client";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import axios from "axios";
-import { MOCK } from "~/constant";
 import dayjs from "dayjs";
+import { useRecoilValue } from "recoil";
+import { userState } from "~/recoil_state";
 
 type TableActionHeader = {
   gridRef: RefObject<AgGridReact<PRecord>>;
-  setPinnedTopRowData: Dispatch<SetStateAction<PRecord[]>>;
+  tableType: TableType;
   socket: Socket | null;
 };
 
-export const TableAction: FC<TableActionHeader> = ({ gridRef, setPinnedTopRowData, socket }) => {
+export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType }) => {
+  const user = useRecoilValue(userState);
   const onAddRecord = async () => {
     if (gridRef.current) {
-      let newRecord = { opReadiness: "N" } as PRecord;
+      let newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
 
-      const result = await insertRecord(newRecord);
+      const result = await insertRecords([newRecord]);
       if (result) {
-        newRecord = convertServerPRecordtToPRecord(result);
+        newRecord = convertServerPRecordtToPRecord(result[0]);
         gridRef.current.api.applyTransaction({
           add: [newRecord],
           addIndex: 0,
         });
-        emitCreateRecord(newRecord, "Ready", socket, SCHEDULING_ROOM_ID);
+        emitCreateRecords([newRecord], tableType, socket, SCHEDULING_ROOM_ID);
       }
     }
   };
@@ -43,6 +47,13 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, setPinnedTopRowDat
         gridRef.current.api.applyTransaction({
           remove: records,
         });
+        emitDeleteRecords(
+          records.map((ele) => ele.id),
+          tableType,
+          socket,
+          user,
+          SCHEDULING_ROOM_ID
+        );
       }
     }
   };

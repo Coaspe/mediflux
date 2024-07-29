@@ -6,7 +6,7 @@ import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
 import { Socket } from "socket.io-client";
-import { TableType, PRecord, User } from "~/type";
+import { TableType, PRecord, User, FocusedRow } from "~/type";
 
 export const emitLockRecord = (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {
@@ -16,12 +16,12 @@ export const emitLockRecord = (recordId: string | undefined, tableType: TableTyp
   socket?.emit(LOCK_RECORD, { recordId, locker, roomId, tableType });
 };
 
-export const emitDeleteRecord = (recordId: string, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
+export const emitDeleteRecords = (recordIds: string[], tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user) {
     return;
   }
   socket?.emit(DELETE_RECORD, {
-    recordId,
+    recordIds,
     userId: user.id,
     roomId,
     tableType,
@@ -40,9 +40,9 @@ export const emitSaveRecord = (tableType: TableType, id: string | undefined, soc
   }
 };
 
-export const emitCreateRecord = (record: PRecord, tableType: TableType, socket: Socket | null, roomId: string) => {
+export const emitCreateRecords = (records: PRecord[], tableType: TableType, socket: Socket | null, roomId: string) => {
   socket?.emit(CREATE_RECORD, {
-    record: JSON.stringify(record),
+    records: records.map((record) => JSON.stringify(record)),
     roomId,
     tableType,
   });
@@ -93,29 +93,48 @@ export const onSaveRecord = (
   }
 };
 export const onCreateRecord = (
-  { record, tableType }: { record: string; tableType: TableType },
+  { records, tableType }: { records: string[]; tableType: TableType },
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
-  focusedCellRef: MutableRefObject<CellPosition | null>
+  focusedRow: MutableRefObject<FocusedRow | null>
 ) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
-    const precord: PRecord = JSON.parse(record);
-    precord.lockingUser = null;
+    const precords: PRecord[] = records.map((record) => {
+      const retRecord = JSON.parse(record);
+      retRecord.lockingUser = null;
+      return retRecord;
+    });
+
     gridRef.current.api.applyTransaction({
-      add: [precord],
+      add: precords,
       addIndex: 0,
     });
-    if (focusedCellRef.current) {
-      gridRef.current.api.setFocusedCell(focusedCellRef.current.rowIndex, focusedCellRef.current.column.getId());
-      gridRef.current.api.startEditingCell({
-        rowIndex: focusedCellRef.current.rowIndex,
-        colKey: focusedCellRef.current.column.getId(),
-      });
+
+    if (focusedRow.current) {
+      const focusedRecord = gridRef.current.api.getRowNode(focusedRow.current.rowId);
+      if (focusedRecord && focusedRecord.rowIndex) {
+        gridRef.current.api.setFocusedCell(focusedRecord.rowIndex, focusedRow.current.cellPosition.column.getId());
+        gridRef.current.api.startEditingCell({
+          rowIndex: focusedRecord.rowIndex,
+          colKey: focusedRow.current.cellPosition.column.getId(),
+        });
+      }
     }
   }
 };
-export const onDeleteRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }, deleteFn: UseMutateFunction<void, Error, string, void>, curTableType: TableType) => {
+export const onDeleteRecord = (
+  { recordIds, tableType }: { recordIds: string[]; tableType: TableType },
+  gridRef: RefObject<AgGridReact<any>>,
+  curTableType: TableType,
+  focusedCellRef: MutableRefObject<FocusedRow | null>
+) => {
   if (tableType !== curTableType) return;
-  deleteFn(recordId);
+  gridRef.current?.api.applyTransaction({
+    remove: recordIds.map((id) => {
+      return {
+        id,
+      } as PRecord;
+    }),
+  });
 };

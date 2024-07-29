@@ -1,3 +1,5 @@
+/** @format */
+
 import pkg from "pg";
 
 export const getUserByLoginID = async (pool: pkg.Pool, loginId: string) => {
@@ -16,7 +18,7 @@ export const deleteAllChart = async (pool: pkg.Pool) => {
   return await pool.query("delete from gn_ss_bailor.chart_schedule");
 };
 
-export const deconstructRecord = (record: any, exceptId: boolean) => {
+export const deconstructRecord = (record: any) => {
   const {
     checkInTime,
     chartNum,
@@ -97,6 +99,8 @@ export const deconstructRecord = (record: any, exceptId: boolean) => {
 
   if (id) {
     retVal.unshift(id);
+  } else {
+    retVal.shift();
   }
   return retVal;
 };

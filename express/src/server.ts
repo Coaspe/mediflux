@@ -62,8 +62,8 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(LOCK_RECORD, { recordId, locker, isLocked, tableType });
   });
 
-  socket.on(DELETE_RECORD, ({ recordId, tableType, roomId }: { recordId: string; tableType: string; roomId: string }) => {
-    socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordId, tableType });
+  socket.on(DELETE_RECORD, ({ recordIds, tableType, roomId }: { recordIds: string[]; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
   });
 
   socket.on(
@@ -77,8 +77,8 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
   });
 
-  socket.on(CREATE_RECORD, ({ record, tableType, roomId }: { record: string; tableType: string; roomId: string }) => {
-    socket.broadcast.to(roomId).emit(CREATE_RECORD, { record, tableType });
+  socket.on(CREATE_RECORD, ({ recordw, tableType, roomId }: { recordw: string[]; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(CREATE_RECORD, { recordw, tableType });
   });
 });
 
@@ -164,18 +164,16 @@ app.get("/api/checkSameIDExists", async (req, res) => {
 });
 
 app.post("/api/insertRecords", async (req, res) => {
-  const records: any[] = req.body.records;
-  console.log(records);
+  const records = req.body.records;
 
   const client = await pool.connect();
-
   try {
     await client.query("BEGIN"); // 트랜잭션 시작
 
-    const insertPromises = records.map((record) => {
+    const insertPromises = records.map((record: any) => {
       const query = `
         INSERT INTO gn_ss_bailor.chart_schedule (
-          check_in_time, chart_num, patient_name, op_readiness, treatment_1, treatment_2, 
+          chart_num, patient_name, op_readiness, treatment_1, treatment_2, 
           treatment_3, treatment_4, treatment_5, quantity_treat_1, quantity_treat_2, 
           quantity_treat_3, quantity_treat_4, quantity_treat_5, treatment_room, doctor, 
           anesthesia_note, skincare_specialist_1, skincare_specialist_2, nursing_staff_1, 
@@ -185,16 +183,16 @@ app.post("/api/insertRecords", async (req, res) => {
           treatment_end_5
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 
                   $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, 
-                  $33, $34, $35, $36)
+                  $33, $34, $35)
       `;
-      const values = deconstructRecord(record, false);
+      const values = deconstructRecord(record);
       return client.query(query, values);
     });
 
-    await Promise.all(insertPromises);
+    let retValue = await Promise.all(insertPromises);
 
     await client.query("COMMIT"); // 트랜잭션 커밋
-    res.status(200).send("Records inserted successfully.");
+    res.status(200).json({ records: retValue });
   } catch (error) {
     await client.query("ROLLBACK"); // 트랜잭션 롤백
     console.error("Error inserting records:", error);
@@ -203,11 +201,12 @@ app.post("/api/insertRecords", async (req, res) => {
     client.release();
   }
 });
+
 app.put("/api/updateRecords", async (req, res) => {
   const records = req.body.records;
 
   const client = await pool.connect();
-
+  const retRecords = [];
   try {
     await client.query("BEGIN"); // 트랜잭션 시작
 
@@ -253,12 +252,12 @@ app.put("/api/updateRecords", async (req, res) => {
             treatment_end_5 = $36
         WHERE id = $37
       `;
-      const values = deconstructRecord(record, true);
-      await client.query(query, values);
+      const values = deconstructRecord(record);
+      retRecords.push(client.query(query, values));
     }
-
+    await Promise.all(retRecords);
     await client.query("COMMIT"); // 트랜잭션 커밋
-    res.status(200).send("Records updated successfully.");
+    res.status(200).json({ records: retRecords });
   } catch (error) {
     await client.query("ROLLBACK"); // 트랜잭션 롤백
     console.error("Error updating records:", error);
@@ -267,9 +266,19 @@ app.put("/api/updateRecords", async (req, res) => {
     client.release();
   }
 });
-app.get("/api/getAllRecords", async (req, res) => {
+
+app.post("/api/getRecords", async (req, res) => {
   try {
-    const records = await pool.query("select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL");
+    const where = req.body.where;
+
+    const values: any = req.body.values ? req.body.values : [];
+    let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
+
+    if (where) {
+      baseQuery += " ";
+      baseQuery += where;
+    }
+    const records = await pool.query(baseQuery, values);
 
     return res.status(200).json({ records });
   } catch (error) {
@@ -302,4 +311,5 @@ app.put("/api/hideRecords", async (req, res) => {
     client.release();
   }
 });
+
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

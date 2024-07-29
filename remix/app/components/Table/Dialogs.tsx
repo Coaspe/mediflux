@@ -1,3 +1,5 @@
+/** @format */
+
 import React, { Dispatch, MutableRefObject, useEffect, useState } from "react";
 import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
 import { OpReadiness, PRecord } from "~/type";
@@ -11,7 +13,7 @@ import Chip from "@mui/material/Chip";
 import { getStatusChipColor } from "./ColumnRenderers";
 import { Box } from "@mui/joy";
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined";
-import { emitUnLockRecord, emitDeleteRecord, emitCreateRecord, emitSaveRecord, emitLockRecord } from "~/utils/Table/socket";
+import { emitUnLockRecord, emitDeleteRecords, emitCreateRecords, emitSaveRecord, emitLockRecord } from "~/utils/Table/socket";
 import { getTableType } from "~/utils/utils";
 import { Socket } from "socket.io-client";
 import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
@@ -49,8 +51,8 @@ export const AssignmentDialog: React.FC<AssignmentDialogProps> = ({ createExcept
       actionPRecord.current.opReadiness = "P";
 
       // Socket events
-      emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
-      emitCreateRecord(actionPRecord.current, "ExceptReady", socket, SCHEDULING_ROOM_ID);
+      // emitDeleteRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
+      emitCreateRecords(actionPRecord.current, "ExceptReady", socket, SCHEDULING_ROOM_ID);
 
       // User and server events
       console.log(actionPRecord.current);
@@ -111,14 +113,14 @@ export const ChangeStatusDialog: React.FC<ChangeStatusDialogProps> = ({ deleteFn
         actionPRecord.current.opReadiness = newStatus;
         // need api call to update db
         deleteFn(actionPRecord.current.id);
-        emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);
+        // emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);
         tableType = tableType === "Ready" ? "ExceptReady" : "Ready";
         createReadyPRecord(actionPRecord.current);
-        emitCreateRecord(actionPRecord.current, tableType, socket, SCHEDULING_ROOM_ID);
+        emitCreateRecords(actionPRecord.current, tableType, socket, SCHEDULING_ROOM_ID);
       } else {
         actionPRecord.current.opReadiness = newStatus;
         await updateDbFn(actionPRecord.current);
-        emitSaveRecord(actionPRecord.current, tableType, socket, SCHEDULING_ROOM_ID);
+        // emitSaveRecord(actionPRecord.current, tableType, socket, SCHEDULING_ROOM_ID);
       }
     }
     handleCloseStatusChangeModal();
@@ -155,8 +157,7 @@ export const ChangeStatusDialog: React.FC<ChangeStatusDialogProps> = ({ deleteFn
           onClick={() => {
             handleConfirmStatusChange(opReadiness);
           }}
-          autoFocus
-        >
+          autoFocus>
           확인
         </Button>
         <Button onClick={handleCloseStatusChangeModal}>취소</Button>
@@ -188,7 +189,7 @@ export const DeleteRecordDialog: React.FC<DeleteRecordDialogProps> = ({ modalOpe
     if (actionPRecord.current && user) {
       const tableType = getTableType(actionPRecord.current.opReadiness);
       deleteFn(actionPRecord.current.id);
-      emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);
+      // emitDeleteRecord(actionPRecord.current.id, tableType, socket, user, SCHEDULING_ROOM_ID);
     }
     handleCloseModal();
   };

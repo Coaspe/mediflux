@@ -2,7 +2,7 @@
 
 import { json } from "@remix-run/node";
 import axios from "axios";
-import { PRecord, User } from "~/type";
+import { convertServerUserToClientUser } from "./utils";
 
 /**
  * This helper function helps us to return the accurate HTTP status,
@@ -14,7 +14,7 @@ export const getUserByID = async (id: string) => {
     const result = await axios.get(`http://localhost:5000/api/getUserByID`, { params: { id } });
     if (result.status === 200) {
       const user = result.data.user;
-      const clientUser = { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;
+      const clientUser = convertServerUserToClientUser(user);
       return clientUser;
     }
   } catch (error) {

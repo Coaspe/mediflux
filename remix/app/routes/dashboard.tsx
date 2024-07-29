@@ -28,7 +28,6 @@ const isSideMenu = (value: any): value is SideMenu => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let idOrRedirect = await checkSessionExists(request);
-  console.log(idOrRedirect);
 
   if (typeof idOrRedirect !== "string") {
     return "sessionExpire";

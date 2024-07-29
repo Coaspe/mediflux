@@ -4,11 +4,12 @@ import { MRT_Row, MRT_TableInstance, LiteralUnion } from "material-react-table";
 import { Role, SCHEDULING_ROOM_ID, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, SIDE_MENU } from "~/constant";
 import { OpReadiness, PRecord, QueryDataName, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
-import { emitUnLockRecord, emitCreateRecord, emitDeleteRecord, emitSaveRecord } from "./Table/socket";
+import { emitUnLockRecord, emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "./Table/socket";
 import { Socket } from "socket.io-client";
 import { MutableRefObject } from "react";
 import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { stringify } from "postcss";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -134,8 +135,8 @@ export const handleSavePRecord = async (
       precord.readyTime = dayjs().unix();
     }
     createFn(precord);
-    emitCreateRecord(precord, otherType, socket, SCHEDULING_ROOM_ID);
-    emitDeleteRecord(precord.id, tableType, socket, user, SCHEDULING_ROOM_ID);
+    // emitCreateRecords(precord, otherType, socket, SCHEDULING_ROOM_ID);
+    // emitDeleteRecord(precord.id, tableType, socket, user, SCHEDULING_ROOM_ID);
   } else {
     // emitSaveRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
   }
@@ -174,7 +175,7 @@ export const handleCreatePRecord = async (
     precord.readyTime = dayjs().unix();
   }
   await dbCreateFn(precord);
-  emitCreateRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
+  // emitCreateRecords(precord, tableType, socket, SCHEDULING_ROOM_ID);
   originalPRecord.current = undefined;
   table.setCreatingRow(null); //exit creating mode
 };
@@ -211,11 +212,13 @@ export const convertServerUserToClientUser = (user: ServerUser) => {
 };
 
 export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
+  console.log(serverRecord);
+
   if (serverRecord.check_in_time) {
     serverRecord.check_in_time = new Date(serverRecord.check_in_time).getTime() / 1000;
   }
   return {
-    id: serverRecord.record_id,
+    id: String(serverRecord.record_id),
     checkInTime: serverRecord.check_in_time,
     chartNum: serverRecord.chart_num,
     patientName: serverRecord.patient_name,

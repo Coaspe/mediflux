@@ -1,3 +1,5 @@
+/** @format */
+
 import { MRT_ColumnDef, MRT_Row } from "material-react-table";
 import { TREATMENTS } from "shared";
 import { checkInTimeCell, checkInTimeEdit, opReadinessCell, treatmentEdit, StaffEdit, nameChipCell, opReadinessEdit } from "~/components/Table/ColumnRenderers";
@@ -62,7 +64,7 @@ export const checkinTimeColumn: ColDef<PRecord, number> = {
 
 export const chartNumberColumn: ColDef<PRecord, string> = {
   field: CHART_NUMBER,
-  comparator: (valueA, valueB, nodeA, nodeB, isDescending) => parseInt(valueA ? valueA : "0") - parseInt(valueB ? valueB : "0"),
+  comparator: (valueA, valueB) => parseInt(valueA ? valueA : "0") - parseInt(valueB ? valueB : "0"),
   headerName: CHART_NUMBER_H,
 };
 
@@ -77,6 +79,7 @@ export const opReadinessColumn: ColDef<PRecord, OpReadiness> = {
   headerName: OP_READINESS_H,
   cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
   cellEditor: opReadinessEdit,
+  editable: true,
   width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
 };
 

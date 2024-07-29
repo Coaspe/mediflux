@@ -3,24 +3,29 @@
 import { useEffect, useRef, useState } from "react";
 import { Socket, io } from "socket.io-client";
 import { CONNECT, CONNECTED_USERS, JOIN_ROOM, LOCK_RECORD, PORT, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
-import { useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
-import GridExample from "./Test";
 import { ClientOnly } from "remix-utils/client-only";
-import axios from "axios";
+import { useLoaderData } from "@remix-run/react";
+import ReadyTable from "./ReadyTable";
+import ExceptReadyTable from "./ExecptReadyTable";
+import { PRecord } from "~/type";
+import { AgGridReact } from "ag-grid-react";
 
-export const loader = async () => {
-  const result = await axios("http://localhost:5000/api/getAllRecords");
-  console.log(result);
-
-  if (result.status === 200) {
-    return result.data.records.data;
-  }
-  return [];
-};
-const SchedulingTable = () => {
+export default function SchedulingTable() {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const user = useRecoilValue(userState);
+  const [user, setUser] = useRecoilState(userState);
+  const data: any = useLoaderData();
+
+  const readyRef = useRef<AgGridReact<PRecord>>(null);
+  const exceptReadyRef = useRef<AgGridReact<PRecord>>(null);
+
+  useEffect(() => {
+    const { user: suser } = data;
+    if (!user || user.id != suser.id) {
+      setUser(suser);
+    }
+  }, [data]);
 
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);
@@ -43,10 +48,8 @@ const SchedulingTable = () => {
 
   return (
     <div className="w-full h-full gap-2 flex flex-col pb-5">
-      {/* Assignment Modal */}
-      <ClientOnly>{() => <GridExample socket={socket} />}</ClientOnly>
+      <ClientOnly>{() => <ReadyTable socket={socket} gridRef={readyRef} theOtherGridRef={exceptReadyRef} />}</ClientOnly>
+      <ClientOnly>{() => <ExceptReadyTable socket={socket} gridRef={exceptReadyRef} theOtherGridRef={readyRef} />}</ClientOnly>
     </div>
   );
-};
-
-export default SchedulingTable;
+}

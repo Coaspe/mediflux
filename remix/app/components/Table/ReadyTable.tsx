@@ -1,233 +1,152 @@
 /** @format */
 
-import { MaterialReactTable, MRT_ColumnDef, MRT_Row, MRT_TableInstance, useMaterialReactTable } from "material-react-table";
-import { MRT_Localization_KO } from "material-react-table/locales/ko";
-import { CREATE_RECORD, DELETE_RECORD, LOCK_RECORD, ROLE, SAVE_RECORD, SCHEDULING_ROOM_ID, UNLOCK_RECORD } from "shared";
-import { DEFAULT_RECORD_COLOR, EDITING_RECORD_COLOR, NEW_READY_RECORD_COLOR, TABLE_CONTAINER_HEIGHT, TABLE_HEIGHT, TABLE_PAPER_HEIGHT } from "~/constant";
+import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
+import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { CellPosition, ColDef, RowClassParams, RowStyle } from "ag-grid-community";
 import { PRecord } from "~/type";
-import { emitLockRecord, onDeleteRecord, onLockRecord, onSaveRecord, onUnlockRecord } from "~/utils/Table/socket";
-import SchedulingTableTopToolbar from "./SchedulingTableTopToolbar";
-import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  checkinTimeColumn,
-  chartNumberColumn,
-  patientNameColumn,
-  opReadinessColumn,
-  treatment1Column,
-  quantitytreat1Column,
-  treatmentRoomColumn,
-  doctorColumn,
   anesthesiaNoteColumn,
-  skincareSpecialist1Column,
-  skincareSpecialist2Column,
+  chartNumberColumn,
+  checkinTimeColumn,
+  commentCautionColumn,
+  consultantColumn,
+  coordinatorColumn,
+  doctorColumn,
   nursingStaff1Column,
   nursingStaff2Column,
-  coordinatorColumn,
-  consultantColumn,
-  commentCautionColumn,
+  opReadinessColumn,
+  patientNameColumn,
+  quantitytreat1Column,
+  skincareSpecialist1Column,
+  skincareSpecialist2Column,
+  treatment1Column,
+  treatmentRoomColumn,
 } from "~/utils/Table/columnDef";
-import { useCreatePRecord, useGetPRecords, useUpdatePRecord, useDeletePRecord } from "~/utils/Table/crud";
+import "../css/Table.css";
+import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, SCHEDULING_ROOM_ID } from "shared";
+import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitUnLockRecord, emitSaveRecord, emitCreateRecords, onCreateRecord } from "~/utils/Table/socket";
+import { Socket } from "socket.io-client";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
-import { getTableType, handleCreatePRecord, handleEditingCancel, handleSavePRecord } from "~/utils/utils";
-import { Socket } from "socket.io-client";
-import SchedulingTableRow from "~/components/Table/SchedulingTableRowAction";
-import dayjs from "dayjs";
-import { AssignmentDialog, DeleteRecordDialog } from "./Dialogs";
-
+import { TableAction } from "./TableAction";
+import axios from "axios";
+import { convertServerPRecordtToPRecord } from "~/utils/utils";
 type props = {
   socket: Socket | null;
+  gridRef: RefObject<AgGridReact<PRecord>>;
+  theOtherGridRef: RefObject<AgGridReact<PRecord>>;
 };
 
-const ReadyTable = () => {
-  // const { mutate: createReadyPRecord, mutateAsync: createReadyPRecordWithDB, isPending: isCreatingReadyPRecord } = useCreatePRecord("Ready_PRecord");
-  // const { data: fetchedReadyPRecords, isError: isLoadingReadyPRecordsError, isFetching: isFetchingReadyPRecords, isLoading: isLoadingReadyPRecords } = useGetPRecords("Ready_PRecord");
-  // const { mutate: updateReadyPRecord, mutateAsync: updateReadyPRecordWithDB, isPending: isUpdatingReadyPRecord, error: updateError } = useUpdatePRecord("Ready_PRecord");
-  // const { mutate: deleteReadyPRecord, mutateAsync: _, isPending: isDeletingReadyPRecord } = useDeletePRecord("Ready_PRecord");
-  // const { mutate: createExceptReadyPRecord } = useCreatePRecord("ExceptReady_PRecord");
-  // const audioRef = useRef<HTMLAudioElement>(null);
-  // const [openAssignModal, setOpenAssignModal] = useState(false);
-  // const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  // const actionPRecord = useRef<PRecord>();
-  // const user = useRecoilValue(userState);
-  // useEffect(() => {
-  //   if (!socket) return;
-  //   socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, readyTable, updateReadyPRecord, "Ready"));
-  //   socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, readyTable, updateReadyPRecord, "Ready"));
-  //   socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, readyTable, updateReadyPRecord, "Ready"));
-  //   socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, createReadyPRecord, "Ready", audioRef));
-  //   socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, deleteReadyPRecord, "Ready"));
-  //   return () => {
-  //     socket.off(LOCK_RECORD);
-  //     socket.off(UNLOCK_RECORD);
-  //     socket.off(SAVE_RECORD);
-  //     socket.off(CREATE_RECORD);
-  //     socket.off(DELETE_RECORD);
-  //     socket.disconnect();
-  //   };
-  // }, [socket]);
-  // const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
-  // const readyColumns = useMemo<MRT_ColumnDef<PRecord>[]>(
-  //   () => [
-  //     checkinTimeColumn(actionPRecord),
-  //     chartNumberColumn,
-  //     patientNameColumn,
-  //     opReadinessColumn(actionPRecord, "Ready"),
-  //     treatment1Column(actionPRecord),
-  //     quantitytreat1Column,
-  //     treatmentRoomColumn,
-  //     doctorColumn(actionPRecord),
-  //     anesthesiaNoteColumn,
-  //     skincareSpecialist1Column(actionPRecord),
-  //     skincareSpecialist2Column(actionPRecord),
-  //     nursingStaff1Column(actionPRecord),
-  //     nursingStaff2Column(actionPRecord),
-  //     coordinatorColumn(actionPRecord),
-  //     consultantColumn(actionPRecord),
-  //     commentCautionColumn,
-  //   ],
-  //   []
-  // );
-  // const readyTable: MRT_TableInstance<PRecord> = useMaterialReactTable({
-  //   columns: readyColumns,
-  //   // memoMode: "table",
-  //   data: fetchedReadyPRecords ? fetchedReadyPRecords : [],
-  //   localization: MRT_Localization_KO,
-  //   enableBottomToolbar: true,
-  //   initialState: {
-  //     columnPinning: { left: ["mrt-row-actions"] },
-  //     density: "compact",
-  //     pagination: {
-  //       pageSize: 10,
-  //       pageIndex: 0,
-  //     },
-  //   },
-  //   muiPaginationProps: {
-  //     rowsPerPageOptions: [5, 10, 15, 20],
-  //   },
-  //   createDisplayMode: "modal", // ('modal', and 'custom' are also available)
-  //   editDisplayMode: "modal", // ('modal', 'cell', 'table', and 'custom' are also available)
-  //   enableEditing: true,
-  //   enableColumnResizing: true,
-  //   enableRowActions: true,
-  //   muiTableHeadCellProps: {
-  //     sx: {
-  //       "& .Mui-TableHeadCell-Content": {
-  //         justifyContent: "center",
-  //       },
-  //     },
-  //   },
-  //   muiTableContainerProps: () => {
-  //     return {
-  //       sx: {
-  //         height: TABLE_CONTAINER_HEIGHT,
-  //       },
-  //     };
-  //   },
-  //   muiTableProps: ({}) => ({
-  //     sx: {
-  //       width: "full",
-  //       height: TABLE_HEIGHT,
-  //     },
-  //   }),
-  //   muiTablePaperProps: ({}) => ({
-  //     sx: {
-  //       height: TABLE_PAPER_HEIGHT,
-  //       maxHeight: "800px",
-  //     },
-  //   }),
-  //   muiToolbarAlertBannerProps: isLoadingReadyPRecordsError
-  //     ? {
-  //         color: "error",
-  //         children: "Error loading data",
-  //       }
-  //     : undefined,
-  //   muiTableBodyRowProps: ({ row, table }) => {
-  //     const { density } = table.getState();
-  //     let backgroundColor = DEFAULT_RECORD_COLOR;
-  //     let add5m = dayjs().add(5, "minute").unix();
-  //     if (row.original.lockingUser && row.original.lockingUser.id != user?.id) {
-  //       backgroundColor = EDITING_RECORD_COLOR;
-  //     } else if (row.original.readyTime && row.original.readyTime <= add5m && row.original.opReadiness === "Y") {
-  //       backgroundColor = NEW_READY_RECORD_COLOR;
-  //     }
-  //     return {
-  //       sx: {
-  //         // backgroundColor,
-  //         pointerEvents: row.original.lockingUser && row.original.lockingUser?.id != user?.id ? "none" : "default",
-  //         height: `${density === "compact" ? 45 : density === "comfortable" ? 50 : 57}px`,
-  //         cursor: user?.role === ROLE.DOCTOR ? "pointer" : "default",
-  //       },
-  //       onDoubleClick: () => {
-  //         if (user?.role === ROLE.DOCTOR) {
-  //           handleOpenAssignModal(row);
-  //         } else {
-  //           actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-  //           table.setEditingRow(row);
-  //         }
-  //       },
-  //     };
-  //   },
-  //   muiTableBodyCellProps: ({ row }) => ({
-  //     onDoubleClick: async () => {
-  //       if (row.original.lockingUser) {
-  //         return;
-  //       }
-  //     },
-  //   }),
-  //   onCreatingRowCancel: () => {
-  //     actionPRecord.current = undefined;
-  //     setValidationErrors({});
-  //   },
-  //   onCreatingRowSave: ({ table, values }) => handleCreatePRecord(table, createReadyPRecordWithDB, socket, "Ready", values, actionPRecord),
-  //   onEditingRowCancel: ({ row }) => handleEditingCancel(row, "Ready", socket, actionPRecord),
-  //   onEditingRowSave: ({ row, table, values }) => handleSavePRecord(row, table, "Ready", values, actionPRecord, updateReadyPRecordWithDB, createExceptReadyPRecord, socket, user),
-  //   renderRowActions: ({ row, table }) => (
-  //     <SchedulingTableRow
-  //       originalPRecord={actionPRecord}
-  //       row={row}
-  //       table={table}
-  //       emitLockRecord={emitLockRecord}
-  //       socket={socket}
-  //       openDeleteConfirmModal={() => handleOpenDeleteModal(row)}
-  //       tableType="Ready"
-  //       roomId={SCHEDULING_ROOM_ID}
-  //     />
-  //   ),
-  //   renderTopToolbarCustomActions: ({ table }) => <SchedulingTableTopToolbar originalPRecord={actionPRecord} table={table} tableType="Ready" />,
-  //   getRowId: (originalRow) => originalRow.id,
-  //   state: {
-  //     isLoading: isLoadingReadyPRecords,
-  //     isSaving: isCreatingReadyPRecord || isUpdatingReadyPRecord || isDeletingReadyPRecord,
-  //     showAlertBanner: isLoadingReadyPRecordsError,
-  //     showProgressBars: isFetchingReadyPRecords,
-  //   },
-  // });
-  // const handleOpenAssignModal = (row: MRT_Row<PRecord>) => {
-  //   setOpenAssignModal(true);
-  //   actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-  //   if (actionPRecord.current) {
-  //     emitLockRecord(actionPRecord.current.id, getTableType(actionPRecord.current.opReadiness), socket, user, SCHEDULING_ROOM_ID);
-  //   }
-  // };
-  // const handleOpenDeleteModal = (row: MRT_Row<PRecord>) => {
-  //   setOpenDeleteModal(true);
-  //   actionPRecord.current = JSON.parse(JSON.stringify(row.original));
-  //   if (actionPRecord.current) {
-  //     emitLockRecord(actionPRecord.current.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
-  //   }
-  // };
-  // return (
-  //   user &&
-  //   readyTable && (
-  //     <>
-  //       <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />
-  //       <AssignmentDialog createExceptReadyFn={createExceptReadyPRecord} modalOpen={openAssignModal} setModalOpen={setOpenAssignModal} actionPRecord={actionPRecord} socket={socket} />
-  //       <DeleteRecordDialog modalOpen={openDeleteModal} setModalOpen={setOpenDeleteModal} deleteFn={deleteReadyPRecord} actionPRecord={actionPRecord} socket={socket} />
-  //       <MaterialReactTable table={readyTable} />
-  //     </>
-  //   )
-  // );
+const ReadyTable: React.FC<props> = ({ socket, gridRef, theOtherGridRef }: props) => {
+  const user = useRecoilValue(userState);
+  const focusedCellRef = useRef<CellPosition | null>(null);
+  const [rowData, setRowData] = useState<PRecord[]>([]);
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const result = await axios.post("http://localhost:5000/api/getRecords", { where: "AND op_readiness = 'Y'" });
+        const records = result.data.records.rows.map((record: any) => convertServerPRecordtToPRecord(record));
+        setRowData(records);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getData();
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, "Ready"));
+    socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, "Ready"));
+    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, "Ready"));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, "Ready", focusedCellRef));
+    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, "Ready", focusedCellRef));
+    return () => {
+      socket.off(LOCK_RECORD);
+      socket.off(UNLOCK_RECORD);
+      socket.off(SAVE_RECORD);
+      socket.off(CREATE_RECORD);
+      socket.off(DELETE_RECORD);
+      socket.disconnect();
+    };
+  }, [socket]);
+
+  const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
+    { field: "id", headerName: "id", hide: true },
+    checkinTimeColumn,
+    chartNumberColumn,
+    patientNameColumn,
+    opReadinessColumn,
+    treatment1Column,
+    quantitytreat1Column,
+    treatmentRoomColumn,
+    doctorColumn,
+    anesthesiaNoteColumn,
+    skincareSpecialist1Column,
+    skincareSpecialist2Column,
+    nursingStaff1Column,
+    nursingStaff2Column,
+    coordinatorColumn,
+    consultantColumn,
+    commentCautionColumn,
+    { field: "lockingUser", headerName: "lock", hide: true },
+  ]);
+
+  const defaultColDef = useMemo<ColDef>(() => {
+    return {
+      editable: true,
+    };
+  }, []);
+
+  const getRowStyle = (params: RowClassParams<PRecord>): RowStyle | undefined => {
+    if (params.data?.lockingUser) {
+      return {
+        background: "lightgray",
+        pointerEvents: "none",
+      };
+    }
+    if (params.data?.deleteYN) {
+      return {
+        display: "none",
+      };
+    }
+  };
+
+  const [pinnedTopRowData, setPinnedTopRowData] = useState<PRecord[]>([]);
+  return (
+    // wrapping container with theme & size
+    <div
+      className="ag-theme-quartz" // applying the Data Grid theme
+      style={{ height: 500 }} // the Data Grid will fill the size of the parent container
+    >
+      <TableAction gridRef={gridRef} tableType={"Ready"} socket={socket} />
+      <AgGridReact
+        ref={gridRef}
+        onCellEditingStopped={(event) => {
+          emitSaveRecord("Ready", event.data?.id, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
+        }}
+        onCellEditingStarted={(event) => {
+          emitLockRecord(event.data?.id, "Ready", socket, user, SCHEDULING_ROOM_ID);
+          if (gridRef.current) {
+            focusedCellRef.current = gridRef.current.api.getFocusedCell();
+          }
+        }}
+        onCellValueChanged={(event) => {}}
+        defaultColDef={defaultColDef}
+        rowData={rowData}
+        columnDefs={colDefs}
+        getRowId={(params) => params.data.id}
+        pagination={true}
+        paginationPageSize={20}
+        getRowStyle={getRowStyle}
+        pinnedTopRowData={pinnedTopRowData}
+        rowSelection={"multiple"}
+      />
+    </div>
+  );
 };
 
 export default ReadyTable;
