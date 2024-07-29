@@ -24,7 +24,7 @@ import {
 } from "~/utils/Table/columnDef";
 import "../css/Table.css";
 import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, SCHEDULING_ROOM_ID } from "shared";
-import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitUnLockRecord, emitSaveRecord, emitCreateRecords, onCreateRecord } from "~/utils/Table/socket";
+import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
@@ -62,7 +62,10 @@ const SchedulingTable: React.FC<props> = ({ socket, gridRef, theOtherGridRef, ta
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
     socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, theOtherGridRef, tableType));
-    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, focusedRowRef));
+    socket.on(CREATE_RECORD, (arg) => {
+      console.log(arg);
+      
+      onCreateRecord(arg, gridRef, tableType, focusedRowRef)});
     socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, focusedRowRef));
 
     return () => {

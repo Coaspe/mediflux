@@ -75,10 +75,6 @@ export const onSaveRecord = (
     const row = gridRef.current?.api.getRowNode(recordId);
 
     if (row) {
-      // row.setDataValue("lockingUser", null);
-      // row.setDataValue(propertyName, newValue);
-      console.log(propertyName, newValue);
-
       if ((curTableType === "ExceptReady" && propertyName === "opReadiness" && newValue === "Y") || (curTableType === "Ready" && propertyName === "doctor" && newValue)) {
         gridRef.current?.api.applyTransaction({
           remove: [row.data],
@@ -108,6 +104,8 @@ export const onCreateRecord = (
   curTableType: TableType,
   focusedRow: MutableRefObject<FocusedRow | null>
 ) => {
+  console.log(records, tableType);
+  
   if (curTableType !== tableType) return;
   if (gridRef.current) {
     gridRef.current.api.applyTransaction({

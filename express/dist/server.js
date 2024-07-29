@@ -69,8 +69,8 @@ io.on(CONNECTION, (socket) => {
     socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
     });
-    socket.on(CREATE_RECORD, ({ recordw, tableType, roomId }) => {
-        socket.broadcast.to(roomId).emit(CREATE_RECORD, { recordw, tableType });
+    socket.on(CREATE_RECORD, ({ records, tableType, roomId }) => {
+        socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType });
     });
 });
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

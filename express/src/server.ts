@@ -78,8 +78,8 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
   });
 
-  socket.on(CREATE_RECORD, ({ recordw, tableType, roomId }: { recordw: string[]; tableType: string; roomId: string }) => {
-    socket.broadcast.to(roomId).emit(CREATE_RECORD, { recordw, tableType });
+  socket.on(CREATE_RECORD, ({ records, tableType, roomId }: { records: string; tableType: string; roomId: string }) => {
+    socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType });
   });
 });
 
