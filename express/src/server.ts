@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 import { deconstructRecord, deleteAllChart, getUserByLoginID } from "./utils.js";
+import { KEYOFSERVERPRECORD } from "./contants.js";
 
 dotenv.config();
 
@@ -112,7 +113,6 @@ app.post("/api/login", async (req, res) => {
 
   try {
     const users = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
-    console.log(users);
 
     if (users.rowCount == 0) {
       return res.status(401).json({ message: "해당 아이디가 존재하지않습니다.", errorType: 1 });
@@ -166,53 +166,37 @@ app.get("/api/checkSameIDExists", async (req, res) => {
 app.post("/api/insertRecords", async (req, res) => {
   const records = req.body.records;
 
-  const client = await pool.connect();
   try {
-    await client.query("BEGIN"); // 트랜잭션 시작
+    const valuesTemplate = records.map((_: any, i: number) => `(${Array.from({ length: KEYOFSERVERPRECORD.length - 2 }, (_, j) => `$${i * 35 + j + 1}`).join(", ")})`).join(", ");
 
-    const insertPromises = records.map((record: any) => {
-      const query = `
+    const query = `
         INSERT INTO gn_ss_bailor.chart_schedule (
-          chart_num, patient_name, op_readiness, treatment_1, treatment_2, 
-          treatment_3, treatment_4, treatment_5, quantity_treat_1, quantity_treat_2, 
-          quantity_treat_3, quantity_treat_4, quantity_treat_5, treatment_room, doctor, 
-          anesthesia_note, skincare_specialist_1, skincare_specialist_2, nursing_staff_1, 
-          nursing_staff_2, coordinator, consultant, comment_caution, locking_user, 
-          delete_yn, treatment_ready_1, treatment_ready_2, treatment_ready_3, treatment_ready_4, 
-          treatment_ready_5, treatment_end_1, treatment_end_2, treatment_end_3, treatment_end_4, 
-          treatment_end_5
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, 
-                  $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, 
-                  $33, $34, $35)
+        ${KEYOFSERVERPRECORD.slice(2).join(", ")}
+        ) VALUES ${valuesTemplate}
+        RETURNING *;
       `;
-      const values = deconstructRecord(record);
-      return client.query(query, values);
+
+    const queryValues: any[] = [];
+    records.forEach((element: any) => {
+      let value = deconstructRecord(element);
+      queryValues.push(...value);
     });
 
-    let retValue = await Promise.all(insertPromises);
-
-    await client.query("COMMIT"); // 트랜잭션 커밋
-    res.status(200).json({ records: retValue });
+    const result = await pool.query(query, queryValues);
+    res.status(200).json(result);
   } catch (error) {
-    await client.query("ROLLBACK"); // 트랜잭션 롤백
     console.error("Error inserting records:", error);
     res.status(500).send("Error inserting records.");
   } finally {
-    client.release();
   }
 });
 
-app.put("/api/updateRecords", async (req, res) => {
-  const records = req.body.records;
+app.put("/api/updateRecord", async (req, res) => {
+  const record = req.body.record;
 
-  const client = await pool.connect();
-  const retRecords = [];
   try {
-    await client.query("BEGIN"); // 트랜잭션 시작
-
-    for (const record of records) {
-      const query = `
-        UPDATE your_table_name
+    const query = `
+        UPDATE gn_ss_bailor.chart_schedule
         SET check_in_time = $1,
             chart_num = $2,
             patient_name = $3,
@@ -252,18 +236,13 @@ app.put("/api/updateRecords", async (req, res) => {
             treatment_end_5 = $36
         WHERE id = $37
       `;
-      const values = deconstructRecord(record);
-      retRecords.push(client.query(query, values));
-    }
-    await Promise.all(retRecords);
-    await client.query("COMMIT"); // 트랜잭션 커밋
-    res.status(200).json({ records: retRecords });
+    const values = deconstructRecord(record);
+    const result = await pool.query(query, values);
+    res.status(200).json(result);
   } catch (error) {
-    await client.query("ROLLBACK"); // 트랜잭션 롤백
     console.error("Error updating records:", error);
     res.status(500).send("Error updating records.");
   } finally {
-    client.release();
   }
 });
 
@@ -278,9 +257,8 @@ app.post("/api/getRecords", async (req, res) => {
       baseQuery += " ";
       baseQuery += where;
     }
-    const records = await pool.query(baseQuery, values);
-
-    return res.status(200).json({ records });
+    const result = await pool.query(baseQuery, values);
+    return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
@@ -288,20 +266,10 @@ app.post("/api/getRecords", async (req, res) => {
 
 app.put("/api/hideRecords", async (req, res) => {
   const ids: any[] = req.body.ids;
-
   const client = await pool.connect();
-
   try {
-    await client.query("BEGIN"); // 트랜잭션 시작
-
-    const hidePromises = ids.map((id) => {
-      const query = `update gn_ss_bailor.chart_schedule SET delete_yn=true where record_id=$1`;
-      return client.query(query, [id]);
-    });
-
-    await Promise.all(hidePromises);
-
-    await client.query("COMMIT"); // 트랜잭션 커밋
+    const q = `update gn_ss_bailor.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
+    await pool.query(q);
     res.status(200).send("Records deleted successfully.");
   } catch (error) {
     await client.query("ROLLBACK"); // 트랜잭션 롤백

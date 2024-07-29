@@ -6,10 +6,11 @@ import { EMPTY_SEARCHHELP, SIDE_MENU } from "~/constant";
 import { OpReadiness, PRecord, QueryDataName, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { emitUnLockRecord, emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "./Table/socket";
 import { Socket } from "socket.io-client";
-import { MutableRefObject } from "react";
+import { MutableRefObject, RefObject } from "react";
 import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { stringify } from "postcss";
+import { AgGridReact } from "ag-grid-react";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -212,8 +213,6 @@ export const convertServerUserToClientUser = (user: ServerUser) => {
 };
 
 export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
-  console.log(serverRecord);
-
   if (serverRecord.check_in_time) {
     serverRecord.check_in_time = new Date(serverRecord.check_in_time).getTime() / 1000;
   }
@@ -258,3 +257,13 @@ export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRe
     deleteYN: serverRecord.delete_yn,
   };
 }
+
+export const moveRecord = (gridRef: RefObject<AgGridReact<PRecord>>, theOtherGridRef: RefObject<AgGridReact<PRecord>>, data: PRecord) => {
+  gridRef.current?.api.applyTransaction({
+    remove: [data],
+  });
+  theOtherGridRef.current?.api.applyTransaction({
+    add: [data],
+    addIndex: 0,
+  });
+};

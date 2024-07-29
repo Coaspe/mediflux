@@ -1,5 +1,6 @@
 /** @format */
 
+import { ServerPRecord } from "shared";
 import { OpReadiness, PRecord, SearchHelp, User } from "./type";
 
 export const SERVERUSER_CLIENTUSER_MAPPING = {

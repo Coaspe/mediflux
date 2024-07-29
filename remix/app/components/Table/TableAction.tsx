@@ -11,8 +11,8 @@ import { insertRecords } from "~/utils/request.client";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import axios from "axios";
 import dayjs from "dayjs";
-import { useRecoilValue } from "recoil";
-import { userState } from "~/recoil_state";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { globalSnackbarState, userState } from "~/recoil_state";
 
 type TableActionHeader = {
   gridRef: RefObject<AgGridReact<PRecord>>;
@@ -22,13 +22,16 @@ type TableActionHeader = {
 
 export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType }) => {
   const user = useRecoilValue(userState);
+  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
+
   const onAddRecord = async () => {
     if (gridRef.current) {
       let newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
 
-      const result = await insertRecords([newRecord]);
-      if (result) {
-        newRecord = convertServerPRecordtToPRecord(result[0]);
+      const { rows } = await insertRecords([newRecord]);
+
+      if (rows.length > 0) {
+        newRecord = convertServerPRecordtToPRecord(rows[0]);
         gridRef.current.api.applyTransaction({
           add: [newRecord],
           addIndex: 0,
@@ -54,6 +57,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
           user,
           SCHEDULING_ROOM_ID
         );
+      } else {
+        setGlobalSnackBar({ open: true, msg: "서버 오류", severity: "error" });
       }
     }
   };

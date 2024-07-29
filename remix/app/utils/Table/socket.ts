@@ -1,7 +1,3 @@
-/** @format */
-
-import { UseMutateFunction } from "@tanstack/react-query";
-import { CellPosition } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
@@ -42,7 +38,7 @@ export const emitSaveRecord = (tableType: TableType, id: string | undefined, soc
 
 export const emitCreateRecords = (records: PRecord[], tableType: TableType, socket: Socket | null, roomId: string) => {
   socket?.emit(CREATE_RECORD, {
-    records: records.map((record) => JSON.stringify(record)),
+    records,
     roomId,
     tableType,
   });
@@ -71,6 +67,7 @@ export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tabl
 export const onSaveRecord = (
   { record, recordId, tableType, propertyName, newValue }: { record: string; recordId: string; tableType: TableType; propertyName: string; newValue: any },
   gridRef: RefObject<AgGridReact<any>>,
+  theOtherGridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType
 ) => {
   if (curTableType !== tableType || !recordId) return;
@@ -78,8 +75,21 @@ export const onSaveRecord = (
     const row = gridRef.current?.api.getRowNode(recordId);
 
     if (row) {
-      row.setDataValue("lockingUser", null);
-      row.setDataValue(propertyName, newValue);
+      // row.setDataValue("lockingUser", null);
+      // row.setDataValue(propertyName, newValue);
+      console.log(propertyName, newValue);
+
+      if ((curTableType === "ExceptReady" && propertyName === "opReadiness" && newValue === "Y") || (curTableType === "Ready" && propertyName === "doctor" && newValue)) {
+        gridRef.current?.api.applyTransaction({
+          remove: [row.data],
+        });
+        row.data.lockingUser = null;
+        row.data[propertyName] = newValue;
+        theOtherGridRef.current?.api.applyTransaction({
+          add: [row.data],
+          addIndex: 0,
+        });
+      }
     }
   } catch (error) {
     if (gridRef.current) {
@@ -93,21 +103,15 @@ export const onSaveRecord = (
   }
 };
 export const onCreateRecord = (
-  { records, tableType }: { records: string[]; tableType: TableType },
+  { records, tableType }: { records: PRecord[]; tableType: TableType },
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
   focusedRow: MutableRefObject<FocusedRow | null>
 ) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
-    const precords: PRecord[] = records.map((record) => {
-      const retRecord = JSON.parse(record);
-      retRecord.lockingUser = null;
-      return retRecord;
-    });
-
     gridRef.current.api.applyTransaction({
-      add: precords,
+      add: records,
       addIndex: 0,
     });
 

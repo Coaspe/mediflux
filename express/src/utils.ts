@@ -57,6 +57,7 @@ export const deconstructRecord = (record: any) => {
     treatmentEnd4,
     treatmentEnd5,
   } = record;
+
   const retVal = [
     new Date(checkInTime),
     chartNum,
@@ -95,6 +96,7 @@ export const deconstructRecord = (record: any) => {
     treatmentEnd4,
     treatmentEnd5,
   ];
+
   const { id } = record;
 
   if (id) {

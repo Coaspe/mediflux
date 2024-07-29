@@ -6,8 +6,6 @@ import { PRecord } from "~/type";
 export const insertRecords = async (records: PRecord[]) => {
   try {
     const result = await axios.post("http://localhost:5000/api/insertRecords", { records });
-    console.log(result);
-
     switch (result.status) {
       case 200:
         return result.data;

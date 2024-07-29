@@ -41,7 +41,7 @@ import {
   LONG_LEFT_JUSTIFIED_COLUMN_LENGTH,
   COORDINATOR_H,
 } from "~/constant";
-import { SearchHelp, PRecord, OpReadiness } from "~/type";
+import { SearchHelp, PRecord, OpReadiness, TableType } from "~/type";
 import { getValueWithId } from "../utils";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
@@ -74,13 +74,15 @@ export const patientNameColumn: ColDef<PRecord, string> = {
   width: SHORT_COLUMN_LENGTH,
 };
 
-export const opReadinessColumn: ColDef<PRecord, OpReadiness> = {
-  field: OP_READINESS,
-  headerName: OP_READINESS_H,
-  cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
-  cellEditor: opReadinessEdit,
-  editable: true,
-  width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+export const opReadinessColumn = (tableType: TableType): ColDef<PRecord, OpReadiness> => {
+  return {
+    field: OP_READINESS,
+    headerName: OP_READINESS_H,
+    cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
+    cellEditor: (arg: CustomCellEditorProps) => opReadinessEdit(arg, tableType),
+    editable: tableType !== "Ready",
+    width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+  };
 };
 
 export const treatment1Column: ColDef<PRecord, string> = {

@@ -1,6 +1,6 @@
 /** @format */
 
-import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
+import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
@@ -118,17 +118,20 @@ const OPREADINESSE_SEARCH_HELP: OpReadicnessSearchHelp[] = [
   { label: "시술 중 (P)", value: "P" },
 ];
 
-export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps) => {
+export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps, tableType: TableType) => {
   const onChange = (option: OpReadicnessSearchHelp | null) => {
     if (option) {
       onValueChange(option.value);
     }
   };
   let idx = OPREADINESSE_SEARCH_HELP.findIndex((element) => element.value === value);
+
+  let options: OpReadicnessSearchHelp[] = OPREADINESSE_SEARCH_HELP;
+
   return (
     <Autocomplete
       sx={{ width: "100%" }}
-      options={OPREADINESSE_SEARCH_HELP}
+      options={options}
       getOptionLabel={(option) => option.label}
       onChange={(_, option) => onChange(option)}
       defaultValue={OPREADINESSE_SEARCH_HELP[idx]}
