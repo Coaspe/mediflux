@@ -105,7 +105,8 @@ export const onCreateRecord = (
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
   focusedRowRef: MutableRefObject<FocusedRow | null>,
-  isEditingRef: MutableRefObject<boolean>
+  isEditingRef: MutableRefObject<boolean>,
+  audioRef: RefObject<HTMLAudioElement>
 ) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
@@ -114,6 +115,9 @@ export const onCreateRecord = (
       addIndex: 0,
     });
     focusEditingRecord(gridRef, focusedRowRef, isEditingRef);
+    if (audioRef.current) {
+      audioRef.current.play();
+    }
   }
 };
 export const onDeleteRecord = (

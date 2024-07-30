@@ -45,6 +45,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const user = useRecoilValue(userState);
   const focusedRowRef = useRef<FocusedRow | null>(null);
   const [rowData, setRowData] = useState<PRecord[]>([]);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   useEffect(() => {
@@ -66,7 +67,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
     socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, theOtherGridRef, tableType));
-    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, focusedRowRef, isEditingRef));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, focusedRowRef, isEditingRef, audioRef));
     socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, focusedRowRef, isEditingRef));
 
     return () => {
@@ -166,6 +167,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const isEditingRef = useRef(false);
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
+      {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
       <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
       <AgGridReact
         ref={gridRef}
