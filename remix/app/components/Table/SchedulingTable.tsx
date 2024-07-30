@@ -26,13 +26,14 @@ import {
 } from "~/utils/Table/columnDef";
 import "../css/Table.css";
 import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, SCHEDULING_ROOM_ID } from "shared";
-import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord } from "~/utils/Table/socket";
+import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
-import { useRecoilValue } from "recoil";
-import { userState } from "~/recoil_state";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import axios from "axios";
 import { convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
+import { lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -44,6 +45,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const user = useRecoilValue(userState);
   const focusedRowRef = useRef<FocusedRow | null>(null);
   const [rowData, setRowData] = useState<PRecord[]>([]);
+  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   useEffect(() => {
     const getData = async () => {
@@ -118,22 +120,47 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
   };
 
-  const onCellEditingStopped = (event: CellEditingStoppedEvent<PRecord, any>) => {
+  const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
     isEditingRef.current = false;
-    emitSaveRecord(event.data, tableType, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
-    if (tableType === "ExceptReady" && event.data?.opReadiness === "Y") {
-      moveRecord(gridRef, theOtherGridRef, event.data);
-    } else if (tableType === "Ready" && event.data?.doctor) {
-      event.data.opReadiness = "P";
-      moveRecord(gridRef, theOtherGridRef, event.data);
+    try {
+      if (event.data) {
+        const record = event.data;
+        const updateResult = await updateRecord(record);
+        if (updateResult.status === 200) {
+          emitSaveRecord(event.data, tableType, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
+          if (tableType === "ExceptReady" && event.data?.opReadiness === "Y") {
+            moveRecord(gridRef, theOtherGridRef, event.data);
+          } else if (tableType === "Ready" && event.data?.doctor) {
+            event.data.opReadiness = "P";
+            moveRecord(gridRef, theOtherGridRef, event.data);
+          }
+        }
+        const unlockResult = await unlockRecord(event.data.id);
+        if (unlockResult.status === 200) {
+          emitUnlockRecord(event.data.id, tableType, socket, SCHEDULING_ROOM_ID);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+
+      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
     }
   };
 
-  const onCellEditingStarted = (event: CellEditingStartedEvent<PRecord, any>) => {
-    emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
-    if (gridRef.current) {
-      isEditingRef.current = true;
-      focusedRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id } as FocusedRow;
+  const onCellEditingStarted = async (event: CellEditingStartedEvent<PRecord, any>) => {
+    try {
+      if (user && event.data) {
+        const result = await lockRecord(event.data.id, user.name);
+        if (result.status === 200) {
+          emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
+          if (gridRef.current) {
+            isEditingRef.current = true;
+            focusedRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id } as FocusedRow;
+          }
+        }
+      }
+    } catch (error) {
+      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
     }
   };
   const isEditingRef = useRef(false);

@@ -22,3 +22,6 @@ export const getUserByID = async (id: string) => {
   }
   return null;
 };
+export const checkSameIdExists = async (userId: string) => {
+  return await axios.get(`http://localhost:5000/api/checkSameIDExists`, { params: { userId } });
+};

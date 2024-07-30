@@ -7,14 +7,10 @@ import axios from "axios";
 export async function login({ userId, password }: LoginForm) {
   try {
     const response = await axios.post("http://localhost:5000/api/login", { userId, password }, { withCredentials: true });
-    console.log(response);
-    
     if (response.status === 200) {
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {
-    console.log(error);
-    
     return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
   }
 }

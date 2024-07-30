@@ -8,7 +8,6 @@ import { emitCreateRecords, emitDeleteRecords } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
 import { getAllRecords, hideRecords, insertRecords } from "~/utils/request.client";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
-import axios from "axios";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import Button from "@mui/material/Button";
@@ -52,6 +51,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         const records = gridRef.current.api.getSelectedRows();
 
         const result = await hideRecords(ids);
+
         if (result.status === 200) {
           gridRef.current.api.applyTransaction({
             remove: records,

@@ -11,12 +11,13 @@ export const ICONS = {
 
 type ICON = (typeof ICONS)[keyof typeof ICONS];
 
-type props = {
+type IconProps = {
   iconName: ICON;
   onClick?: () => void;
   className?: string;
 };
-const Icon: React.FC<props> = ({ iconName, onClick, className }) => {
+
+const Icon: React.FC<IconProps> = ({ iconName, onClick, className }) => {
   return (
     <span onClick={onClick} className={`material-symbols-outlined ${className}`}>
       {iconName}

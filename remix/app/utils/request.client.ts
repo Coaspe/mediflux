@@ -28,3 +28,11 @@ export const getAllRecords = async () => {
 export const updateRecord = async (record: PRecord) => {
   return await axios.put("http://localhost:5000/api/updateRecord", { record });
 };
+
+export const lockRecord = async (recordId: string, lockingUser: string) => {
+  return await axios.put("http://localhost:5000/api/lockRecord", { recordId, lockingUser });
+};
+
+export const unlockRecord = async (recordId: string) => {
+  return await axios.put("http://localhost:5000/api/unlockRecord", { recordId });
+};

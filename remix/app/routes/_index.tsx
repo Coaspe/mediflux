@@ -3,11 +3,10 @@
 import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
-import { badRequest } from "~/utils/request.server";
+import { badRequest, checkSameIdExists } from "~/utils/request.server";
 import { createUserSession, getUserID, login, register } from "~/services/session.server";
 import { LoginResponse, User } from "~/type";
 import { ROLE, ServerUser } from "shared";
-import axios from "axios";
 import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";
 
@@ -17,7 +16,7 @@ async function validateUserid(userId: string) {
   }
 
   try {
-    const result = await axios.get(`http://localhost:5000/api/checkSameIDExists`, { params: { userId } });
+    const result = await checkSameIdExists(userId);
     if (result.status === 200) {
       return undefined;
     } else {
@@ -75,7 +74,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
   switch (requestType) {
     case "login": {
       let result = (await login({ userId, password })) as LoginResponse;
-      
+
       if (result.status !== 200) {
         const fieldErrors = {
           userId: result.errorType === 1 ? result.message : undefined,
@@ -85,7 +84,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         return badRequest({
           fieldErrors,
           formError: result.message,
-          serverError: result.status === 500
+          serverError: result.status === 500,
         });
       }
 

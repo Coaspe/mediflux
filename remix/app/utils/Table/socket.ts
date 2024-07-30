@@ -5,9 +5,8 @@ import { MutableRefObject, RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
 import { Socket } from "socket.io-client";
 import { TableType, PRecord, User, FocusedRow } from "~/type";
-import { updateRecord } from "../request.client";
 
-export const emitLockRecord = (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
+export const emitLockRecord = async (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {
     return;
   }
@@ -29,18 +28,13 @@ export const emitDeleteRecords = (recordIds: string[], tableType: TableType, soc
 
 export const emitSaveRecord = async (record: PRecord | undefined, tableType: TableType, socket: Socket | null, roomId: string, propertyName: string | undefined, newValue: any) => {
   if (propertyName && record) {
-    const result = await updateRecord(record);
-    console.log(result);
-
-    if (result.status === 200) {
-      socket?.emit(SAVE_RECORD, {
-        recordId: record.id,
-        roomId,
-        newValue,
-        propertyName,
-        tableType,
-      });
-    }
+    socket?.emit(SAVE_RECORD, {
+      recordId: record.id,
+      roomId,
+      newValue,
+      propertyName,
+      tableType,
+    });
   }
 };
 
@@ -52,7 +46,7 @@ export const emitCreateRecords = (records: PRecord[], tableType: TableType, sock
   });
 };
 
-export const emitUnLockRecord = (recordId: string, tableType: TableType, socket: Socket | null, roomId: string) => {
+export const emitUnlockRecord = async (recordId: string, tableType: TableType, socket: Socket | null, roomId: string) => {
   socket?.emit(UNLOCK_RECORD, { recordId, roomId, tableType });
 };
 

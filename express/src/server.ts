@@ -200,9 +200,9 @@ app.put("/api/updateRecord", async (req, res) => {
 });
 
 app.post("/api/getRecords", async (req, res) => {
-  try {
-    const where = req.body.where;
+  const where = req.body.where;
 
+  try {
     const values: any = req.body.values ? req.body.values : [];
     let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
 
@@ -219,17 +219,39 @@ app.post("/api/getRecords", async (req, res) => {
 
 app.put("/api/hideRecords", async (req, res) => {
   const ids: any[] = req.body.ids;
-  const client = await pool.connect();
   try {
     const q = `update gn_ss_bailor.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
     await pool.query(q);
     res.status(200).send("Records deleted successfully.");
   } catch (error) {
-    await client.query("ROLLBACK"); // 트랜잭션 롤백
     console.error("Error inserting records:", error);
     res.status(500).send("Error deleting records.");
   } finally {
-    client.release();
+  }
+});
+
+app.put("/api/lockRecord", async (req, res) => {
+  const recordId = req.body.recordId;
+  const lockingUser = req.body.lockingUser;
+
+  try {
+    const q = `update gn_ss_bailor.chart_schedule SET locking_user=$1 where record_id=$2`;
+    const values = [lockingUser, recordId];
+    await pool.query(q, values);
+    res.status(200).send("Records locking successfully.");
+  } catch (error) {
+    res.status(500).send("Error locking record");
+  }
+});
+app.put("/api/unlockRecord", async (req, res) => {
+  const recordId = req.body.recordId;
+  try {
+    const q = `update gn_ss_bailor.chart_schedule SET locking_user=NULL where record_id=$1`;
+    const values = [recordId];
+    await pool.query(q, values);
+    res.status(200).send("Records unlocking successfully.");
+  } catch (error) {
+    res.status(500).send("Error unlocking record");
   }
 });
 

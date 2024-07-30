@@ -4,7 +4,6 @@ import { MRT_Row, MRT_TableInstance, LiteralUnion } from "material-react-table";
 import { Role, SCHEDULING_ROOM_ID, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, SIDE_MENU } from "~/constant";
 import { OpReadiness, PRecord, QueryDataName, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
-import { emitUnLockRecord, emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "./Table/socket";
 import { Socket } from "socket.io-client";
 import { MutableRefObject, RefObject } from "react";
 import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
@@ -91,7 +90,6 @@ export const getBrowserType = () => {
 };
 
 export const handleEditingCancel = (row: MRT_Row<PRecord>, tableType: TableType, socket: Socket | null, originalPRecord: MutableRefObject<PRecord | undefined>) => {
-  emitUnLockRecord(row.id, tableType, socket, SCHEDULING_ROOM_ID);
   originalPRecord.current = undefined;
 };
 
@@ -145,7 +143,6 @@ export const handleSavePRecord = async (
   table.setEditingRow(null); // exit editing mode
 
   if (precord.lockingUser?.id === user.id) {
-    emitUnLockRecord(row.id, tableType, socket, SCHEDULING_ROOM_ID);
   }
 
   originalPRecord.current = undefined;

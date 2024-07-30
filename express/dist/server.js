@@ -183,8 +183,8 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 }));
 app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const where = req.body.where;
     try {
-        const where = req.body.where;
         const values = req.body.values ? req.body.values : [];
         let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
         if (where) {
@@ -200,19 +200,41 @@ app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
 }));
 app.put("/api/hideRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const ids = req.body.ids;
-    const client = yield pool.connect();
     try {
         const q = `update gn_ss_bailor.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
         yield pool.query(q);
         res.status(200).send("Records deleted successfully.");
     }
     catch (error) {
-        yield client.query("ROLLBACK"); // 트랜잭션 롤백
         console.error("Error inserting records:", error);
         res.status(500).send("Error deleting records.");
     }
     finally {
-        client.release();
+    }
+}));
+app.put("/api/lockRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const recordId = req.body.recordId;
+    const lockingUser = req.body.lockingUser;
+    try {
+        const q = `update gn_ss_bailor.chart_schedule SET locking_user=$1 where record_id=$2`;
+        const values = [lockingUser, recordId];
+        yield pool.query(q, values);
+        res.status(200).send("Records locking successfully.");
+    }
+    catch (error) {
+        res.status(500).send("Error locking record");
+    }
+}));
+app.put("/api/unlockRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const recordId = req.body.recordId;
+    try {
+        const q = `update gn_ss_bailor.chart_schedule SET locking_user=NULL where record_id=$1`;
+        const values = [recordId];
+        yield pool.query(q, values);
+        res.status(200).send("Records unlocking successfully.");
+    }
+    catch (error) {
+        res.status(500).send("Error unlocking record");
     }
 }));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

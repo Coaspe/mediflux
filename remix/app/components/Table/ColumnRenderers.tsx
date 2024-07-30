@@ -1,6 +1,6 @@
 /** @format */
 
-import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
+import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
