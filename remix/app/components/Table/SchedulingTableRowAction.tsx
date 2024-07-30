@@ -17,7 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
 
-interface Props {
+interface SchedulingTableRowActionProps {
   row: MRT_Row<PRecord>;
   table: MRT_TableInstance<PRecord>;
   originalPRecord: MutableRefObject<PRecord | undefined>;
@@ -28,7 +28,7 @@ interface Props {
   roomId: string;
 }
 
-const SchedulingTableRowAction: FC<Props> = ({ table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket, roomId }) => {
+const SchedulingTableRowAction: FC<SchedulingTableRowActionProps> = ({ table, row, emitLockRecord, openDeleteConfirmModal, originalPRecord, tableType, socket, roomId }) => {
   const user = useRecoilValue(userState);
   const onClickEditIcon = () => {
     if (!user) {
@@ -50,8 +50,7 @@ const SchedulingTableRowAction: FC<Props> = ({ table, row, emitLockRecord, openD
           alignItems: "center",
           zIndex: 100,
           width: "100%",
-        }}
-      >
+        }}>
         {row.original.lockingUser && row.original.lockingUser.id != user.id ? (
           nameChipRendererByRole(row.original.lockingUser.role!, row.original.lockingUser?.name)
         ) : (

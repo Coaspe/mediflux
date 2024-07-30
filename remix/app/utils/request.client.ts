@@ -16,3 +16,15 @@ export const insertRecords = async (records: PRecord[]) => {
     return false;
   }
 };
+
+export const hideRecords = async (ids: string[]) => {
+  return await axios.put("http://localhost:5000/api/hideRecords", { ids });
+};
+
+export const getAllRecords = async () => {
+  return await axios.get("http://localhost:5000/api/getAllRecords");
+};
+
+export const updateRecord = async (record: PRecord) => {
+  return await axios.put("http://localhost:5000/api/updateRecord", { record });
+};

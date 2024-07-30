@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { KEYOFSERVERPRECORD } from "./contants.js";
 export const getUserByLoginID = (pool, loginId) => __awaiter(void 0, void 0, void 0, function* () {
     return yield pool.query("select * from admin.user where login_id=$1;", [loginId]);
 });
@@ -62,10 +63,22 @@ export const deconstructRecord = (record) => {
     ];
     const { id } = record;
     if (id) {
-        retVal.unshift(id);
+        retVal.push(id);
     }
     else {
         retVal.shift();
     }
     return retVal;
+};
+export const updateQuery = (tableName) => {
+    let baseQuery = `UPDATE ${tableName} SET `;
+    for (let i = 1; i < KEYOFSERVERPRECORD.length; i++) {
+        const field = KEYOFSERVERPRECORD[i];
+        baseQuery += `${field}=$${i}`;
+        if (i !== KEYOFSERVERPRECORD.length - 1) {
+            baseQuery += ", ";
+        }
+    }
+    baseQuery += ` WHERE record_id=$${KEYOFSERVERPRECORD.length}`;
+    return baseQuery;
 };

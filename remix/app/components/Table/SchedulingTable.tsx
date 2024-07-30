@@ -1,8 +1,10 @@
+/** @format */
+
 import { AgGridReact } from "ag-grid-react"; // React Data Grid Component
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { ColDef, RowClassParams, RowStyle } from "ag-grid-community";
+import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent } from "ag-grid-community";
 import { FocusedRow, PRecord, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
@@ -32,13 +34,13 @@ import { TableAction } from "./TableAction";
 import axios from "axios";
 import { convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
 
-type props = {
+type SchedulingTableProps = {
   socket: Socket | null;
   gridRef: RefObject<AgGridReact<PRecord>>;
   theOtherGridRef: RefObject<AgGridReact<PRecord>>;
   tableType: TableType;
 };
-const SchedulingTable: React.FC<props> = ({ socket, gridRef, theOtherGridRef, tableType }: props) => {
+const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType }) => {
   const user = useRecoilValue(userState);
   const focusedRowRef = useRef<FocusedRow | null>(null);
   const [rowData, setRowData] = useState<PRecord[]>([]);
@@ -62,11 +64,8 @@ const SchedulingTable: React.FC<props> = ({ socket, gridRef, theOtherGridRef, ta
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
     socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, theOtherGridRef, tableType));
-    socket.on(CREATE_RECORD, (arg) => {
-      console.log(arg);
-      
-      onCreateRecord(arg, gridRef, tableType, focusedRowRef)});
-    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, focusedRowRef));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, focusedRowRef, isEditingRef));
+    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, focusedRowRef, isEditingRef));
 
     return () => {
       socket.off(LOCK_RECORD);
@@ -119,30 +118,32 @@ const SchedulingTable: React.FC<props> = ({ socket, gridRef, theOtherGridRef, ta
     }
   };
 
+  const onCellEditingStopped = (event: CellEditingStoppedEvent<PRecord, any>) => {
+    isEditingRef.current = false;
+    emitSaveRecord(event.data, tableType, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
+    if (tableType === "ExceptReady" && event.data?.opReadiness === "Y") {
+      moveRecord(gridRef, theOtherGridRef, event.data);
+    } else if (tableType === "Ready" && event.data?.doctor) {
+      event.data.opReadiness = "P";
+      moveRecord(gridRef, theOtherGridRef, event.data);
+    }
+  };
+
+  const onCellEditingStarted = (event: CellEditingStartedEvent<PRecord, any>) => {
+    emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
+    if (gridRef.current) {
+      isEditingRef.current = true;
+      focusedRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id } as FocusedRow;
+    }
+  };
+  const isEditingRef = useRef(false);
   return (
-    // wrapping container with theme & size
-    <div
-      className="ag-theme-quartz" // applying the Data Grid theme
-      style={{ height: "50%", display: "flex", flexDirection: "column" }} // the Data Grid will fill the size of the parent container
-    >
+    <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
       <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
       <AgGridReact
         ref={gridRef}
-        onCellEditingStopped={(event) => {
-          emitSaveRecord(tableType, event.data?.id, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
-          if (tableType === "ExceptReady" && event.data?.opReadiness === "Y") {
-            moveRecord(gridRef, theOtherGridRef, event.data);
-          } else if (tableType === "Ready" && event.data?.doctor) {
-            moveRecord(gridRef, theOtherGridRef, event.data);
-          }
-        }}
-        onCellEditingStarted={(event) => {
-          emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
-          if (gridRef.current) {
-            focusedRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id } as FocusedRow;
-          }
-        }}
-        onCellValueChanged={(event) => {}}
+        onCellEditingStopped={onCellEditingStopped}
+        onCellEditingStarted={onCellEditingStarted}
         defaultColDef={defaultColDef}
         rowData={rowData}
         columnDefs={colDefs}

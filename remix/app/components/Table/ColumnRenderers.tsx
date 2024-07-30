@@ -134,7 +134,6 @@ export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps,
       options={options}
       getOptionLabel={(option) => option.label}
       onChange={(_, option) => onChange(option)}
-      defaultValue={OPREADINESSE_SEARCH_HELP[idx]}
       value={OPREADINESSE_SEARCH_HELP[idx]}
       renderInput={(params) => <TextField {...params} variant="standard" />}
     />
@@ -169,7 +168,6 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps) =
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
-      defaultValue={TREATMENTS[idx]}
       value={TREATMENTS[idx]}
       renderInput={(params) => <TextField {...params} variant="standard" />}
     />

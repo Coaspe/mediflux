@@ -1,3 +1,5 @@
+/** @format */
+
 export const JOIN_ROOM = "join-room";
 export const CONNECTED_USERS = "connected-users";
 export const LOCK_RECORD = "lock-record";
@@ -12,7 +14,7 @@ export const CANCEL_EDITING = "cancel-editing";
 export const UNLOCK_RECORD = "unlock-record";
 export const SHURINK = "슈링크";
 export const KEYOFSERVERPRECORD = [
-  "id",
+  "record_id",
   "check_in_time",
   "chart_num",
   "patient_name",

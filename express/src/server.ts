@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, deleteAllChart, getUserByLoginID } from "./utils.js";
+import { deconstructRecord, deleteAllChart, getUserByLoginID, updateQuery } from "./utils.js";
 import { KEYOFSERVERPRECORD } from "./contants.js";
 
 dotenv.config();
@@ -67,12 +67,9 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
   });
 
-  socket.on(
-    SAVE_RECORD,
-    ({ record, recordId, tableType, roomId, propertyName, newValue }: { record: string; recordId: string; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
-      socket.broadcast.to(roomId).emit(SAVE_RECORD, { record, recordId, tableType, propertyName, newValue });
-    }
-  );
+  socket.on(SAVE_RECORD, ({ recordId, tableType, roomId, propertyName, newValue }: { recordId: string; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
+    socket.broadcast.to(roomId).emit(SAVE_RECORD, { recordId, tableType, propertyName, newValue });
+  });
 
   socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }: { recordId: string; tableType: string; roomId: string }) => {
     socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
@@ -88,23 +85,20 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const insertResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5)`, [
+    const regisgerResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5 RETURNING *;)`, [
       role,
       firstName,
       lastName,
       userId,
       hashedPassword,
     ]);
-    if (insertResult.rowCount !== 0) {
-      const users = await getUserByLoginID(pool, userId);
-      if (users.rowCount === 1) {
-        return res.status(200).json({ user: users.rows[0] });
-      } else {
-        return res.status(400).json({ message: "Database 에러" });
-      }
+    if (regisgerResult.rowCount === 1) {
+      return res.status(200).json({ user: regisgerResult.rows[0] });
+    } else {
+      return res.status(400).json({ message: "Database 에러" });
     }
   } catch (error) {
-    return res.status(400).json({ error: (error as Error).message });
+    return res.status(500).json({ error: (error as Error).message });
   }
 });
 
@@ -193,49 +187,8 @@ app.post("/api/insertRecords", async (req, res) => {
 
 app.put("/api/updateRecord", async (req, res) => {
   const record = req.body.record;
-
   try {
-    const query = `
-        UPDATE gn_ss_bailor.chart_schedule
-        SET check_in_time = $1,
-            chart_num = $2,
-            patient_name = $3,
-            op_readiness = $4,
-            treatment_1 = $5,
-            treatment_2 = $6,
-            treatment_3 = $7,
-            treatment_4 = $8,
-            treatment_5 = $9,
-            quantity_treat_1 = $10,
-            quantity_treat_2 = $11,
-            quantity_treat_3 = $12,
-            quantity_treat_4 = $13,
-            quantity_treat_5 = $14,
-            treatment_room = $15,
-            doctor = $16,
-            anesthesia_note = $17,
-            skincare_specialist_1 = $18,
-            skincare_specialist_2 = $19,
-            nursing_staff_1 = $20,
-            nursing_staff_2 = $21,
-            coordinator = $22,
-            consultant = $23,
-            comment_caution = $24,
-            locking_user = $25,
-            ready_time = $26,
-            delete_yn = $26,
-            treatment_ready_1 = $27,
-            treatment_ready_2 = $28,
-            treatment_ready_3 = $29,
-            treatment_ready_4 = $30,
-            treatment_ready_5 = $31,
-            treatment_end_1 = $32,
-            treatment_end_2 = $33,
-            treatment_end_3 = $34,
-            treatment_end_4 = $35,
-            treatment_end_5 = $36
-        WHERE id = $37
-      `;
+    const query = updateQuery("gn_ss_bailor.chart_schedule");
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
     res.status(200).json(result);
