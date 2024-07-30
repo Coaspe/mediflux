@@ -44,7 +44,8 @@ import {
 import { SearchHelp, PRecord, OpReadiness, TableType } from "~/type";
 import { getValueWithId } from "../utils";
 import { ColDef } from "ag-grid-community";
-import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
+import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
+import { RefObject } from "react";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   console.log(id, searchHelp);
@@ -79,18 +80,20 @@ export const opReadinessColumn = (tableType: TableType): ColDef<PRecord, OpReadi
     field: OP_READINESS,
     headerName: OP_READINESS_H,
     cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
-    cellEditor: (arg: CustomCellEditorProps) => opReadinessEdit(arg, tableType),
+    cellEditor: (arg: CustomCellEditorProps) => opReadinessEdit(arg),
     editable: tableType !== "Ready",
     width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   };
 };
 
-export const treatment1Column: ColDef<PRecord, string> = {
-  field: TREATMENT1,
-  headerName: TREATMENT1_H,
-  cellRenderer: ({ value }: CustomCellRendererProps) => getValueWithId(TREATMENTS, value).title,
-  cellEditor: treatmentEdit,
-  width: 250,
+export const treatment1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => {
+  return {
+    field: TREATMENT1,
+    headerName: TREATMENT1_H,
+    cellRenderer: ({ value }: CustomCellRendererProps) => getValueWithId(TREATMENTS, value).title,
+    cellEditor: (arg: CustomCellEditorProps) => treatmentEdit(arg, gridRef),
+    width: 250,
+  };
 };
 export const quantitytreat1Column: ColDef<PRecord, number> = {
   field: QUANTITYTREAT1,

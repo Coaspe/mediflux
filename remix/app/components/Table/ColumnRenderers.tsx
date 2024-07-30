@@ -9,10 +9,10 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import { ChipPropsColorOverrides, ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
-import { CustomCellEditorProps } from "ag-grid-react";
+import { AgGridReact, CustomCellEditorProps } from "ag-grid-react";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -118,7 +118,7 @@ const OPREADINESSE_SEARCH_HELP: OpReadicnessSearchHelp[] = [
   { label: "시술 중 (P)", value: "P" },
 ];
 
-export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps, tableType: TableType) => {
+export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps) => {
   const onChange = (option: OpReadicnessSearchHelp | null) => {
     if (option) {
       onValueChange(option.value);
@@ -140,7 +140,8 @@ export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps,
   );
 };
 
-export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps) => {
+export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, gridRef: RefObject<AgGridReact<PRecord>>) => {
+  const optionRef = useRef("");
   let idx = -1;
   for (let i = 0; i < TREATMENTS.length; i++) {
     const element = TREATMENTS[i];
@@ -160,15 +161,27 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps) =
       onValueChange(value.id);
     }
   };
-
+  const onKeyDownCapture = (event: any) => {
+    if (event.key === "Enter") {
+      event.stopPropagation();
+      onValueChange(optionRef.current);
+      gridRef.current?.api.stopEditing(false);
+    }
+  };
   return (
     <Autocomplete
       sx={{ width: "100%" }}
+      onHighlightChange={(event, option) => {
+        if (option?.id) {
+          optionRef.current = option?.id;
+        }
+      }}
       options={TREATMENTS}
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
       value={TREATMENTS[idx]}
+      onKeyDownCapture={onKeyDownCapture}
       renderInput={(params) => <TextField {...params} variant="standard" />}
     />
   );
