@@ -67,8 +67,8 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
   });
 
-  socket.on(SAVE_RECORD, ({ recordId, tableType, roomId, propertyName, newValue }: { recordId: string; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
-    socket.broadcast.to(roomId).emit(SAVE_RECORD, { recordId, tableType, propertyName, newValue });
+  socket.on(SAVE_RECORD, ({ record, tableType, roomId, propertyName, newValue }: { record: string; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
+    socket.broadcast.to(roomId).emit(SAVE_RECORD, { record, tableType, propertyName, newValue });
   });
 
   socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }: { recordId: string; tableType: string; roomId: string }) => {
@@ -189,6 +189,7 @@ app.put("/api/updateRecord", async (req, res) => {
   const record = req.body.record;
   try {
     const query = updateQuery("gn_ss_bailor.chart_schedule");
+
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
     res.status(200).json(result);

@@ -60,7 +60,7 @@ export const deconstructRecord = (record: any) => {
   } = record;
 
   const retVal = [
-    new Date(checkInTime),
+    new Date(checkInTime * 1000),
     chartNum,
     patientName,
     opReadiness,

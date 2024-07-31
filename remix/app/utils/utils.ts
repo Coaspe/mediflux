@@ -142,7 +142,7 @@ export const handleSavePRecord = async (
 
   table.setEditingRow(null); // exit editing mode
 
-  if (precord.lockingUser?.id === user.id) {
+  if (precord.lockingUser === user.id) {
   }
 
   originalPRecord.current = undefined;
@@ -263,4 +263,23 @@ export const moveRecord = (gridRef: RefObject<AgGridReact<PRecord>>, theOtherGri
     add: [data],
     addIndex: 0,
   });
+};
+
+export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
+  const etrcondition = tableType === "ExceptReady" && record.opReadiness === "Y";
+  const rtecondition1 = tableType === "Ready" && record.doctor;
+  const rtecondition2 = tableType === "Ready" && record.opReadiness !== "Y";
+  return { etrcondition, rtecondition1, rtecondition2 };
+};
+
+export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: any) => void, gridRef: RefObject<AgGridReact<PRecord>>, optionRef: MutableRefObject<string>) => {
+  if (event.key === "Enter") {
+    event.stopPropagation();
+    onValueChange(optionRef.current);
+    gridRef.current?.api.stopEditing(false);
+  } else if (event.key === "Tab") {
+    if (optionRef.current) {
+      onValueChange(optionRef.current);
+    }
+  }
 };

@@ -5,6 +5,7 @@ import { MutableRefObject, RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
 import { Socket } from "socket.io-client";
 import { TableType, PRecord, User, FocusedRow } from "~/type";
+import { checkIsInvaildRecord, moveRecord } from "../utils";
 
 export const emitLockRecord = async (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {
@@ -29,7 +30,7 @@ export const emitDeleteRecords = (recordIds: string[], tableType: TableType, soc
 export const emitSaveRecord = async (record: PRecord | undefined, tableType: TableType, socket: Socket | null, roomId: string, propertyName: string | undefined, newValue: any) => {
   if (propertyName && record) {
     socket?.emit(SAVE_RECORD, {
-      recordId: record.id,
+      record,
       roomId,
       newValue,
       propertyName,
@@ -53,8 +54,9 @@ export const emitUnlockRecord = async (recordId: string, tableType: TableType, s
 export const onLockRecord = ({ recordId, locker, tableType }: { recordId: string; locker: User; tableType: TableType }, gridRef: RefObject<AgGridReact<any>>, curTableType: TableType) => {
   if (curTableType !== tableType) return;
   const row = gridRef.current?.api.getRowNode(recordId);
+
   if (row) {
-    row.setDataValue("lockingUser", locker);
+    row.setDataValue("lockingUser", locker.id);
   }
 };
 
@@ -67,35 +69,25 @@ export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tabl
 };
 
 export const onSaveRecord = (
-  { recordId, tableType, propertyName, newValue }: { recordId: string; tableType: TableType; propertyName: string; newValue: any },
+  { record, tableType, propertyName, newValue }: { record: PRecord; tableType: TableType; propertyName: string; newValue: any },
   gridRef: RefObject<AgGridReact<any>>,
   theOtherGridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType
 ) => {
-  if (curTableType !== tableType || !recordId) return;
+  if (curTableType !== tableType || !record) return;
+
   try {
-    const row = gridRef.current?.api.getRowNode(recordId);
-    if (row) {
-      const isInvalidExecptReadyRecord = curTableType === "ExceptReady" && propertyName === "opReadiness" && newValue === "Y";
-      const isProgressingRecord = curTableType === "Ready" && propertyName === "doctor" && newValue;
-      if (isInvalidExecptReadyRecord || isProgressingRecord) {
-        gridRef.current?.api.applyTransaction({
-          remove: [row.data],
-        });
+    if (record) {
+      const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
 
-        row.data.lockingUser = null;
-        row.data[propertyName] = newValue;
-        if (isProgressingRecord) {
-          row.data["opReadiness"] = "P";
-        }
-
-        theOtherGridRef.current?.api.applyTransaction({
-          add: [row.data],
-          addIndex: 0,
-        });
+      if (etrcondition || rtecondition1 || rtecondition2) {
+        moveRecord(gridRef, theOtherGridRef, record);
       } else {
-        row.setDataValue("lockingUser", null);
-        row.setDataValue(propertyName, newValue);
+        const row = gridRef.current?.api.getRowNode(record.id);
+        if (row) {
+          row.setDataValue("lockingUser", null);
+          row.setDataValue(propertyName, newValue);
+        }
       }
     }
   } catch (error) {}

@@ -13,6 +13,7 @@ import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import { ChipPropsColorOverrides, ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { AgGridReact, CustomCellEditorProps } from "ag-grid-react";
+import { autoCompleteKeyDownCapture } from "~/utils/utils";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -142,14 +143,16 @@ export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps)
 
 export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, gridRef: RefObject<AgGridReact<PRecord>>) => {
   const optionRef = useRef("");
-  let idx = -1;
-  for (let i = 0; i < TREATMENTS.length; i++) {
-    const element = TREATMENTS[i];
-    if (element.id === value) {
-      idx = i;
-      break;
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
     }
-  }
+  }, [inputRef.current]);
+
+  let idx = TREATMENTS.findIndex((t) => t.id === value);
   const onChange = (
     value: {
       id: string;
@@ -161,13 +164,13 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, g
       onValueChange(value.id);
     }
   };
-  const onKeyDownCapture = (event: any) => {
-    if (event.key === "Enter") {
-      event.stopPropagation();
-      onValueChange(optionRef.current);
-      gridRef.current?.api.stopEditing(false);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Backspace" && inputRef.current) {
+      inputRef.current.value = "";
+      event.preventDefault(); // Prevent the default backspace behavior
     }
   };
+
   return (
     <Autocomplete
       sx={{ width: "100%" }}
@@ -176,18 +179,31 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, g
           optionRef.current = option?.id;
         }
       }}
+      onFocus={() => {
+        inputRef.current?.select();
+      }}
       options={TREATMENTS}
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
       value={TREATMENTS[idx]}
-      onKeyDownCapture={onKeyDownCapture}
-      renderInput={(params) => <TextField {...params} variant="standard" />}
+      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef)}
+      renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}
     />
   );
 };
 
-export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname: keyof PRecord | undefined, onValueChange: (value: any) => void) => {
+export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname: keyof PRecord | undefined, onValueChange: (value: any) => void, gridRef: RefObject<AgGridReact<PRecord>>) => {
+  const optionRef = useRef("");
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const isFirstRef = useRef(false);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
   let id: string | undefined = "";
   switch (fieldname) {
     case DOCTOR:
@@ -215,15 +231,7 @@ export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname
       break;
   }
 
-  let idx = -1;
-  for (let i = 0; i < searchHelp.length; i++) {
-    const element = searchHelp[i];
-    if (element.id === id) {
-      idx = i;
-      break;
-    }
-  }
-  console.log(idx);
+  let idx = searchHelp.findIndex((s) => s.id === id);
 
   const onChange = (
     value: {
@@ -242,18 +250,18 @@ export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname
         sx={{
           border: "none",
           width: "70%",
-          "& .MuiOutlinedInput-root": {
-            "&:before, &:after": {
-              borderBottom: "none",
-            },
-          },
+        }}
+        onHighlightChange={(event, option) => {
+          if (option?.id) {
+            optionRef.current = option?.id;
+          }
         }}
         options={searchHelp}
         getOptionLabel={(option) => option.title}
         onChange={(_, value) => onChange(value)}
-        defaultValue={searchHelp[idx]}
         value={searchHelp[idx]}
-        renderInput={(params) => <TextField {...params} variant="standard" />}
+        onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef)}
+        renderInput={(params) => <TextField inputRef={inputRef} {...params} variant="standard" />}
       />
     </div>
   );

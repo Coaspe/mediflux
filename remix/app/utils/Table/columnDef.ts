@@ -81,7 +81,7 @@ export const opReadinessColumn = (tableType: TableType): ColDef<PRecord, OpReadi
     headerName: OP_READINESS_H,
     cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
     cellEditor: (arg: CustomCellEditorProps) => opReadinessEdit(arg),
-    editable: tableType !== "Ready",
+    editable: false,
     width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   };
 };
@@ -125,23 +125,23 @@ const personComparator = (searchHelp: SearchHelp[], valueA: string | null | unde
   }
 };
 
-export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
+export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[], gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => {
   return {
     field,
     headerName,
     width: 150,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
-    cellEditor: ({ onValueChange, data }: CustomCellEditorProps<PRecord, string>) => StaffEdit(data, searchHelp, field, onValueChange),
+    cellEditor: ({ onValueChange, data }: CustomCellEditorProps<PRecord, string>) => StaffEdit(data, searchHelp, field, onValueChange, gridRef),
     cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipCell(colDef?.headerName, searchHelp, value),
   };
 };
 
-export const doctorColumn: ColDef<PRecord, string> = personColumn(DOCTOR, DOCTOR_H, DOCTORS);
+export const doctorColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(DOCTOR, DOCTOR_H, DOCTORS, gridRef);
 export const anesthesiaNoteColumn: ColDef<PRecord, string> = { field: ANESTHESIANOTE, headerName: ANESTHESIANOTE_H };
-export const skincareSpecialist1Column: ColDef<PRecord, string> = personColumn(SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, DOCTORS);
-export const skincareSpecialist2Column: ColDef<PRecord, string> = personColumn(SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, DOCTORS);
-export const nursingStaff1Column: ColDef<PRecord, string> = personColumn(NURSINGSTAFF1, NURSINGSTAFF1_H, DOCTORS);
-export const nursingStaff2Column: ColDef<PRecord, string> = personColumn(NURSINGSTAFF2, NURSINGSTAFF2_H, DOCTORS);
-export const coordinatorColumn: ColDef<PRecord, string> = personColumn(COORDINATOR, COORDINATOR_H, DOCTORS);
-export const consultantColumn: ColDef<PRecord, string> = personColumn(CONSULTANT, CONSULTANT_H, DOCTORS);
+export const skincareSpecialist1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, DOCTORS, gridRef);
+export const skincareSpecialist2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, DOCTORS, gridRef);
+export const nursingStaff1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSINGSTAFF1, NURSINGSTAFF1_H, DOCTORS, gridRef);
+export const nursingStaff2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSINGSTAFF2, NURSINGSTAFF2_H, DOCTORS, gridRef);
+export const coordinatorColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(COORDINATOR, COORDINATOR_H, DOCTORS, gridRef);
+export const consultantColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(CONSULTANT, CONSULTANT_H, DOCTORS, gridRef);
 export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENTCAUTION, headerName: COMMENTCAUTION_H };

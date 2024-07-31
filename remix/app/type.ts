@@ -51,7 +51,7 @@ export type PRecord = {
   coordinator?: string; // VARCHAR (50)
   consultant?: string; // VARCHAR (50)
   commentCaution?: string; // VARCHAR (300), optional
-  lockingUser?: User | null;
+  lockingUser?: string | null;
   deleteYN?: boolean;
   [key: string]: any;
 };
@@ -91,7 +91,7 @@ export type ServerPRecord = {
   coordinator?: string; // VARCHAR (50)
   consultant?: string; // VARCHAR (50)
   comment_caution?: string; // VARCHAR (300), optional
-  locking_user?: User | null;
+  locking_user?: string | null;
   delete_yn?: boolean;
   [key: string]: any;
 };
