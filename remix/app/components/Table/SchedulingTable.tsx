@@ -21,7 +21,7 @@ import {
   quantitytreat1Column,
   skincareSpecialist1Column,
   skincareSpecialist2Column,
-  treatment1Column,
+  treatmentColumn,
   treatmentRoomColumn,
 } from "~/utils/Table/columnDef";
 import "../css/Table.css";
@@ -33,8 +33,9 @@ import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import axios from "axios";
 import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
-import { lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
+import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 import { ChangeStatusModal } from "../Modals";
+import { TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H } from "~/constant";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -72,7 +73,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     const getData = async () => {
       try {
         const op = tableType === "Ready" ? "=" : "!=";
-        const { data } = await axios.post("http://localhost:5000/api/getRecords", { where: `AND op_readiness ${op} 'Y'` });
+        const { data } = await getSchedulingRecords(op);
         const records: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
 
         const mustBeUnlocked = [];
@@ -107,8 +108,12 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     checkinTimeColumn,
     chartNumberColumn,
     patientNameColumn,
-    opReadinessColumn(tableType),
-    treatment1Column(gridRef),
+    opReadinessColumn(),
+    treatmentColumn(TREATMENT1, TREATMENT1_H, gridRef),
+    treatmentColumn(TREATMENT2, TREATMENT2_H, gridRef),
+    treatmentColumn(TREATMENT3, TREATMENT3_H, gridRef),
+    treatmentColumn(TREATMENT4, TREATMENT4_H, gridRef),
+    treatmentColumn(TREATMENT5, TREATMENT5_H, gridRef),
     quantitytreat1Column,
     treatmentRoomColumn,
     doctorColumn(gridRef),

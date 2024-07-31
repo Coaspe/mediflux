@@ -1,14 +1,9 @@
 /** @format */
 
-import { MRT_Row, MRT_TableInstance, LiteralUnion } from "material-react-table";
-import { Role, SCHEDULING_ROOM_ID, ServerUser, ROLE } from "shared";
+import { Role, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, SIDE_MENU } from "~/constant";
-import { OpReadiness, PRecord, QueryDataName, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
-import { Socket } from "socket.io-client";
+import { OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
-import { UseMutateAsyncFunction, UseMutateFunction } from "@tanstack/react-query";
-import dayjs from "dayjs";
-import { stringify } from "postcss";
 import { AgGridReact } from "ag-grid-react";
 
 export function getMenuName(menu: SideMenu | undefined): string {
@@ -50,23 +45,6 @@ export const getTableType = (opReadiness?: OpReadiness): TableType => {
     return "ExceptReady";
   }
 };
-export const isInvalidOpReadiessWithTable = (precord: PRecord, queryDataName?: QueryDataName, tableType?: TableType): boolean => {
-  if (!precord.opReadiness) {
-    return false;
-  }
-
-  if (queryDataName) {
-    if ((queryDataName === "Ready_PRecord" && precord.opReadiness !== "Y") || (queryDataName === "ExceptReady_PRecord" && precord.opReadiness === "Y")) {
-      return true;
-    }
-  }
-  if (tableType) {
-    if ((tableType === "Ready" && precord.opReadiness !== "Y") || (tableType === "ExceptReady" && precord.opReadiness === "Y")) {
-      return true;
-    }
-  }
-  return false;
-};
 
 export const getBrowserType = () => {
   const userAgent = navigator.userAgent;
@@ -88,122 +66,6 @@ export const getBrowserType = () => {
     return "Unknown";
   }
 };
-
-export const handleEditingCancel = (row: MRT_Row<PRecord>, tableType: TableType, socket: Socket | null, originalPRecord: MutableRefObject<PRecord | undefined>) => {
-  originalPRecord.current = undefined;
-};
-
-export const handleSavePRecord = async (
-  row: MRT_Row<PRecord>,
-  table: MRT_TableInstance<PRecord>,
-  tableType: TableType,
-  values: Record<LiteralUnion<string, string>, any>,
-  originalPRecord: MutableRefObject<PRecord | undefined>,
-  dbUpdateFn: UseMutateAsyncFunction<void, Error, PRecord, void>,
-  createFn: UseMutateFunction<void, Error, PRecord, void>,
-  socket: Socket | null,
-  user: User | undefined
-) => {
-  if (!user) {
-    return;
-  }
-
-  let precord = values as PRecord;
-
-  if (precord.id === undefined) {
-    precord.id = row.original.id;
-  }
-
-  if (originalPRecord.current) {
-    for (let key of Object.keys(row.original)) {
-      if ((typeof row.original[key] === "object" && areObjectsEqual(row.original[key], originalPRecord.current[key])) || row.original[key] !== originalPRecord.current[key]) {
-        precord[key] = originalPRecord.current[key];
-      }
-    }
-  }
-
-  if (precord.opReadiness === "Y" && precord.doctor) {
-    precord.opReadiness = "P";
-  }
-
-  await dbUpdateFn(precord);
-
-  let otherType: TableType = tableType === "Ready" ? "ExceptReady" : "Ready";
-  if (!isInvalidOpReadiessWithTable(precord, undefined, otherType)) {
-    if (otherType === "Ready") {
-      precord.readyTime = dayjs().unix();
-    }
-    createFn(precord);
-    // emitCreateRecords(precord, otherType, socket, SCHEDULING_ROOM_ID);
-    // emitDeleteRecord(precord.id, tableType, socket, user, SCHEDULING_ROOM_ID);
-  } else {
-    // emitSaveRecord(precord, tableType, socket, SCHEDULING_ROOM_ID);
-  }
-
-  table.setEditingRow(null); // exit editing mode
-
-  if (precord.lockingUser === user.id) {
-  }
-
-  originalPRecord.current = undefined;
-};
-
-export const handleCreatePRecord = async (
-  currentTable: MRT_TableInstance<PRecord>,
-  dbCreateFn: UseMutateAsyncFunction<void, Error, PRecord, void>,
-  socket: Socket | null,
-  tableType: TableType,
-  values: Record<LiteralUnion<string, string>, any>,
-  originalPRecord: MutableRefObject<PRecord | undefined>
-) => {
-  let id = 2002;
-  let precord = values as PRecord;
-  let table: MRT_TableInstance<PRecord> = currentTable;
-  if (originalPRecord.current) {
-    for (let key of Object.keys(originalPRecord.current)) {
-      if ((typeof originalPRecord.current[key] === "object" && areObjectsEqual(originalPRecord.current[key], precord[key])) || originalPRecord.current[key] !== precord[key]) {
-        precord[key] = originalPRecord.current[key];
-      }
-    }
-  }
-
-  precord.id = id.toString();
-  id += 1;
-  if (precord.opReadiness == "Y") {
-    precord.readyTime = dayjs().unix();
-  }
-  await dbCreateFn(precord);
-  // emitCreateRecords(precord, tableType, socket, SCHEDULING_ROOM_ID);
-  originalPRecord.current = undefined;
-  table.setCreatingRow(null); //exit creating mode
-};
-
-function areObjectsEqual(obj1: PRecord, obj2: PRecord): boolean {
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
-
-  if (keys1.length !== keys2.length) {
-    return false;
-  }
-
-  for (let key of keys1) {
-    if (!obj2.hasOwnProperty(key)) {
-      return false;
-    }
-
-    if (typeof obj1[key] === "object" && typeof obj2[key] === "object") {
-      if (!areObjectsEqual(obj1[key], obj2[key])) {
-        return false;
-      }
-    } else {
-      if (obj1[key] !== obj2[key]) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
 
 export const convertServerUserToClientUser = (user: ServerUser) => {
   return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;

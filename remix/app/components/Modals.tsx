@@ -7,13 +7,12 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import Box from "@mui/material/Box";
 import DialogTitle from "@mui/material/DialogTitle";
 import React, { MutableRefObject, useEffect, useState } from "react";
 import { OpReadiness, PRecord } from "~/type";
 import { OP_READINESS_ENTRIES } from "~/constant";
-import { opReadinessCell } from "./Table/ColumnRenderers";
+import { OpReadinessCell } from "./Table/ColumnRenderers";
 
 export const SessionExpiredModal = () => {
   const [open, setOpen] = useRecoilState(sessionExpireModalOpenState);
@@ -30,7 +29,8 @@ export const SessionExpiredModal = () => {
     <div
       id="session-expired-modal"
       className={`${open ? "flex" : "hidden"} ${open ? "opacity-100" : "opacity-0"}`}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}>
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}
+    >
       <div className="flex flex-col" style={{ background: "white", padding: "20px", borderRadius: "5px" }}>
         <p>세션이 존재하지 않습니다. 다시 로그인해 주세요.</p>
         <button className="self-end " onClick={handleClose}>
@@ -62,7 +62,7 @@ export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({ recordRef,
         <Box className="flex items-center gap-4 p-4">
           {OP_READINESS_ENTRIES.map((op) => (
             <button onClick={() => setStatus(op)} key={op}>
-              {op !== status ? opReadinessCell(op) : <span>???</span>}
+              {op !== status ? <OpReadinessCell value={op} /> : <span>???</span>}
             </button>
           ))}
         </Box>

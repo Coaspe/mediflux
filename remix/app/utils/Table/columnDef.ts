@@ -1,8 +1,6 @@
 /** @format */
 
-import { MRT_ColumnDef, MRT_Row } from "material-react-table";
-import { TREATMENTS } from "shared";
-import { checkInTimeCell, checkInTimeEdit, opReadinessCell, treatmentEdit, StaffEdit, nameChipCell, opReadinessEdit } from "~/components/Table/ColumnRenderers";
+import { checkInTimeCell, checkInTimeEdit, opReadinessCellWithToolTip, nameChipCell, opReadinessEdit, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
 import {
   DOCTORS,
   CHECK_IN_TIME,
@@ -13,8 +11,6 @@ import {
   PATIENT_NAME_H,
   OP_READINESS,
   OP_READINESS_H,
-  TREATMENT1,
-  TREATMENT1_H,
   QUANTITYTREAT1,
   QUANTITYTREAT1_H,
   TREATMENT_ROOM,
@@ -38,18 +34,15 @@ import {
   COMMENTCAUTION_H,
   SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   SHORT_COLUMN_LENGTH,
-  LONG_LEFT_JUSTIFIED_COLUMN_LENGTH,
   COORDINATOR_H,
 } from "~/constant";
 import { SearchHelp, PRecord, OpReadiness, TableType } from "~/type";
-import { getValueWithId } from "../utils";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { RefObject } from "react";
+import { TREATMENTS } from "shared";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
-  console.log(id, searchHelp);
-
   const record = searchHelp.find((ele) => ele.id === id);
   const title = record?.title;
   return title;
@@ -75,23 +68,30 @@ export const patientNameColumn: ColDef<PRecord, string> = {
   width: SHORT_COLUMN_LENGTH,
 };
 
-export const opReadinessColumn = (tableType: TableType): ColDef<PRecord, OpReadiness> => {
+export const opReadinessColumn = (): ColDef<PRecord, OpReadiness> => {
   return {
     field: OP_READINESS,
     headerName: OP_READINESS_H,
-    cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCell(value),
+    cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCellWithToolTip(value),
     cellEditor: (arg: CustomCellEditorProps) => opReadinessEdit(arg),
     editable: false,
     width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+    cellStyle: () => {
+      return {
+        alignItems: "center",
+        justifyContent: "center",
+        display: "flex",
+      };
+    },
   };
 };
 
-export const treatment1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => {
+export const treatmentColumn = (field: string, headerName: string, gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => {
   return {
-    field: TREATMENT1,
-    headerName: TREATMENT1_H,
-    cellRenderer: ({ value }: CustomCellRendererProps) => getValueWithId(TREATMENTS, value).title,
-    cellEditor: (arg: CustomCellEditorProps) => treatmentEdit(arg, gridRef),
+    field,
+    headerName,
+    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS, gridRef),
     width: 250,
   };
 };
@@ -131,7 +131,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
     headerName,
     width: 150,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
-    cellEditor: ({ onValueChange, data }: CustomCellEditorProps<PRecord, string>) => StaffEdit(data, searchHelp, field, onValueChange, gridRef),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp, gridRef),
     cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipCell(colDef?.headerName, searchHelp, value),
   };
 };

@@ -1,19 +1,19 @@
 /** @format */
 
 import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
-import { Autocomplete, Box, TextField } from "@mui/material";
+import { Autocomplete, Box, TextField, Tooltip } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
-import { CONSULTANT, COORDINATOR, DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, NURSINGSTAFF1, NURSINGSTAFF2, SKINCARESPECIALIST1, SKINCARESPECIALIST2 } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
 import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
-import { ChipPropsColorOverrides, ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
+import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
-import { AgGridReact, CustomCellEditorProps } from "ag-grid-react";
-import { autoCompleteKeyDownCapture } from "~/utils/utils";
+import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
+import { autoCompleteKeyDownCapture, getValueWithId } from "~/utils/utils";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -38,54 +38,6 @@ export const checkInTimeEdit = (value: number, onValueChange: (value: number) =>
   );
 };
 
-const OpReadinessChip = ({
-  label,
-  size,
-  color,
-}: {
-  label: ReactNode;
-  size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides>;
-  color: OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;
-}) => {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLElement | null>(null);
-  const popperRef = useRef<HTMLDivElement | null>(null);
-
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    anchorRef.current = event.target as HTMLElement;
-    setOpen((prev) => !prev);
-  };
-
-  const handleClose = (event: MouseEvent | TouchEvent) => {
-    if (popperRef.current && anchorRef.current && !popperRef.current.contains(event.target as Node) && !anchorRef.current.contains(event.target as Node)) {
-      setOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener("mousedown", handleClose);
-      document.addEventListener("touchstart", handleClose);
-    } else {
-      document.removeEventListener("mousedown", handleClose);
-      document.removeEventListener("touchstart", handleClose);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClose);
-      document.removeEventListener("touchstart", handleClose);
-    };
-  }, [open]);
-
-  return label ? (
-    <div className="w-full h-full flex justify-center items-center">
-      <Chip onClick={handleClick} style={{ cursor: "pointer", transition: "transform 0.2s ease-in-out" }} sx={{ "&:hover": { transform: "scale(1.1)" } }} size={size} label={label} color={color} />
-    </div>
-  ) : (
-    <div></div>
-  );
-};
-
 export const getStatusChipColor = (label: ReactNode): ChipColor => {
   switch (label) {
     case "N":
@@ -100,12 +52,15 @@ export const getStatusChipColor = (label: ReactNode): ChipColor => {
       return "success";
   }
 };
+export const opReadinessCellWithToolTip = (value: OpReadiness) => {
+  return <OpReadinessCell value={value} />;
+};
 
-export const opReadinessCell = (value: OpReadiness) => {
+export const OpReadinessCell = ({ value }: { value: OpReadiness }) => {
   let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = "small";
   let label: ReactNode = value;
   let color: ChipColor = getStatusChipColor(label);
-  return <OpReadinessChip label={label} size={size} color={color} />;
+  return <Chip size={size} label={label} color={color} />;
 };
 
 type OpReadicnessSearchHelp = {
@@ -140,10 +95,15 @@ export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps)
     />
   );
 };
-
-export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, gridRef: RefObject<AgGridReact<PRecord>>) => {
+export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps) => {
+  const number = colDef?.field?.charAt(colDef.field.length - 1);
+  const field: keyof PRecord = `treatmentReady${number}`;
+  return <span className={`${data[field] && "line-through"}`}>{getValueWithId(TREATMENTS, value).title}</span>;
+};
+export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps, searchHelp: SearchHelp[], gridRef: RefObject<AgGridReact<PRecord>>) => {
   const optionRef = useRef("");
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const isFirstKeyDown = useRef<boolean>(true);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -152,7 +112,7 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, g
     }
   }, [inputRef.current]);
 
-  let idx = TREATMENTS.findIndex((t) => t.id === value);
+  let idx = searchHelp.findIndex((t) => t.id === value);
   const onChange = (
     value: {
       id: string;
@@ -164,10 +124,11 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, g
       onValueChange(value.id);
     }
   };
+
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Backspace" && inputRef.current) {
+    if (inputRef.current && isFirstKeyDown.current) {
       inputRef.current.value = "";
-      event.preventDefault(); // Prevent the default backspace behavior
+      isFirstKeyDown.current = false;
     }
   };
 
@@ -179,93 +140,17 @@ export const treatmentEdit = ({ value, onValueChange }: CustomCellEditorProps, g
           optionRef.current = option?.id;
         }
       }}
-      onFocus={() => {
-        inputRef.current?.select();
-      }}
-      options={TREATMENTS}
+      options={searchHelp}
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
-      value={TREATMENTS[idx]}
+      value={searchHelp[idx]}
       onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef)}
       renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}
     />
   );
 };
 
-export const StaffEdit = (original: PRecord, searchHelp: SearchHelp[], fieldname: keyof PRecord | undefined, onValueChange: (value: any) => void, gridRef: RefObject<AgGridReact<PRecord>>) => {
-  const optionRef = useRef("");
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const isFirstRef = useRef(false);
-
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
-
-  let id: string | undefined = "";
-  switch (fieldname) {
-    case DOCTOR:
-      id = original.doctor;
-      break;
-    case SKINCARESPECIALIST1:
-      id = original.skincareSpecialist1;
-      break;
-    case SKINCARESPECIALIST2:
-      id = original.skincareSpecialist2;
-      break;
-    case NURSINGSTAFF1:
-      id = original.nursingStaff1;
-      break;
-    case NURSINGSTAFF2:
-      id = original.nursingStaff2;
-      break;
-    case COORDINATOR:
-      id = original.coordinator;
-      break;
-    case CONSULTANT:
-      id = original.consultant;
-      break;
-    default:
-      break;
-  }
-
-  let idx = searchHelp.findIndex((s) => s.id === id);
-
-  const onChange = (
-    value: {
-      id: string;
-      title: string;
-    } | null
-  ) => {
-    if (value) {
-      onValueChange(value.id);
-    }
-  };
-
-  return (
-    <div className="w-full h-full flex items-center justify-center">
-      <Autocomplete
-        sx={{
-          border: "none",
-          width: "70%",
-        }}
-        onHighlightChange={(event, option) => {
-          if (option?.id) {
-            optionRef.current = option?.id;
-          }
-        }}
-        options={searchHelp}
-        getOptionLabel={(option) => option.title}
-        onChange={(_, value) => onChange(value)}
-        value={searchHelp[idx]}
-        onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef)}
-        renderInput={(params) => <TextField inputRef={inputRef} {...params} variant="standard" />}
-      />
-    </div>
-  );
-};
 export const nameChipRendererByFieldname = (fieldname: string | undefined, searchHelp: SearchHelp[], id?: string) => {
   let color: ChipColor = "warning";
   if (fieldname === undefined) {
