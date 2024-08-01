@@ -6,6 +6,7 @@ import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD }
 import { Socket } from "socket.io-client";
 import { TableType, PRecord, User, FocusedRow } from "~/type";
 import { checkIsInvaildRecord, moveRecord } from "../utils";
+import { RowDataTransaction } from "ag-grid-community";
 
 export const emitLockRecord = async (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {
@@ -92,22 +93,36 @@ export const onSaveRecord = (
     }
   } catch (error) {}
 };
+
+const applyTransactionWithEvent = (gridRef: RefObject<AgGridReact<any>>, transaction: RowDataTransaction, eventFlag: boolean = true) => {
+  if (gridRef.current) {
+    const api = gridRef.current.api;
+    if (eventFlag) {
+      const event = new CustomEvent("onLineChangingTransactionApplied");
+      api.dispatchEvent(event);
+    }
+    api.applyTransaction(transaction);
+  }
+};
+
 export const onCreateRecord = (
   { records, tableType }: { records: PRecord[]; tableType: TableType },
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
   focusedRowRef: MutableRefObject<FocusedRow | null>,
-  isEditingRef: MutableRefObject<boolean>,
+  editingRecordIdRef: MutableRefObject<string>,
   audioRef: RefObject<HTMLAudioElement>
 ) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
-    gridRef.current.api.applyTransaction({
+    const transaction = {
       add: records,
       addIndex: 0,
-    });
-    focusEditingRecord(gridRef, focusedRowRef, isEditingRef);
-    if (audioRef.current) {
+    } as RowDataTransaction<any>;
+
+    applyTransactionWithEvent(gridRef, transaction);
+    focusEditingRecord(gridRef, focusedRowRef, editingRecordIdRef);
+    if (audioRef.current && tableType === "Ready") {
       audioRef.current.play();
     }
   }
@@ -117,25 +132,33 @@ export const onDeleteRecord = (
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
   focusedRowRef: MutableRefObject<FocusedRow | null>,
-  isEditingRef: MutableRefObject<boolean>
+  editingRecordIdRef: MutableRefObject<string>
 ) => {
   if (tableType !== curTableType) return;
   if (gridRef.current) {
-    gridRef.current?.api.applyTransaction({
+    let eventFlag = false;
+    let transaction = {
       remove: recordIds.map((id) => {
-        return {
-          id,
-        } as PRecord;
+        return { id } as PRecord;
       }),
-    });
-    focusEditingRecord(gridRef, focusedRowRef, isEditingRef);
+    } as RowDataTransaction<any>;
+
+    if (editingRecordIdRef.current) {
+      const editingRecordIndex = gridRef.current.api.getRowNode(editingRecordIdRef.current)?.rowIndex;
+      if (typeof editingRecordIndex === "number" && editingRecordIndex >= 0) {
+        const recordIndice = recordIds.map((id) => gridRef.current?.api.getRowNode(id)?.rowIndex);
+        eventFlag = recordIndice.some((value) => typeof value === "number" && value < editingRecordIndex);
+      }
+    }
+    applyTransactionWithEvent(gridRef, transaction, eventFlag);
+    focusEditingRecord(gridRef, focusedRowRef, editingRecordIdRef);
   }
 };
 
-const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, focusedRowRef: MutableRefObject<FocusedRow | null>, isEditingRef: MutableRefObject<boolean>) => {
-  if (gridRef.current && focusedRowRef.current && isEditingRef.current) {
+const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, focusedRowRef: MutableRefObject<FocusedRow | null>, editingRecordIdRef: MutableRefObject<string>) => {
+  if (gridRef.current && focusedRowRef.current && editingRecordIdRef.current) {
     const focusedRecord = gridRef.current.api.getRowNode(focusedRowRef.current.rowId);
-    if (focusedRecord && focusedRecord.rowIndex) {
+    if (focusedRecord && typeof focusedRecord.rowIndex === "number") {
       gridRef.current.api.setFocusedCell(focusedRecord.rowIndex, focusedRowRef.current.cellPosition.column.getId());
       gridRef.current.api.startEditingCell({
         rowIndex: focusedRecord.rowIndex,

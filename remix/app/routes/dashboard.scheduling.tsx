@@ -13,6 +13,7 @@ import { redirect } from "@remix-run/node";
 import { AgGridReact } from "ag-grid-react";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const uuid = await checkSessionExists(request);

@@ -65,7 +65,6 @@ export const SHORT_COLUMN_LENGTH = 110;
 export const SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH = 140;
 export const MEDIUM_COLUMN_LENGTH = 120;
 export const MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH = 150;
-
 export const LONG_JUSTIFIED_CENTER_COLUMN_LENGTH = 190;
 export const LONG_LEFT_JUSTIFIED_COLUMN_LENGTH = 120;
 
@@ -74,7 +73,8 @@ export const FIELDS_NURSE = ["간호1", "간호2"];
 export const FIELDS_DOCTOR = ["의사"];
 export const FIELDS_PAITENT = ["고객 이름"];
 export const OP_READINESS_ENTRIES: OpReadiness[] = ["Y", "N", "C", "P"];
-export const DOCTORS: SearchHelp[] = [
+
+export const DOCTOR_SEARCH_HELP: SearchHelp[] = [
   { id: "1", group: "", title: "이우람" },
   { id: "2", group: "", title: "강승완" },
   { id: "3", group: "", title: "황희찬" },
@@ -82,7 +82,12 @@ export const DOCTORS: SearchHelp[] = [
   { id: "5", group: "", title: "즐라탄" },
   { id: "6", group: "", title: "매머드" },
 ];
-
+export const OPREADINESS_SEARCH_HELP: SearchHelp[] = [
+  { title: "준비 완료 (Y)", id: "Y", group: "" },
+  { title: "준비 미완료 (N)", id: "N", group: "" },
+  { title: "시술 완료 (C)", id: "C", group: "" },
+  { title: "시술 중 (P)", id: "P", group: "" },
+];
 export const EMPTY_SEARCHHELP: SearchHelp = {
   id: "",
   group: "",

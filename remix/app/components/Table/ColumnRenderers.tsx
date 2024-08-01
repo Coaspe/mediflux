@@ -1,7 +1,7 @@
 /** @format */
 
 import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
-import { Autocomplete, Box, TextField, Tooltip } from "@mui/material";
+import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
 import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT } from "~/constant";
@@ -9,7 +9,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { ReactNode, RefObject, useEffect, useRef, useState } from "react";
+import { ReactNode, RefObject, useEffect, useRef } from "react";
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
@@ -63,38 +63,6 @@ export const OpReadinessCell = ({ value }: { value: OpReadiness }) => {
   return <Chip size={size} label={label} color={color} />;
 };
 
-type OpReadicnessSearchHelp = {
-  label: string;
-  value: OpReadiness;
-};
-const OPREADINESSE_SEARCH_HELP: OpReadicnessSearchHelp[] = [
-  { label: "준비 완료 (Y)", value: "Y" },
-  { label: "준비 미완료 (N)", value: "N" },
-  { label: "시술 완료 (C)", value: "C" },
-  { label: "시술 중 (P)", value: "P" },
-];
-
-export const opReadinessEdit = ({ value, onValueChange }: CustomCellEditorProps) => {
-  const onChange = (option: OpReadicnessSearchHelp | null) => {
-    if (option) {
-      onValueChange(option.value);
-    }
-  };
-  let idx = OPREADINESSE_SEARCH_HELP.findIndex((element) => element.value === value);
-
-  let options: OpReadicnessSearchHelp[] = OPREADINESSE_SEARCH_HELP;
-
-  return (
-    <Autocomplete
-      sx={{ width: "100%" }}
-      options={options}
-      getOptionLabel={(option) => option.label}
-      onChange={(_, option) => onChange(option)}
-      value={OPREADINESSE_SEARCH_HELP[idx]}
-      renderInput={(params) => <TextField {...params} variant="standard" />}
-    />
-  );
-};
 export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
   const field: keyof PRecord = `treatmentReady${number}`;
@@ -122,10 +90,12 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
   ) => {
     if (value) {
       onValueChange(value.id);
+      if (value.id === "Y") {
+      }
     }
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = () => {
     if (inputRef.current && isFirstKeyDown.current) {
       inputRef.current.value = "";
       isFirstKeyDown.current = false;

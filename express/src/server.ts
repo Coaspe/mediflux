@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, deleteAllChart, getUserByLoginID, updateQuery } from "./utils.js";
+import { deconstructRecord, updateQuery } from "./utils.js";
 import { KEYOFSERVERPRECORD } from "./contants.js";
 
 dotenv.config();

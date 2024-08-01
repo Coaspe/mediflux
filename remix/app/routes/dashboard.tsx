@@ -1,6 +1,6 @@
 /** @format */
 
-import { Link, Outlet, useActionData, useLoaderData, useLocation } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
@@ -10,7 +10,7 @@ import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
 import { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { checkSessionExists, destroyUserSession, getUserSession } from "~/services/session.server";
+import { checkSessionExists, destroyUserSession } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
