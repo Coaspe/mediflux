@@ -9,10 +9,14 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import Box from "@mui/material/Box";
 import DialogTitle from "@mui/material/DialogTitle";
-import React, { MutableRefObject, useEffect, useState } from "react";
-import { OpReadiness, PRecord } from "~/type";
-import { OP_READINESS_ENTRIES } from "~/constant";
-import { OpReadinessCell } from "./Table/ColumnRenderers";
+import React, { MutableRefObject, RefObject, useEffect, useState } from "react";
+import { PRecord, SearchHelp } from "~/type";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
+import { AgGridReact } from "ag-grid-react";
+import { TREATMENTS } from "shared";
+import { updateRecord } from "~/utils/request.client";
+import dayjs from "dayjs";
 
 export const SessionExpiredModal = () => {
   const [open, setOpen] = useRecoilState(sessionExpireModalOpenState);
@@ -41,37 +45,101 @@ export const SessionExpiredModal = () => {
   );
 };
 
-type ChangeStatusModalProps = {
-  recordRef: MutableRefObject<PRecord | null>;
-  open: boolean;
-  handleClose: () => void;
-  handleComfirm: () => void;
+type TreatmentComponentProps = {
+  onClick: () => void;
+  number: number;
+  selectedTreatment: number | null;
+  treatmentId: string;
 };
-export const ChangeStatusModal: React.FC<ChangeStatusModalProps> = ({ recordRef, open, handleClose, handleComfirm }) => {
-  const [status, setStatus] = useState<OpReadiness | undefined>(recordRef.current?.opReadiness);
-  const [treatmentsVisible, setTreatmentVisible] = useState(false);
+const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number, selectedTreatment, treatmentId }) => {
+  const [treatment, setTreatment] = useState<SearchHelp | undefined>();
 
   useEffect(() => {
-    setStatus(recordRef.current?.opReadiness);
-  }, [recordRef.current]);
+    setTreatment(TREATMENTS.find((ele) => ele.id == treatmentId));
+  }, []);
+
+  return (
+    treatment && (
+      <Box
+        onClick={onClick}
+        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${
+          selectedTreatment != null && selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"
+        }`}
+      >
+        <Typography className="text-sm">{`시술${number}`}</Typography>
+        <Divider sx={{ bgcolor: "grey" }} orientation="vertical" flexItem variant="middle" />
+        <Typography>{treatment.title}</Typography>
+      </Box>
+    )
+  );
+};
+
+type SetTreatmentReadyModalProps = {
+  open: boolean;
+  recordIdRef: MutableRefObject<string | null>;
+  gridRef: RefObject<AgGridReact<PRecord>>;
+  handleClose: () => void;
+};
+export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, gridRef, recordIdRef }) => {
+  const [record, setRecord] = useState<PRecord | undefined>(undefined);
+  const [selectedTreatment, setSelectedTreatment] = useState<number | null>(null);
+  const [header, setHeader] = useState<string>();
+
+  useEffect(() => {
+    if (gridRef.current && recordIdRef.current) {
+      const record = gridRef.current.api.getRowNode(recordIdRef.current);
+      setRecord(record?.data);
+      setHeader(() => {
+        const data = record?.data;
+        if (data?.patientName && data.chartNum) {
+          return `${data?.patientName} - Chart #${data?.chartNum}`;
+        } else if (data?.patientName) {
+          return data?.patientName;
+        } else if (data?.chartNum) {
+          return data?.chartNum;
+        }
+        return "";
+      });
+    }
+  }, [gridRef.current, recordIdRef.current]);
+
+  const handleConfirm = async () => {
+    try {
+      if (!record || !selectedTreatment) return;
+      const time = dayjs().unix();
+      record[`treatment${selectedTreatment}`] = time;
+      record["opReadiness"] = "Y";
+      const result = await updateRecord(record);
+
+      if (result.status == 200) {
+        gridRef.current?.api.applyTransaction({
+          update: [record],
+        });
+      }
+    } catch (error) {}
+  };
 
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-      <DialogTitle id="alert-dialog-title">{"상태 변경"}</DialogTitle>
+      <DialogTitle id="alert-dialog-title">{"시술 준비 완료"}</DialogTitle>
       <DialogContent>
-        <Box className="flex items-center gap-4 p-4">
-          {OP_READINESS_ENTRIES.map((op) => (
-            <button onClick={() => setStatus(op)} key={op}>
-              {op !== status ? <OpReadinessCell value={op} /> : <span>???</span>}
-            </button>
-          ))}
+        <Box className="flex items-center gap-4 p-4 flex-col min-w-[300px]">
+          <Box className="flex flex-col w-full">
+            <Typography className="font-bold">{header}</Typography>
+          </Box>
+          {Array.from({ length: 5 }, (_, i) => i + 1).map(
+            (number) =>
+              record &&
+              record[`treatment${number}`] && (
+                <TreatmentComponent key={number} onClick={() => setSelectedTreatment(number)} number={number} treatmentId={record[`treatment${number}`]} selectedTreatment={selectedTreatment} />
+              )
+          )}
         </Box>
-        <Box></Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Disagree</Button>
-        <Button onClick={handleClose} autoFocus>
-          Agree
+        <Button onClick={handleClose}>취소</Button>
+        <Button disabled={selectedTreatment == null} onClick={handleClose} autoFocus>
+          확인
         </Button>
       </DialogActions>
     </Dialog>

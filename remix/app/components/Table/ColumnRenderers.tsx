@@ -68,7 +68,7 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps) 
   const field: keyof PRecord = `treatmentReady${number}`;
   return <span className={`${data[field] && "line-through"}`}>{getValueWithId(TREATMENTS, value).title}</span>;
 };
-export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps, searchHelp: SearchHelp[], gridRef: RefObject<AgGridReact<PRecord>>) => {
+export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps, searchHelp: SearchHelp[], gridRef: RefObject<AgGridReact<PRecord>>, setModalOpen?: () => void) => {
   const optionRef = useRef("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isFirstKeyDown = useRef<boolean>(true);
@@ -81,6 +81,7 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
   }, [inputRef.current]);
 
   let idx = searchHelp.findIndex((t) => t.id === value);
+
   const onChange = (
     value: {
       id: string;
@@ -89,9 +90,8 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
     } | null
   ) => {
     if (value) {
+      setModalOpen?.();
       onValueChange(value.id);
-      if (value.id === "Y") {
-      }
     }
   };
 
@@ -105,7 +105,7 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
   return (
     <Autocomplete
       sx={{ width: "100%" }}
-      onHighlightChange={(event, option) => {
+      onHighlightChange={(_, option) => {
         if (option?.id) {
           optionRef.current = option?.id;
         }
@@ -115,7 +115,10 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
       value={searchHelp[idx]}
-      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef)}
+      onClick={(event) => {
+        console.log(event);
+      }}
+      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef, setModalOpen)}
       renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}
     />
   );

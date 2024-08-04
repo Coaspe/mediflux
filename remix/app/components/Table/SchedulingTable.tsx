@@ -1,5 +1,3 @@
-/** @format */
-
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
@@ -33,7 +31,7 @@ import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
 import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
-import { ChangeStatusModal } from "../Modals";
+import { SetTreatmentReadyModal } from "../Modals";
 import { TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H } from "~/constant";
 
 type SchedulingTableProps = {
@@ -46,12 +44,11 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
-  const [openChangeStatusModal, setOpenChangeStatusModal] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const focusedRowRef = useRef<FocusedRow | null>(null);
   const editingRecordIdRef = useRef("");
-  const changeStatusRef = useRef<PRecord | null>(null);
   const onLineChangingdEditingStoppedRef = useRef(false);
+  const [setTreatmentReadyModalOpen, setSetTreatmentReadyModalOpen] = useState(false);
 
   // Add custom add tracnsaction event listener
   useEffect(() => {
@@ -124,13 +121,18 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       getData();
     }
   }, [user, socket]);
-
+  const handleCloseSetTreatmentReadyModal = () => {
+    setSetTreatmentReadyModalOpen(false);
+  };
+  const handleOpenSetTreatmentReadyModal = () => {
+    setSetTreatmentReadyModalOpen(true);
+  };
   const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
     { field: "id", headerName: "id", hide: true },
     checkinTimeColumn,
     chartNumberColumn,
     patientNameColumn,
-    opReadinessColumn(gridRef),
+    opReadinessColumn(gridRef, handleOpenSetTreatmentReadyModal),
     treatmentColumn(TREATMENT1, TREATMENT1_H, gridRef),
     treatmentColumn(TREATMENT2, TREATMENT2_H, gridRef),
     treatmentColumn(TREATMENT3, TREATMENT3_H, gridRef),
@@ -171,8 +173,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
-    console.log("Stopped");
-
+    if (event.colDef.field == "opReadiness" && event.oldValue != "Y" && event.newValue == "Y") {
+      return;
+    }
     if (!event.data || onLineChangingdEditingStoppedRef.current) {
       onLineChangingdEditingStoppedRef.current = false;
       return;
@@ -225,11 +228,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
     }
   };
-  const handleCloseChangeStatusModal = () => setOpenChangeStatusModal(false);
-
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
-      <ChangeStatusModal recordRef={changeStatusRef} open={openChangeStatusModal} handleClose={handleCloseChangeStatusModal} handleComfirm={() => {}} />
+      <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} recordIdRef={editingRecordIdRef} />
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
       <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
       <AgGridReact

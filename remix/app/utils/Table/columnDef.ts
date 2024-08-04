@@ -69,12 +69,12 @@ export const patientNameColumn: ColDef<PRecord, string> = {
   width: SHORT_COLUMN_LENGTH,
 };
 
-export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, OpReadiness> => {
+export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>, setOpenModal: ()=>void): ColDef<PRecord, OpReadiness> => {
   return {
     field: OP_READINESS,
     headerName: OP_READINESS_H,
     cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCellWithToolTip(value),
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP, gridRef),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP, gridRef, setOpenModal),
     width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
     cellStyle: () => {
       return {
