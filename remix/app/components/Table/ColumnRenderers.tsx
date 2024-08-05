@@ -1,6 +1,4 @@
-/** @format */
-
-import { ChipColor, OpReadiness, PRecord, SearchHelp } from "../../type";
+import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
@@ -63,20 +61,20 @@ export const OpReadinessCell = ({ value }: { value: OpReadiness }) => {
   return <Chip size={size} label={label} color={color} />;
 };
 
-export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps) => {
+export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
-  const field: keyof PRecord = `treatmentReady${number}`;
-  return <span className={`${data[field] && "line-through"}`}>{getValueWithId(TREATMENTS, value).title}</span>;
+  const readyTime: keyof PRecord = `treatmentReady${number}`;
+  const endTime: keyof PRecord = `treatmentEnd${number}`;
+  return <span className={`${((tableType === "ExceptReady" && data[readyTime]) || (tableType === "Ready" && data[endTime])) && "line-through"}`}>{getValueWithId(TREATMENTS, value).title}</span>;
 };
-export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps, searchHelp: SearchHelp[], gridRef: RefObject<AgGridReact<PRecord>>, setModalOpen?: () => void) => {
-  const optionRef = useRef("");
+export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps, searchHelp: SearchHelp[], setModalOpen?: () => void) => {
+  const optionRef = useRef<SearchHelp | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isFirstKeyDown = useRef<boolean>(true);
 
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
-      inputRef.current.select();
     }
   }, [inputRef.current]);
 
@@ -90,8 +88,10 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
     } | null
   ) => {
     if (value) {
-      setModalOpen?.();
-      onValueChange(value.id);
+      if (value.title === "준비 완료 (Y)") {
+        setModalOpen?.();
+        onValueChange(value.id);
+      }
     }
   };
 
@@ -106,19 +106,16 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
     <Autocomplete
       sx={{ width: "100%" }}
       onHighlightChange={(_, option) => {
-        if (option?.id) {
-          optionRef.current = option?.id;
-        }
+        console.log(option);
+
+        optionRef.current = option;
       }}
       options={searchHelp}
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
       value={searchHelp[idx]}
-      onClick={(event) => {
-        console.log(event);
-      }}
-      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, gridRef, optionRef, setModalOpen)}
+      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, optionRef, setModalOpen)}
       renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}
     />
   );

@@ -110,7 +110,7 @@ export const onCreateRecord = (
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
   focusedRowRef: MutableRefObject<FocusedRow | null>,
-  editingRecordIdRef: MutableRefObject<string>,
+  editingRecordIdRef: MutableRefObject<PRecord | null>,
   audioRef: RefObject<HTMLAudioElement>
 ) => {
   if (curTableType !== tableType) return;
@@ -132,7 +132,7 @@ export const onDeleteRecord = (
   gridRef: RefObject<AgGridReact<any>>,
   curTableType: TableType,
   focusedRowRef: MutableRefObject<FocusedRow | null>,
-  editingRecordIdRef: MutableRefObject<string>
+  editingRecordRef: MutableRefObject<PRecord | null>
 ) => {
   if (tableType !== curTableType) return;
   if (gridRef.current) {
@@ -143,20 +143,20 @@ export const onDeleteRecord = (
       }),
     } as RowDataTransaction<any>;
 
-    if (editingRecordIdRef.current) {
-      const editingRecordIndex = gridRef.current.api.getRowNode(editingRecordIdRef.current)?.rowIndex;
+    if (editingRecordRef.current) {
+      const editingRecordIndex = gridRef.current.api.getRowNode(editingRecordRef.current.id)?.rowIndex;
       if (typeof editingRecordIndex === "number" && editingRecordIndex >= 0) {
         const recordIndice = recordIds.map((id) => gridRef.current?.api.getRowNode(id)?.rowIndex);
         eventFlag = recordIndice.some((value) => typeof value === "number" && value < editingRecordIndex);
       }
     }
     applyTransactionWithEvent(gridRef, transaction, eventFlag);
-    focusEditingRecord(gridRef, focusedRowRef, editingRecordIdRef);
+    focusEditingRecord(gridRef, focusedRowRef, editingRecordRef);
   }
 };
 
-const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, focusedRowRef: MutableRefObject<FocusedRow | null>, editingRecordIdRef: MutableRefObject<string>) => {
-  if (gridRef.current && focusedRowRef.current && editingRecordIdRef.current) {
+const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, focusedRowRef: MutableRefObject<FocusedRow | null>, editingRecordRef: MutableRefObject<PRecord | null>) => {
+  if (gridRef.current && focusedRowRef.current && editingRecordRef.current) {
     const focusedRecord = gridRef.current.api.getRowNode(focusedRowRef.current.rowId);
     if (focusedRecord && typeof focusedRecord.rowIndex === "number") {
       gridRef.current.api.setFocusedCell(focusedRecord.rowIndex, focusedRowRef.current.cellPosition.column.getId());

@@ -134,18 +134,13 @@ export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
   return { etrcondition, rtecondition1, rtecondition2 };
 };
 
-export const autoCompleteKeyDownCapture = (
-  event: any,
-  onValueChange: (value: any) => void,
-  gridRef: RefObject<AgGridReact<PRecord>>,
-  optionRef: MutableRefObject<string>,
-  setModalOpen?: () => void
-) => {
+export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: any) => void, optionRef: MutableRefObject<SearchHelp | null>, setModalOpen?: () => void) => {
   if (event.key === "Enter") {
-    event.stopPropagation();
-    // setModalOpen?.();
-    // onValueChange(optionRef.current);
-    // gridRef.current?.api.stopEditing(false);
+    console.log(optionRef.current);
+    onValueChange(optionRef.current?.id);
+    if (optionRef.current?.title == "준비 완료 (Y)") {
+      setModalOpen?.();
+    }
   } else if (event.key === "Tab") {
     if (optionRef.current) {
       onValueChange(optionRef.current);

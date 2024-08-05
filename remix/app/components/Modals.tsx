@@ -15,7 +15,6 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { AgGridReact } from "ag-grid-react";
 import { TREATMENTS } from "shared";
-import { updateRecord } from "~/utils/request.client";
 import dayjs from "dayjs";
 
 export const SessionExpiredModal = () => {
@@ -76,18 +75,18 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
 
 type SetTreatmentReadyModalProps = {
   open: boolean;
-  recordIdRef: MutableRefObject<string | null>;
+  recordRef: MutableRefObject<PRecord | null>;
   gridRef: RefObject<AgGridReact<PRecord>>;
   handleClose: () => void;
 };
-export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, gridRef, recordIdRef }) => {
+export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, gridRef, recordRef }) => {
   const [record, setRecord] = useState<PRecord | undefined>(undefined);
   const [selectedTreatment, setSelectedTreatment] = useState<number | null>(null);
   const [header, setHeader] = useState<string>();
 
   useEffect(() => {
-    if (gridRef.current && recordIdRef.current) {
-      const record = gridRef.current.api.getRowNode(recordIdRef.current);
+    if (gridRef.current && recordRef.current) {
+      const record = gridRef.current.api.getRowNode(recordRef.current.id);
       setRecord(record?.data);
       setHeader(() => {
         const data = record?.data;
@@ -101,22 +100,37 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
         return "";
       });
     }
-  }, [gridRef.current, recordIdRef.current]);
+  }, [gridRef.current, recordRef.current]);
 
   const handleConfirm = async () => {
     try {
       if (!record || !selectedTreatment) return;
       const time = dayjs().unix();
-      record[`treatment${selectedTreatment}`] = time;
+      record[`treatmentReady${selectedTreatment}`] = time;
       record["opReadiness"] = "Y";
-      const result = await updateRecord(record);
-
-      if (result.status == 200) {
-        gridRef.current?.api.applyTransaction({
-          update: [record],
-        });
+      const row = gridRef.current?.api.getRowNode(record.id);
+      if (row && row.rowIndex !== null) {
+        row?.updateData(record);
+        gridRef.current?.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
+        gridRef.current?.api.stopEditing(true);
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      handleClose();
+    }
+  };
+
+  const handleCancel = () => {
+    try {
+      if (!record) return;
+      record["opReadiness"] = recordRef.current?.opReadiness;
+      gridRef.current?.api.applyTransaction({
+        update: [record],
+      });
+    } catch (error) {
+    } finally {
+      handleClose();
+    }
   };
 
   return (
@@ -137,8 +151,8 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>취소</Button>
-        <Button disabled={selectedTreatment == null} onClick={handleClose} autoFocus>
+        <Button onClick={handleCancel}>취소</Button>
+        <Button disabled={selectedTreatment == null} onClick={handleConfirm} autoFocus>
           확인
         </Button>
       </DialogActions>

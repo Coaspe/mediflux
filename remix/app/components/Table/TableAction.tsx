@@ -34,7 +34,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
 
       const { rows } = await insertRecords([newRecord]);
 
-      if (rows.length > 0) {
+      if (rows && rows.length > 0) {
         newRecord = convertServerPRecordtToPRecord(rows[0]);
         gridRef.current.api.applyTransaction({
           add: [newRecord],

@@ -145,7 +145,9 @@ app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0
 app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const records = req.body.records;
     try {
-        const valuesTemplate = records.map((_, i) => `(${Array.from({ length: KEYOFSERVERPRECORD.length - 2 }, (_, j) => `$${i * 35 + j + 1}`).join(", ")})`).join(", ");
+        const valuesTemplate = records
+            .map((_, i) => `(${Array.from({ length: KEYOFSERVERPRECORD.length - 2 }, (_, j) => `$${i * KEYOFSERVERPRECORD.length + j + 1}`).join(", ")})`)
+            .join(", ");
         const query = `
         INSERT INTO gn_ss_bailor.chart_schedule (
         ${KEYOFSERVERPRECORD.slice(2).join(", ")}

@@ -18,7 +18,9 @@ export const getChart = async (pool: pkg.Pool) => {
 export const deleteAllChart = async (pool: pkg.Pool) => {
   return await pool.query("delete from gn_ss_bailor.chart_schedule");
 };
-
+export const convertTime = (time: number | undefined) => {
+  return time ? new Date(time * 1000) : undefined;
+};
 export const deconstructRecord = (record: any) => {
   const {
     checkInTime,
@@ -60,7 +62,7 @@ export const deconstructRecord = (record: any) => {
   } = record;
 
   const retVal = [
-    new Date(checkInTime * 1000),
+    convertTime(checkInTime),
     chartNum,
     patientName,
     opReadiness,
@@ -86,16 +88,16 @@ export const deconstructRecord = (record: any) => {
     commentCaution,
     lockingUser,
     deleteYN,
-    treatmentReady1,
-    treatmentReady2,
-    treatmentReady3,
-    treatmentReady4,
-    treatmentReady5,
-    treatmentEnd1,
-    treatmentEnd2,
-    treatmentEnd3,
-    treatmentEnd4,
-    treatmentEnd5,
+    convertTime(treatmentReady1),
+    convertTime(treatmentReady2),
+    convertTime(treatmentReady3),
+    convertTime(treatmentReady4),
+    convertTime(treatmentReady5),
+    convertTime(treatmentEnd1),
+    convertTime(treatmentEnd2),
+    convertTime(treatmentEnd3),
+    convertTime(treatmentEnd4),
+    convertTime(treatmentEnd5),
   ];
 
   const { id } = record;

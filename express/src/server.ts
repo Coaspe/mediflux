@@ -161,7 +161,9 @@ app.post("/api/insertRecords", async (req, res) => {
   const records = req.body.records;
 
   try {
-    const valuesTemplate = records.map((_: any, i: number) => `(${Array.from({ length: KEYOFSERVERPRECORD.length - 2 }, (_, j) => `$${i * 35 + j + 1}`).join(", ")})`).join(", ");
+    const valuesTemplate = records
+      .map((_: any, i: number) => `(${Array.from({ length: KEYOFSERVERPRECORD.length - 2 }, (_, j) => `$${i * KEYOFSERVERPRECORD.length + j + 1}`).join(", ")})`)
+      .join(", ");
 
     const query = `
         INSERT INTO gn_ss_bailor.chart_schedule (

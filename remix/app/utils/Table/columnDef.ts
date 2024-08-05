@@ -37,7 +37,7 @@ import {
   OPREADINESS_SEARCH_HELP,
   DOCTOR_SEARCH_HELP,
 } from "~/constant";
-import { SearchHelp, PRecord, OpReadiness } from "~/type";
+import { SearchHelp, PRecord, OpReadiness, TableType } from "~/type";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { RefObject } from "react";
@@ -69,12 +69,12 @@ export const patientNameColumn: ColDef<PRecord, string> = {
   width: SHORT_COLUMN_LENGTH,
 };
 
-export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>, setOpenModal: ()=>void): ColDef<PRecord, OpReadiness> => {
+export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>, setOpenModal: () => void): ColDef<PRecord, OpReadiness> => {
   return {
     field: OP_READINESS,
     headerName: OP_READINESS_H,
     cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCellWithToolTip(value),
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP, gridRef, setOpenModal),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP, setOpenModal),
     width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
     cellStyle: () => {
       return {
@@ -86,12 +86,12 @@ export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>, setO
   };
 };
 
-export const treatmentColumn = (field: string, headerName: string, gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => {
+export const treatmentColumn = (field: string, headerName: string, gridRef: RefObject<AgGridReact<PRecord>>, tableType: TableType): ColDef<PRecord, string> => {
   return {
     field,
     headerName,
-    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg),
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS, gridRef),
+    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS),
     width: 250,
   };
 };
@@ -132,7 +132,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
     headerName,
     width: 150,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp, gridRef),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipCell(colDef?.headerName, searchHelp, value),
   };
 };
