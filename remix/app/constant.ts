@@ -72,7 +72,6 @@ export const FIELDS_STAFF = ["피부1", "피부2", "코디", "상담"];
 export const FIELDS_NURSE = ["간호1", "간호2"];
 export const FIELDS_DOCTOR = ["의사"];
 export const FIELDS_PAITENT = ["고객 이름"];
-export const OP_READINESS_ENTRIES: OpReadiness[] = ["Y", "N", "C", "P"];
 
 export const DOCTOR_SEARCH_HELP: SearchHelp[] = [
   { id: "1", group: "", title: "이우람" },
@@ -82,11 +81,21 @@ export const DOCTOR_SEARCH_HELP: SearchHelp[] = [
   { id: "5", group: "", title: "즐라탄" },
   { id: "6", group: "", title: "매머드" },
 ];
+export const OPREADINESS_Y: OpReadiness = "Y";
+export const OPREADINESS_N: OpReadiness = "N";
+export const OPREADINESS_C: OpReadiness = "C";
+export const OPREADINESS_P: OpReadiness = "P";
+export const OPREADINESS_ENTRIES: OpReadiness[] = [OPREADINESS_Y, OPREADINESS_N, OPREADINESS_C, OPREADINESS_P];
+export const OPREADINESS_Y_TITLE = "준비 완료 (Y)";
+export const OPREADINESS_N_TITLE = "준비 미완료 (N)";
+export const OPREADINESS_C_TITLE = "시술 완료 (C)";
+export const OPREADINESS_P_TITLE = "시술 중 (P)";
+
 export const OPREADINESS_SEARCH_HELP: SearchHelp[] = [
-  { title: "준비 완료 (Y)", id: "Y", group: "" },
-  { title: "준비 미완료 (N)", id: "N", group: "" },
-  { title: "시술 완료 (C)", id: "C", group: "" },
-  { title: "시술 중 (P)", id: "P", group: "" },
+  { title: OPREADINESS_Y_TITLE, id: OPREADINESS_Y, group: "" },
+  { title: OPREADINESS_N_TITLE, id: OPREADINESS_N, group: "" },
+  { title: OPREADINESS_C_TITLE, id: OPREADINESS_C, group: "" },
+  { title: OPREADINESS_P_TITLE, id: OPREADINESS_P, group: "" },
 ];
 export const EMPTY_SEARCHHELP: SearchHelp = {
   id: "",

@@ -1,16 +1,18 @@
+/** @format */
+
 import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_Y_TITLE } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { ReactNode, RefObject, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
-import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
+import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { autoCompleteKeyDownCapture, getValueWithId } from "~/utils/utils";
 
 export const checkInTimeCell = (value: number) => {
@@ -50,11 +52,8 @@ export const getStatusChipColor = (label: ReactNode): ChipColor => {
       return "success";
   }
 };
-export const opReadinessCellWithToolTip = (value: OpReadiness) => {
-  return <OpReadinessCell value={value} />;
-};
 
-export const OpReadinessCell = ({ value }: { value: OpReadiness }) => {
+export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = "small";
   let label: ReactNode = value;
   let color: ChipColor = getStatusChipColor(label);
@@ -88,7 +87,7 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
     } | null
   ) => {
     if (value) {
-      if (value.title === "준비 완료 (Y)") {
+      if (value.title === OPREADINESS_Y_TITLE) {
         setModalOpen?.();
         onValueChange(value.id);
       }
@@ -106,8 +105,6 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
     <Autocomplete
       sx={{ width: "100%" }}
       onHighlightChange={(_, option) => {
-        console.log(option);
-
         optionRef.current = option;
       }}
       options={searchHelp}

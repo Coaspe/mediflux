@@ -1,12 +1,12 @@
 /** @format */
 
 import { AgGridReact } from "ag-grid-react";
-import { PRecord, TableType } from "../../type";
+import { PRecord, ServerPRecord, TableType } from "../../type";
 import { FC, RefObject, useState } from "react";
 import { SCHEDULING_ROOM_ID } from "shared";
-import { emitCreateRecords, emitDeleteRecords } from "~/utils/Table/socket";
+import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
-import { getAllRecords, hideRecords, insertRecords } from "~/utils/request.client";
+import { hideRecords, insertRecords, lockOrUnlockRecords } from "~/utils/request.client";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
@@ -27,6 +27,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   const user = useRecoilValue(userState);
   const [selectedRows, setSeletedRows] = useState<string[]>([]);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
+  const [open, setOpen] = useState(false);
 
   const onAddRecord = async () => {
     if (gridRef.current) {
@@ -75,18 +76,39 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     handleCloseDeleteModal();
   };
 
-  const onGetAllRecords = async () => {
-    const results = await getAllRecords();
-    return results.data.records.rows;
+  const handleCloseDeleteModal = async () => {
+    if (selectedRows.length > 0 && user) {
+      const result = await lockOrUnlockRecords(selectedRows, null);
+      if (result.status === 200) {
+        emitSaveRecord(
+          result.data.map((record: ServerPRecord) => convertServerPRecordtToPRecord(record)),
+          tableType,
+          socket,
+          SCHEDULING_ROOM_ID
+        );
+      }
+    }
+    setOpen(false);
   };
-
-  const [open, setOpen] = useState(false);
-  const handleCloseDeleteModal = () => setOpen(false);
-  const handleOpenDeleteModal = () => {
-    if (gridRef.current) {
-      const records = gridRef.current.api.getSelectedRows();
-      setSeletedRows(records.map((records) => records.id));
-      setOpen(true);
+  const handleOpenDeleteModal = async () => {
+    if (gridRef.current && user) {
+      try {
+        const records = gridRef.current.api.getSelectedRows();
+        const ids = records.map((records) => records.id);
+        setSeletedRows(ids);
+        const result = await lockOrUnlockRecords(ids, user.id);
+        if (result.status === 200) {
+          emitSaveRecord(
+            result.data.map((record: ServerPRecord) => convertServerPRecordtToPRecord(record)),
+            tableType,
+            socket,
+            SCHEDULING_ROOM_ID
+          );
+          setOpen(true);
+        }
+      } catch (error) {
+        setGlobalSnackBar({ open: true, msg: "서버 오류", severity: "error" });
+      }
     }
   };
 

@@ -1,9 +1,11 @@
+/** @format */
+
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { MutableRefObject, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent } from "ag-grid-community";
-import { FocusedRow, PRecord, TableType } from "~/type";
+import { PRecord, PRecordWithFocusedRow, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -32,7 +34,21 @@ import { TableAction } from "./TableAction";
 import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
 import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 import { SetTreatmentReadyModal } from "../Modals";
-import { OP_READINESS, TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H } from "~/constant";
+import {
+  OPREADINESS_P,
+  OPREADINESS_Y,
+  OP_READINESS,
+  TREATMENT1,
+  TREATMENT1_H,
+  TREATMENT2,
+  TREATMENT2_H,
+  TREATMENT3,
+  TREATMENT3_H,
+  TREATMENT4,
+  TREATMENT4_H,
+  TREATMENT5,
+  TREATMENT5_H,
+} from "~/constant";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -40,20 +56,25 @@ type SchedulingTableProps = {
   theOtherGridRef: RefObject<AgGridReact<PRecord>>;
   tableType: TableType;
 };
+
 const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const focusedRowRef = useRef<FocusedRow | null>(null);
-  const editingRecordRef = useRef<PRecord | null>(null);
-  const onLineChangingdEditingStoppedRef = useRef(false);
   const [setTreatmentReadyModalOpen, setSetTreatmentReadyModalOpen] = useState(false);
-
-  // Add custom add tracnsaction event listener
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
+  const lastKeyPressedRef = useRef<string | null>(null);
+  const onLineChangingdEditingStoppedRef = useRef(false);
+  const onKeyDown = (event: KeyboardEvent) => {
+    if (editingRowRef.current) {
+      lastKeyPressedRef.current = event.key;
+    }
+  };
+  // Add custom tracnsaction event listener
   useEffect(() => {
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
-      if (editingRecordRef.current) {
+      if (editingRowRef.current) {
         onLineChangingdEditingStoppedRef.current = true;
       }
     };
@@ -61,12 +82,14 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     if (gridRef.current && gridRef.current.api) {
       const api = gridRef.current.api;
       api.addEventListener<any>("onLineChangingTransactionApplied", () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
+      document.addEventListener("keydown", onKeyDown);
     }
 
     return () => {
       if (gridRef.current && gridRef.current.api) {
         const api = gridRef.current.api;
         api.removeEventListener<any>("onLineChangingTransactionApplied", () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
+        document.removeEventListener("keydown", onKeyDown);
       }
     };
   }, [gridRef.current]);
@@ -76,8 +99,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
     socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, theOtherGridRef, tableType));
-    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, focusedRowRef, editingRecordRef, audioRef));
-    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, focusedRowRef, editingRecordRef));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, editingRowRef, audioRef));
+    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, editingRowRef));
 
     return () => {
       socket.off(LOCK_RECORD);
@@ -175,30 +198,37 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
+    if (lastKeyPressedRef.current === "Tab" && editingRowRef.current) {
+      lastKeyPressedRef.current = null;
+      return;
+    }
     // Open treatment ready modal
-    if (event.colDef.field == OP_READINESS && event.oldValue != "Y" && event.newValue == "Y") {
+    if (event.colDef.field == OP_READINESS && event.oldValue != OPREADINESS_Y && event.newValue == OPREADINESS_Y) {
       return;
     }
 
+    // Prevents edit mode to be stopped when line changed.
     if (!event.data || onLineChangingdEditingStoppedRef.current) {
       onLineChangingdEditingStoppedRef.current = false;
       return;
     }
 
     const copyRecord: PRecord = JSON.parse(JSON.stringify(event.data));
-    editingRecordRef.current = null;
+    editingRowRef.current = null;
+    lastKeyPressedRef.current = null;
     try {
       event.data.lockingUser = null;
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, event.data);
 
       if (rtecondition1) {
-        event.data.opReadiness = "P";
+        event.data.opReadiness = OPREADINESS_P;
       }
 
       const updateResult = await updateRecord(event.data);
+      console.log(updateResult);
 
       if (updateResult.status === 200) {
-        emitSaveRecord(event.data, tableType, socket, SCHEDULING_ROOM_ID, event.column.getColDef().field, event.newValue);
+        emitSaveRecord([event.data], tableType, socket, SCHEDULING_ROOM_ID);
         if (etrcondition || rtecondition1 || rtecondition2) {
           moveRecord(gridRef, theOtherGridRef, event.data);
         }
@@ -207,6 +237,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       if (event.colDef.field) {
         copyRecord[event.colDef.field] = event.oldValue;
         copyRecord["lockingUser"] = null;
+        await updateRecord(event.data);
         event.api.applyTransaction({
           update: [copyRecord],
         });
@@ -222,8 +253,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         if (result.status === 200) {
           emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
           if (gridRef.current) {
-            editingRecordRef.current = JSON.parse(JSON.stringify(event.data));
-            focusedRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id } as FocusedRow;
+            editingRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id, ...event.data } as PRecordWithFocusedRow;
           }
         }
       }
@@ -233,7 +263,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   };
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
-      <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} recordRef={editingRecordRef} />
+      <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} editingRowRef={editingRowRef} socket={socket} />
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
       <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
       <AgGridReact

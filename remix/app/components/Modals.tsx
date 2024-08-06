@@ -10,12 +10,15 @@ import DialogContent from "@mui/material/DialogContent";
 import Box from "@mui/material/Box";
 import DialogTitle from "@mui/material/DialogTitle";
 import React, { MutableRefObject, RefObject, useEffect, useState } from "react";
-import { PRecord, SearchHelp } from "~/type";
+import { PRecord, PRecordWithFocusedRow, SearchHelp } from "~/type";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { AgGridReact } from "ag-grid-react";
-import { TREATMENTS } from "shared";
+import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
 import dayjs from "dayjs";
+import { updateRecord } from "~/utils/request.client";
+import { emitSaveRecord } from "~/utils/Table/socket";
+import { Socket } from "socket.io-client";
 
 export const SessionExpiredModal = () => {
   const [open, setOpen] = useRecoilState(sessionExpireModalOpenState);
@@ -32,8 +35,7 @@ export const SessionExpiredModal = () => {
     <div
       id="session-expired-modal"
       className={`${open ? "flex" : "hidden"} ${open ? "opacity-100" : "opacity-0"}`}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}
-    >
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}>
       <div className="flex flex-col" style={{ background: "white", padding: "20px", borderRadius: "5px" }}>
         <p>세션이 존재하지 않습니다. 다시 로그인해 주세요.</p>
         <button className="self-end " onClick={handleClose}>
@@ -63,8 +65,7 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
         onClick={onClick}
         className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${
           selectedTreatment != null && selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"
-        }`}
-      >
+        }`}>
         <Typography className="text-sm">{`시술${number}`}</Typography>
         <Divider sx={{ bgcolor: "grey" }} orientation="vertical" flexItem variant="middle" />
         <Typography>{treatment.title}</Typography>
@@ -75,21 +76,22 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
 
 type SetTreatmentReadyModalProps = {
   open: boolean;
-  recordRef: MutableRefObject<PRecord | null>;
+  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
   gridRef: RefObject<AgGridReact<PRecord>>;
   handleClose: () => void;
+  socket: Socket | null;
 };
-export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, gridRef, recordRef }) => {
+export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, gridRef, editingRowRef, socket }) => {
   const [record, setRecord] = useState<PRecord | undefined>(undefined);
   const [selectedTreatment, setSelectedTreatment] = useState<number | null>(null);
   const [header, setHeader] = useState<string>();
 
   useEffect(() => {
-    if (gridRef.current && recordRef.current) {
-      const record = gridRef.current.api.getRowNode(recordRef.current.id);
-      setRecord(record?.data);
+    if (gridRef.current && editingRowRef.current) {
+      const gridRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
+      setRecord(gridRecord?.data);
       setHeader(() => {
-        const data = record?.data;
+        const data = gridRecord?.data;
         if (data?.patientName && data.chartNum) {
           return `${data?.patientName} - Chart #${data?.chartNum}`;
         } else if (data?.patientName) {
@@ -100,7 +102,7 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
         return "";
       });
     }
-  }, [gridRef.current, recordRef.current]);
+  }, [gridRef.current, editingRowRef.current]);
 
   const handleConfirm = async () => {
     try {
@@ -120,13 +122,19 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     try {
       if (!record) return;
-      record["opReadiness"] = recordRef.current?.opReadiness;
+      record["opReadiness"] = editingRowRef.current?.opReadiness;
+      console.log(record["opReadiness"]);
+
+      record["lockingUser"] = null;
       gridRef.current?.api.applyTransaction({
         update: [record],
       });
+
+      await updateRecord(record);
+      emitSaveRecord([record], record["opReadiness"] === "Y" ? "Ready" : "ExceptReady", socket, SCHEDULING_ROOM_ID);
     } catch (error) {
     } finally {
       handleClose();

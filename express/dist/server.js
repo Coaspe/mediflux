@@ -17,7 +17,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, updateQuery } from "./utils.js";
+import { deconstructRecord, lockOrUnlockRowsQuery, updateQuery } from "./utils.js";
 import { KEYOFSERVERPRECORD } from "./contants.js";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
@@ -63,8 +63,8 @@ io.on(CONNECTION, (socket) => {
     socket.on(DELETE_RECORD, ({ recordIds, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
     });
-    socket.on(SAVE_RECORD, ({ record, tableType, roomId, propertyName, newValue }) => {
-        socket.broadcast.to(roomId).emit(SAVE_RECORD, { record, tableType, propertyName, newValue });
+    socket.on(SAVE_RECORD, ({ records, tableType, roomId, propertyName, newValue }) => {
+        socket.broadcast.to(roomId).emit(SAVE_RECORD, { records, tableType, propertyName, newValue });
     });
     socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }) => {
         socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
@@ -237,6 +237,19 @@ app.put("/api/unlockRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (error) {
         res.status(500).send("Error unlocking record");
+    }
+}));
+app.put("/api/lockOrUnlockRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const recordIds = req.body.recordIds;
+    const lockingUser = req.body.lockingUser;
+    try {
+        const q = lockOrUnlockRowsQuery("gn_ss_bailor.chart_schedule", recordIds.length);
+        const values = [lockingUser, ...recordIds];
+        const result = yield pool.query(q, values);
+        res.status(200).json(result.rows);
+    }
+    catch (error) {
+        res.status(500).send("Error locking record");
     }
 }));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

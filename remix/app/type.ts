@@ -134,3 +134,5 @@ export type FocusedRow = {
   cellPosition: CellPosition;
   rowId: string;
 };
+
+export type PRecordWithFocusedRow = FocusedRow & PRecord;

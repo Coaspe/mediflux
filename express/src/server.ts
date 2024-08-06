@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, updateQuery } from "./utils.js";
+import { deconstructRecord, lockOrUnlockRowsQuery, updateQuery } from "./utils.js";
 import { KEYOFSERVERPRECORD } from "./contants.js";
 
 dotenv.config();
@@ -67,8 +67,8 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
   });
 
-  socket.on(SAVE_RECORD, ({ record, tableType, roomId, propertyName, newValue }: { record: string; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
-    socket.broadcast.to(roomId).emit(SAVE_RECORD, { record, tableType, propertyName, newValue });
+  socket.on(SAVE_RECORD, ({ records, tableType, roomId, propertyName, newValue }: { records: string[]; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
+    socket.broadcast.to(roomId).emit(SAVE_RECORD, { records, tableType, propertyName, newValue });
   });
 
   socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }: { recordId: string; tableType: string; roomId: string }) => {
@@ -246,6 +246,7 @@ app.put("/api/lockRecord", async (req, res) => {
     res.status(500).send("Error locking record");
   }
 });
+
 app.put("/api/unlockRecord", async (req, res) => {
   const recordId = req.body.recordId;
   try {
@@ -255,6 +256,19 @@ app.put("/api/unlockRecord", async (req, res) => {
     res.status(200).send("Records unlocking successfully.");
   } catch (error) {
     res.status(500).send("Error unlocking record");
+  }
+});
+
+app.put("/api/lockOrUnlockRecords", async (req, res) => {
+  const recordIds = req.body.recordIds;
+  const lockingUser = req.body.lockingUser;
+  try {
+    const q = lockOrUnlockRowsQuery("gn_ss_bailor.chart_schedule", recordIds.length);
+    const values = [lockingUser, ...recordIds];
+    const result = await pool.query(q, values);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).send("Error locking record");
   }
 });
 

@@ -1,6 +1,6 @@
 /** @format */
 
-import { checkInTimeCell, checkInTimeEdit, opReadinessCellWithToolTip, nameChipCell, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
+import { checkInTimeCell, checkInTimeEdit, opReadinessCell, nameChipCell, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
 import {
   CHECK_IN_TIME,
   CHECK_IN_TIME_H,
@@ -73,7 +73,7 @@ export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>, setO
   return {
     field: OP_READINESS,
     headerName: OP_READINESS_H,
-    cellRenderer: ({ value }: CustomCellRendererProps) => opReadinessCellWithToolTip(value),
+    cellRenderer: opReadinessCell,
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP, setOpenModal),
     width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
     cellStyle: () => {

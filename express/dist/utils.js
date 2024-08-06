@@ -85,3 +85,7 @@ export const updateQuery = (tableName) => {
     baseQuery += ` WHERE record_id=$${KEYOFSERVERPRECORD.length}`;
     return baseQuery;
 };
+export const lockOrUnlockRowsQuery = (tableName, length) => {
+    return `UPDATE ${tableName} SET locking_user=$1
+  WHERE record_id IN (${Array.from({ length }, (_, k) => `$${k + 2}`).join(", ")}) RETURNING *;`;
+};

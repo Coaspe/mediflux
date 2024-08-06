@@ -32,12 +32,6 @@ declare module "shared" {
     readonly STAFF: "staff";
   };
   export const PORT: number;
-  //     export type Treatment = {
-  //         name: string;
-  //         treatmentTime: number;
-  //         assistTime: number;
-  //         // materialCategory: MaterialCategory;
-  //     };
 
   export type TreatmentCategory = SHURINK | INMODE | OLIGIO | ULTHERA | THERMAGE | LDM | LIFTING | LASER_TONING | TATTOO_LASER | DOT_LASER;
   export type ServerUser = {
@@ -48,8 +42,6 @@ declare module "shared" {
     login_pw: string;
     user_role: Role;
   };
-  export type ServerPRecord = {
-    
-  }
+
   export type Role = (typeof ROLE)[keyof typeof ROLE];
 }
