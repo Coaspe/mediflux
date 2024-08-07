@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { userState } from "~/recoil_state";
 import { checkSessionExists } from "~/services/session.server";
-import { PRecord, User } from "~/type";
+import { PRecord, PRecordWithFocusedRow } from "~/type";
 import { getUserByID } from "~/utils/request.server";
 import { redirect } from "@remix-run/node";
 import { AgGridReact } from "ag-grid-react";
@@ -35,6 +35,7 @@ export default function Scheduling() {
 
   const readyRef = useRef<AgGridReact<PRecord>>(null);
   const exceptReadyRef = useRef<AgGridReact<PRecord>>(null);
+  const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
 
   useEffect(() => {
     const { user: suser } = data;
@@ -64,8 +65,8 @@ export default function Scheduling() {
 
   return (
     <div className="flex w-full h-full flex-col">
-      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} />
-      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} />
+      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} editingRowRef={editingRowRef} />
+      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} editingRowRef={editingRowRef} />
     </div>
   );
 }

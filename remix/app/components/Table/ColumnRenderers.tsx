@@ -87,9 +87,9 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
     } | null
   ) => {
     if (value) {
+      onValueChange(value.id);
       if (value.title === OPREADINESS_Y_TITLE) {
         setModalOpen?.();
-        onValueChange(value.id);
       }
     }
   };

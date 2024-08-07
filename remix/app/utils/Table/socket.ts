@@ -73,7 +73,8 @@ export const onSaveRecord = (
   { records, tableType }: { records: PRecord[]; tableType: TableType; propertyName: string; newValue: any },
   gridRef: RefObject<AgGridReact<any>>,
   theOtherGridRef: RefObject<AgGridReact<any>>,
-  curTableType: TableType
+  curTableType: TableType,
+  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>
 ) => {
   if (curTableType !== tableType || !records) return;
 
@@ -83,7 +84,13 @@ export const onSaveRecord = (
         const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
 
         if (etrcondition || rtecondition1 || rtecondition2) {
+          const editingCells = theOtherGridRef.current?.api.getEditingCells();
+          if (editingCells && editingCells.length > 0) {
+            const event = new CustomEvent("onLineChangingTransactionApplied");
+            theOtherGridRef.current?.api.dispatchEvent(event);
+          }
           moveRecord(gridRef, theOtherGridRef, record);
+          focusEditingRecord(theOtherGridRef, editingRowRef);
         } else {
           const row = gridRef.current?.api.getRowNode(record.id);
           if (row) {
@@ -98,7 +105,8 @@ export const onSaveRecord = (
 const applyTransactionWithEvent = (gridRef: RefObject<AgGridReact<any>>, transaction: RowDataTransaction, eventFlag: boolean = true) => {
   if (gridRef.current) {
     const api = gridRef.current.api;
-    if (eventFlag) {
+    const editingCells = gridRef.current.api.getEditingCells();
+    if (eventFlag && editingCells && editingCells.length > 0) {
       const event = new CustomEvent("onLineChangingTransactionApplied");
       api.dispatchEvent(event);
     }
@@ -155,8 +163,11 @@ export const onDeleteRecord = (
 };
 
 const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, editingRowRef: MutableRefObject<FocusedRow | null>) => {
+  console.log(editingRowRef.current);
+
   if (gridRef.current && editingRowRef.current) {
     const focusedRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
+    console.log(focusedRecord);
     if (focusedRecord && typeof focusedRecord.rowIndex === "number") {
       gridRef.current.api.setFocusedCell(focusedRecord.rowIndex, editingRowRef.current.cellPosition.column.getId());
       gridRef.current.api.startEditingCell({

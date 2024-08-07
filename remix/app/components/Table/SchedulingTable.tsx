@@ -1,10 +1,10 @@
 /** @format */
 
-import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
+import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject, useEffect, useMemo, useRef, useState } from "react";
-import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent } from "ag-grid-community";
+import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
 import { PRecord, PRecordWithFocusedRow, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
@@ -54,23 +54,20 @@ type SchedulingTableProps = {
   socket: Socket | null;
   gridRef: RefObject<AgGridReact<PRecord>>;
   theOtherGridRef: RefObject<AgGridReact<PRecord>>;
+  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
   tableType: TableType;
 };
 
-const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType }) => {
+const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, editingRowRef }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
   const [setTreatmentReadyModalOpen, setSetTreatmentReadyModalOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
-  const lastKeyPressedRef = useRef<string | null>(null);
   const onLineChangingdEditingStoppedRef = useRef(false);
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (editingRowRef.current) {
-      lastKeyPressedRef.current = event.key;
-    }
-  };
+  const isTabPressed = useRef<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   // Add custom tracnsaction event listener
   useEffect(() => {
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
@@ -82,23 +79,22 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     if (gridRef.current && gridRef.current.api) {
       const api = gridRef.current.api;
       api.addEventListener<any>("onLineChangingTransactionApplied", () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
-      document.addEventListener("keydown", onKeyDown);
     }
 
     return () => {
       if (gridRef.current && gridRef.current.api) {
         const api = gridRef.current.api;
         api.removeEventListener<any>("onLineChangingTransactionApplied", () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
-        document.removeEventListener("keydown", onKeyDown);
       }
     };
   }, [gridRef.current]);
 
+  // Socket setting
   useEffect(() => {
     if (!socket) return;
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
-    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, theOtherGridRef, tableType));
+    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, theOtherGridRef, tableType, editingRowRef));
     socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, editingRowRef, audioRef));
     socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, editingRowRef));
 
@@ -112,10 +108,12 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   }, [socket]);
 
+  // Get records and process unlocked records.
   useEffect(() => {
     if (!socket || !user) return;
     const getData = async () => {
       try {
+        setIsLoading(true);
         const op = tableType === "Ready" ? "=" : "!=";
         const { data } = await getSchedulingRecords(op);
         const records: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
@@ -140,18 +138,23 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         return records;
       } catch (error) {
         setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+      } finally {
+        setIsLoading(false);
       }
     };
+
     if (user?.id) {
       getData();
     }
   }, [user, socket]);
+
   const handleCloseSetTreatmentReadyModal = () => {
     setSetTreatmentReadyModalOpen(false);
   };
   const handleOpenSetTreatmentReadyModal = () => {
     setSetTreatmentReadyModalOpen(true);
   };
+
   const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
     { field: "id", headerName: "id", hide: true },
     checkinTimeColumn,
@@ -184,7 +187,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   }, []);
 
   const getRowStyle = (params: RowClassParams<PRecord>): RowStyle | undefined => {
-    const transition = "background-color 0.2s ease, color 0.2s ease";
+    const transition = "all 0.2s ease, color 0.2s ease";
     if (params.data?.lockingUser && params.data?.lockingUser !== user?.id) {
       return {
         background: "lightgray",
@@ -202,11 +205,42 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   };
 
-  const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
-    if (lastKeyPressedRef.current === "Tab" && editingRowRef.current) {
-      lastKeyPressedRef.current = null;
-      console.log("TABABAB");
+  const saveRecord = async (record: PRecord, oldValue: any, field: string, api: GridApi<PRecord>) => {
+    const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 
+    try {
+      editingRowRef.current = null;
+      record.lockingUser = null;
+      const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
+
+      if (rtecondition1) {
+        record.opReadiness = OPREADINESS_P;
+      }
+
+      const updateResult = await updateRecord(record);
+
+      if (updateResult.status === 200) {
+        emitSaveRecord([record], tableType, socket, SCHEDULING_ROOM_ID);
+        if (etrcondition || rtecondition1 || rtecondition2) {
+          moveRecord(gridRef, theOtherGridRef, record);
+        }
+      }
+    } catch (error) {
+      if (field) {
+        copyRecord[field] = oldValue;
+        copyRecord["lockingUser"] = null;
+        await updateRecord(copyRecord);
+        api.applyTransaction({
+          update: [copyRecord],
+        });
+      }
+      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+    }
+  };
+
+  const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
+    if (isTabPressed.current) {
+      isTabPressed.current = false;
       return;
     }
     // Open treatment ready modal
@@ -215,46 +249,24 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
 
     // Prevents edit mode to be stopped when line changed.
-    if (!event.data || onLineChangingdEditingStoppedRef.current) {
+    if (onLineChangingdEditingStoppedRef.current) {
       onLineChangingdEditingStoppedRef.current = false;
       return;
     }
-
-    const copyRecord: PRecord = JSON.parse(JSON.stringify(event.data));
-    editingRowRef.current = null;
-    lastKeyPressedRef.current = null;
-
-    try {
-      event.data.lockingUser = null;
-      const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, event.data);
-
-      if (rtecondition1) {
-        event.data.opReadiness = OPREADINESS_P;
-      }
-
-      const updateResult = await updateRecord(event.data);
-
-      if (updateResult.status === 200) {
-        emitSaveRecord([event.data], tableType, socket, SCHEDULING_ROOM_ID);
-        if (etrcondition || rtecondition1 || rtecondition2) {
-          moveRecord(gridRef, theOtherGridRef, event.data);
-        }
-      }
-    } catch (error) {
-      if (event.colDef.field) {
-        copyRecord[event.colDef.field] = event.oldValue;
-        copyRecord["lockingUser"] = null;
-        await updateRecord(event.data);
-        event.api.applyTransaction({
-          update: [copyRecord],
-        });
-      }
-      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+    if (event.data && event.colDef.field && gridRef.current) {
+      saveRecord(event.data, event.oldValue, event.colDef.field, gridRef.current.api);
     }
   };
 
   const onCellEditingStarted = async (event: CellEditingStartedEvent<PRecord, any>) => {
+    onLineChangingdEditingStoppedRef.current = false;
+    isTabPressed.current = false;
+
     try {
+      if (editingRowRef.current) {
+        theOtherGridRef.current?.api.stopEditing();
+        editingRowRef.current = null;
+      }
       if (user && event.data && !editingRowRef.current) {
         const result = await lockRecord(event.data.id, user.id);
         if (result.status === 200) {
@@ -268,9 +280,14 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
     }
   };
-  const rowClassRules = {
-    "transition-colors duration-150": true, // 기본 Tailwind CSS 클래스를 모든 행에 적용
+
+  const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
+    if (editingRowRef.current) {
+      isTabPressed.current = true;
+    }
+    return params.nextCellPosition;
   };
+
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
       <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} editingRowRef={editingRowRef} socket={socket} />
@@ -288,6 +305,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         paginationPageSize={20}
         getRowStyle={getRowStyle}
         rowSelection={"multiple"}
+        tabToNextCell={tabToNextCell}
+        loading={isLoading}
       />
     </div>
   );
