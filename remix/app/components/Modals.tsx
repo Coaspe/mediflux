@@ -126,8 +126,6 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
     try {
       if (!record) return;
       record["opReadiness"] = editingRowRef.current?.opReadiness;
-      console.log(record["opReadiness"]);
-
       record["lockingUser"] = null;
       gridRef.current?.api.applyTransaction({
         update: [record],

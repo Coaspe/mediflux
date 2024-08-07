@@ -184,10 +184,12 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   }, []);
 
   const getRowStyle = (params: RowClassParams<PRecord>): RowStyle | undefined => {
+    const transition = "background-color 0.2s ease, color 0.2s ease";
     if (params.data?.lockingUser && params.data?.lockingUser !== user?.id) {
       return {
         background: "lightgray",
         pointerEvents: "none",
+        transition,
       };
     }
     if (params.data?.deleteYN) {
@@ -195,6 +197,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         display: "none",
       };
     }
+    return {
+      transition,
+    };
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
@@ -216,6 +221,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     const copyRecord: PRecord = JSON.parse(JSON.stringify(event.data));
     editingRowRef.current = null;
     lastKeyPressedRef.current = null;
+
     try {
       event.data.lockingUser = null;
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, event.data);
@@ -225,7 +231,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       }
 
       const updateResult = await updateRecord(event.data);
-      console.log(updateResult);
 
       if (updateResult.status === 200) {
         emitSaveRecord([event.data], tableType, socket, SCHEDULING_ROOM_ID);
@@ -260,6 +265,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
     }
+  };
+  const rowClassRules = {
+    "transition-colors duration-150": true, // 기본 Tailwind CSS 클래스를 모든 행에 적용
   };
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
