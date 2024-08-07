@@ -205,6 +205,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
     if (lastKeyPressedRef.current === "Tab" && editingRowRef.current) {
       lastKeyPressedRef.current = null;
+      console.log("TABABAB");
+
       return;
     }
     // Open treatment ready modal
@@ -253,7 +255,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   const onCellEditingStarted = async (event: CellEditingStartedEvent<PRecord, any>) => {
     try {
-      if (user && event.data && event.data.lockingUser !== user.id) {
+      if (user && event.data && !editingRowRef.current) {
         const result = await lockRecord(event.data.id, user.id);
         if (result.status === 200) {
           emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
