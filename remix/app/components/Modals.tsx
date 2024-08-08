@@ -92,7 +92,6 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
     if (gridRef.current && editingRowRef.current) {
       originalOpReadiness.current = editingRowRef.current.opReadiness;
       const gridRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
-      editingRowRef.current = null;
 
       setRecord(gridRecord?.data);
       setHeader(() => {
@@ -107,7 +106,7 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
         return "";
       });
     }
-  }, [gridRef.current]);
+  }, [gridRef.current, editingRowRef.current]);
 
   const handleConfirm = async () => {
     try {

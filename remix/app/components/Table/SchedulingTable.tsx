@@ -35,6 +35,7 @@ import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from
 import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 import { SetTreatmentReadyModal } from "../Modals";
 import {
+  LOCKING_USER,
   OPREADINESS_P,
   OPREADINESS_Y,
   OP_READINESS,
@@ -177,7 +178,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     coordinatorColumn(gridRef),
     consultantColumn(gridRef),
     commentCautionColumn,
-    { field: "lockingUser", headerName: "lock", hide: true },
+    { field: LOCKING_USER, headerName: "lock", hide: true },
   ]);
 
   const defaultColDef = useMemo<ColDef>(() => {
@@ -255,6 +256,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       onLineChangingdEditingStoppedRef.current = false;
       return;
     }
+
     if (event.data && event.colDef.field && gridRef.current) {
       saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
     }

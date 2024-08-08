@@ -60,7 +60,7 @@ export const CONSULTANT = "consultant";
 export const CONSULTANT_H = "상담";
 export const COMMENTCAUTION = "commentCaution";
 export const COMMENTCAUTION_H = "비고/주의";
-
+export const LOCKING_USER = "lockingUser";
 export const SHORT_COLUMN_LENGTH = 110;
 export const SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH = 140;
 export const MEDIUM_COLUMN_LENGTH = 120;

@@ -7,6 +7,7 @@ import { Socket } from "socket.io-client";
 import { TableType, PRecord, User, FocusedRow, PRecordWithFocusedRow, ServerPRecord } from "~/type";
 import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "../utils";
 import { RowDataTransaction } from "ag-grid-community";
+import { LOCKING_USER } from "~/constant";
 
 export const emitLockRecord = async (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {
@@ -55,7 +56,7 @@ export const onLockRecord = ({ recordId, locker, tableType }: { recordId: string
   const row = gridRef.current?.api.getRowNode(recordId);
 
   if (row) {
-    row.setDataValue("lockingUser", locker.id);
+    row.setDataValue(LOCKING_USER, locker.id);
   }
 };
 
@@ -63,7 +64,7 @@ export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tabl
   if (curTableType !== tableType) return;
   const row = gridRef.current?.api.getRowNode(recordId);
   if (row) {
-    row.setDataValue("lockingUser", null);
+    row.setDataValue(LOCKING_USER, null);
   }
 };
 

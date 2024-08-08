@@ -14,6 +14,8 @@ import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { autoCompleteKeyDownCapture, getValueWithId } from "~/utils/utils";
+import { useSetRecoilState } from "recoil";
+import { globalSnackbarState } from "~/recoil_state";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -66,10 +68,11 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, 
   const endTime: keyof PRecord = `treatmentEnd${number}`;
   return <span className={`${((tableType === "ExceptReady" && data[readyTime]) || (tableType === "Ready" && data[endTime])) && "line-through"}`}>{getValueWithId(TREATMENTS, value).title}</span>;
 };
-export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps, searchHelp: SearchHelp[], setModalOpen?: () => void) => {
+export const autoCompleteEdit = ({ value, onValueChange, data, api }: CustomCellEditorProps, searchHelp: SearchHelp[], setModalOpen?: () => void) => {
   const optionRef = useRef<SearchHelp | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isFirstKeyDown = useRef<boolean>(true);
+  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -80,17 +83,27 @@ export const autoCompleteEdit = ({ value, onValueChange }: CustomCellEditorProps
   let idx = searchHelp.findIndex((t) => t.id === value);
 
   const onChange = (
-    value: {
+    newValue: {
       id: string;
       group: string;
       title: string;
     } | null
   ) => {
-    if (value) {
-      onValueChange(value.id);
-      if (value.title === OPREADINESS_Y_TITLE) {
-        setModalOpen?.();
+    if (newValue) {
+      if (newValue.title === OPREADINESS_Y_TITLE) {
+        const condition = Array.from({ length: 5 })
+          .map((_, i) => data && data[`treatment${i + 1}`] && !data[`treatmentReady${i + 1}`] && !data[`treatmentEnd${i + 1}`])
+          .some((v) => v);
+
+        if (condition) {
+          setModalOpen?.();
+        } else {
+          api.stopEditing(true);
+          setGlobalSnackBar({ open: true, msg: "배정할 시술이 없습니다.", severity: "warning" });
+          return;
+        }
       }
+      onValueChange(newValue.id);
     }
   };
 
