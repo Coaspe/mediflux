@@ -57,6 +57,7 @@ export const onLockRecord = ({ recordId, locker, tableType }: { recordId: string
 
   if (row) {
     row.setDataValue(LOCKING_USER, locker.id);
+    row.setSelected(false);
   }
 };
 
@@ -94,6 +95,9 @@ export const onSaveRecord = (
           const row = gridRef.current?.api.getRowNode(record.id);
           if (row) {
             row.setData(record);
+            if (record.lockingUser) {
+              row.setSelected(false);
+            }
           }
         }
       });
@@ -142,6 +146,7 @@ export const onDeleteRecord = (
 ) => {
   if (tableType !== curTableType) return;
   if (gridRef.current) {
+    console.log(recordIds);
     let eventFlag = false;
     let transaction = {
       remove: recordIds.map((id) => {
