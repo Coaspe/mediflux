@@ -205,12 +205,18 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   };
 
-  const saveRecord = async (record: PRecord, oldValue: any, field: string, api: GridApi<PRecord>) => {
+  const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, api: GridApi<PRecord>) => {
+    editingRowRef.current = null;
+    record.lockingUser = null;
+
+    // Open treatment ready modal
+    if (field == OP_READINESS && oldValue != OPREADINESS_Y && newValue == OPREADINESS_Y) {
+      return;
+    }
+
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 
     try {
-      editingRowRef.current = null;
-      record.lockingUser = null;
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
 
       if (rtecondition1) {
@@ -243,10 +249,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       isTabPressed.current = false;
       return;
     }
-    // Open treatment ready modal
-    if (event.colDef.field == OP_READINESS && event.oldValue != OPREADINESS_Y && event.newValue == OPREADINESS_Y) {
-      return;
-    }
 
     // Prevents edit mode to be stopped when line changed.
     if (onLineChangingdEditingStoppedRef.current) {
@@ -254,7 +256,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       return;
     }
     if (event.data && event.colDef.field && gridRef.current) {
-      saveRecord(event.data, event.oldValue, event.colDef.field, gridRef.current.api);
+      saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
     }
   };
 

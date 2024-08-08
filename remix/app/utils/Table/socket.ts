@@ -29,8 +29,6 @@ export const emitDeleteRecords = (recordIds: string[], tableType: TableType, soc
 };
 
 export const emitSaveRecord = async (records: PRecord[] | undefined, tableType: TableType, socket: Socket | null, roomId: string) => {
-  console.log(records);
-
   if (records && records?.length > 0) {
     socket?.emit(SAVE_RECORD, {
       records,
@@ -151,7 +149,7 @@ export const onDeleteRecord = (
     } as RowDataTransaction<any>;
 
     if (editingRowRef.current) {
-      const editingRecordIndex = gridRef.current.api.getRowNode(editingRowRef.current.id)?.rowIndex;
+      const editingRecordIndex = gridRef.current.api.getRowNode(editingRowRef.current.record.id)?.rowIndex;
       if (typeof editingRecordIndex === "number" && editingRecordIndex >= 0) {
         const recordIndice = recordIds.map((id) => gridRef.current?.api.getRowNode(id)?.rowIndex);
         eventFlag = recordIndice.some((value) => typeof value === "number" && value < editingRecordIndex);
@@ -163,11 +161,8 @@ export const onDeleteRecord = (
 };
 
 const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, editingRowRef: MutableRefObject<FocusedRow | null>) => {
-  console.log(editingRowRef.current);
-
   if (gridRef.current && editingRowRef.current) {
     const focusedRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
-    console.log(focusedRecord);
     if (focusedRecord && typeof focusedRecord.rowIndex === "number") {
       gridRef.current.api.setFocusedCell(focusedRecord.rowIndex, editingRowRef.current.cellPosition.column.getId());
       gridRef.current.api.startEditingCell({
