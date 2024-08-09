@@ -7,10 +7,9 @@ import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { userState } from "~/recoil_state";
 import { checkSessionExists } from "~/services/session.server";
-import { PRecord, PRecordWithFocusedRow } from "~/type";
+import { CustomAgGridReactProps, PRecord, PRecordWithFocusedRow } from "~/type";
 import { getUserByID } from "~/utils/request.server";
 import { redirect } from "@remix-run/node";
-import { AgGridReact } from "ag-grid-react";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
 
@@ -33,9 +32,18 @@ export default function Scheduling() {
   const [user, setUser] = useRecoilState(userState);
   const data: any = useLoaderData();
 
-  const readyRef = useRef<AgGridReact<PRecord>>(null);
-  const exceptReadyRef = useRef<AgGridReact<PRecord>>(null);
+  const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
+  const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
+
+  useEffect(() => {
+    if (exceptReadyRef.current) {
+      exceptReadyRef.current.tableType = "ExceptReady";
+    }
+    if (readyRef.current) {
+      readyRef.current.tableType = "Ready";
+    }
+  }, [exceptReadyRef.current, editingRowRef.current]);
 
   useEffect(() => {
     const { user: suser } = data;

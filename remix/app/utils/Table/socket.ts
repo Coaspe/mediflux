@@ -1,11 +1,10 @@
 /** @format */
 
-import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
 import { Socket } from "socket.io-client";
-import { TableType, PRecord, User, FocusedRow, PRecordWithFocusedRow, ServerPRecord } from "~/type";
-import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "../utils";
+import { TableType, PRecord, User, PRecordWithFocusedRow, CustomAgGridReactProps } from "~/type";
+import { checkIsInvaildRecord, focusEditingRecord, moveRecord } from "../utils";
 import { RowDataTransaction } from "ag-grid-community";
 import { LOCKING_USER } from "~/constant";
 
@@ -51,7 +50,7 @@ export const emitUnlockRecord = async (recordId: string, tableType: TableType, s
   socket?.emit(UNLOCK_RECORD, { recordId, roomId, tableType });
 };
 
-export const onLockRecord = ({ recordId, locker, tableType }: { recordId: string; locker: User; tableType: TableType }, gridRef: RefObject<AgGridReact<any>>, curTableType: TableType) => {
+export const onLockRecord = ({ recordId, locker, tableType }: { recordId: string; locker: User; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
   if (curTableType !== tableType) return;
   const row = gridRef.current?.api.getRowNode(recordId);
 
@@ -61,7 +60,7 @@ export const onLockRecord = ({ recordId, locker, tableType }: { recordId: string
   }
 };
 
-export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }, gridRef: RefObject<AgGridReact<any>>, curTableType: TableType) => {
+export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
   if (curTableType !== tableType) return;
   const row = gridRef.current?.api.getRowNode(recordId);
   if (row) {
@@ -71,8 +70,8 @@ export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tabl
 
 export const onSaveRecord = (
   { records, tableType }: { records: PRecord[]; tableType: TableType; propertyName: string; newValue: any },
-  gridRef: RefObject<AgGridReact<any>>,
-  theOtherGridRef: RefObject<AgGridReact<any>>,
+  gridRef: RefObject<CustomAgGridReactProps<any>>,
+  theOtherGridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
   editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>
 ) => {
@@ -82,15 +81,8 @@ export const onSaveRecord = (
     if (records.length > 0) {
       records.forEach((record) => {
         const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
-
         if (etrcondition || rtecondition1 || rtecondition2) {
-          const editingCells = theOtherGridRef.current?.api.getEditingCells();
-          if (editingCells && editingCells.length > 0) {
-            const event = new CustomEvent("onLineChangingTransactionApplied");
-            theOtherGridRef.current?.api.dispatchEvent(event);
-          }
-          moveRecord(gridRef, theOtherGridRef, record);
-          focusEditingRecord(theOtherGridRef, editingRowRef);
+          moveRecord(gridRef, theOtherGridRef, record, editingRowRef);
         } else {
           const row = gridRef.current?.api.getRowNode(record.id);
           if (row) {
@@ -105,7 +97,7 @@ export const onSaveRecord = (
   } catch (error) {}
 };
 
-const applyTransactionWithEvent = (gridRef: RefObject<AgGridReact<any>>, transaction: RowDataTransaction, eventFlag: boolean = true) => {
+const applyTransactionWithEvent = (gridRef: RefObject<CustomAgGridReactProps<any>>, transaction: RowDataTransaction, eventFlag: boolean = true) => {
   if (gridRef.current) {
     const api = gridRef.current.api;
     const editingCells = gridRef.current.api.getEditingCells();
@@ -119,7 +111,7 @@ const applyTransactionWithEvent = (gridRef: RefObject<AgGridReact<any>>, transac
 
 export const onCreateRecord = (
   { records, tableType }: { records: PRecord[]; tableType: TableType },
-  gridRef: RefObject<AgGridReact<any>>,
+  gridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
   editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>,
   audioRef: RefObject<HTMLAudioElement>
@@ -140,7 +132,7 @@ export const onCreateRecord = (
 };
 export const onDeleteRecord = (
   { recordIds, tableType }: { recordIds: string[]; tableType: TableType },
-  gridRef: RefObject<AgGridReact<any>>,
+  gridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
   editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>
 ) => {
@@ -163,18 +155,5 @@ export const onDeleteRecord = (
     }
     applyTransactionWithEvent(gridRef, transaction, eventFlag);
     focusEditingRecord(gridRef, editingRowRef);
-  }
-};
-
-const focusEditingRecord = (gridRef: RefObject<AgGridReact<any>>, editingRowRef: MutableRefObject<FocusedRow | null>) => {
-  if (gridRef.current && editingRowRef.current) {
-    const focusedRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
-    if (focusedRecord && typeof focusedRecord.rowIndex === "number") {
-      gridRef.current.api.setFocusedCell(focusedRecord.rowIndex, editingRowRef.current.cellPosition.column.getId());
-      gridRef.current.api.startEditingCell({
-        rowIndex: focusedRecord.rowIndex,
-        colKey: editingRowRef.current.cellPosition.column.getId(),
-      });
-    }
   }
 };

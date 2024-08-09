@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
-import { PRecord, PRecordWithFocusedRow, TableType } from "~/type";
+import { CustomAgGridReactProps, PRecord, PRecordWithFocusedRow, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -53,8 +53,8 @@ import {
 
 type SchedulingTableProps = {
   socket: Socket | null;
-  gridRef: RefObject<AgGridReact<PRecord>>;
-  theOtherGridRef: RefObject<AgGridReact<PRecord>>;
+  gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
+  theOtherGridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
   tableType: TableType;
 };
@@ -206,7 +206,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   };
 
-  const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, api: GridApi<PRecord>) => {
+  const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, rowIndex: number | null, api: GridApi<PRecord>) => {
     editingRowRef.current = null;
     record.lockingUser = null;
 
@@ -229,7 +229,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       if (updateResult.status === 200) {
         emitSaveRecord([record], tableType, socket, SCHEDULING_ROOM_ID);
         if (etrcondition || rtecondition1 || rtecondition2) {
-          moveRecord(gridRef, theOtherGridRef, record);
+          moveRecord(gridRef, theOtherGridRef, record, editingRowRef);
         }
       }
     } catch (error) {
@@ -258,7 +258,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
 
     if (event.data && event.colDef.field && gridRef.current) {
-      saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
+      saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, event.rowIndex, gridRef.current.api);
     }
   };
 

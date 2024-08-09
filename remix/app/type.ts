@@ -5,6 +5,7 @@ import { OverridableStringUnion } from "@mui/types";
 import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
 import { ServerUser, Role } from "shared";
 import { CellPosition } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
 
 export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
 export type User = {
@@ -133,6 +134,11 @@ export type LoginResponse = {
 export type FocusedRow = {
   cellPosition: CellPosition;
   rowId: string;
+  tableType: TableType;
 };
 
 export type PRecordWithFocusedRow = FocusedRow & PRecord;
+
+export interface CustomAgGridReactProps<TData> extends AgGridReact<TData> {
+  tableType: TableType;
+}
