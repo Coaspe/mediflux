@@ -276,7 +276,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         if (result.status === 200) {
           emitLockRecord(event.data?.id, tableType, socket, user, SCHEDULING_ROOM_ID);
           if (gridRef.current) {
-            editingRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id, ...event.data } as PRecordWithFocusedRow;
+            editingRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id, ...event.data, tableType } as PRecordWithFocusedRow;
           }
         }
       }

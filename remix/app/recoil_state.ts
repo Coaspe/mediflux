@@ -1,7 +1,5 @@
-/** @format */
-
 import { atom } from "recoil";
-import { ChipColor, User } from "./type";
+import { User } from "./type";
 
 export const userState = atom<User | undefined>({
   key: "userState", // unique ID (with respect to other atoms/selectors)
