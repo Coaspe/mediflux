@@ -95,7 +95,7 @@ export const OPREADINESS_SEARCH_HELP: SearchHelp[] = [
   { title: OPREADINESS_Y_TITLE, id: OPREADINESS_Y, group: "" },
   { title: OPREADINESS_N_TITLE, id: OPREADINESS_N, group: "" },
   { title: OPREADINESS_C_TITLE, id: OPREADINESS_C, group: "" },
-  { title: OPREADINESS_P_TITLE, id: OPREADINESS_P, group: "" },
+  // { title: OPREADINESS_P_TITLE, id: OPREADINESS_P, group: "" },
 ];
 export const EMPTY_SEARCHHELP: SearchHelp = {
   id: "",

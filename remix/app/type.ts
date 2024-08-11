@@ -32,6 +32,11 @@ export type PRecord = {
   treatmentReady3?: number;
   treatmentReady4?: number;
   treatmentReady5?: number;
+  treatmentStart1?: number;
+  treatmentStart2?: number;
+  treatmentStart3?: number;
+  treatmentStart4?: number;
+  treatmentStart5?: number;
   treatmentEnd1?: number;
   treatmentEnd2?: number;
   treatmentEnd3?: number;
@@ -72,6 +77,11 @@ export type ServerPRecord = {
   treatment_ready_3?: number;
   treatment_ready_4?: number;
   treatment_ready_5?: number;
+  // treatment_start_1?: number;
+  // treatment_start_2?: number;
+  // treatment_start_3?: number;
+  // treatment_start_4?: number;
+  // treatment_start_5?: number;
   treatment_end_1?: number;
   treatment_end_2?: number;
   treatment_end_3?: number;
@@ -142,3 +152,5 @@ export type PRecordWithFocusedRow = FocusedRow & PRecord;
 export interface CustomAgGridReactProps<TData> extends AgGridReact<TData> {
   tableType: TableType;
 }
+
+export type GlobalSnackBark = { open: boolean; msg: string; severity: "error" | "info" | "success" | "warning" };

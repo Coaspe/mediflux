@@ -1,9 +1,7 @@
-/** @format */
-
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
-import { MutableRefObject, RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { MutableRefObject, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
 import { CustomAgGridReactProps, PRecord, PRecordWithFocusedRow, TableType } from "~/type";
 import {
@@ -33,10 +31,9 @@ import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
 import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
-import { SetTreatmentReadyModal } from "../Modals";
 import {
   LOCKING_USER,
-  OPREADINESS_P,
+  OPREADINESS_C,
   OPREADINESS_Y,
   OP_READINESS,
   TREATMENT1,
@@ -50,6 +47,7 @@ import {
   TREATMENT5,
   TREATMENT5_H,
 } from "~/constant";
+import dayjs from "dayjs";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -63,11 +61,17 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
-  const [setTreatmentReadyModalOpen, setSetTreatmentReadyModalOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const onLineChangingdEditingStoppedRef = useRef(false);
   const isTabPressed = useRef<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const showErrorSnackbar = useCallback(
+    (message: string) => {
+      setGlobalSnackBar({ open: true, msg: message, severity: "error" });
+    },
+    [setGlobalSnackBar]
+  );
 
   // Add custom tracnsaction event listener
   useEffect(() => {
@@ -136,9 +140,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         mustBeUnlocked.forEach((record) => emitUnlockRecord(record.id, tableType, socket, SCHEDULING_ROOM_ID));
         records.sort((a, b) => (b.checkInTime ?? 0) - (a.checkInTime ?? 0));
         setRowData(records);
+
         return records;
       } catch (error) {
-        setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+        showErrorSnackbar("Internal server error");
       } finally {
         setIsLoading(false);
       }
@@ -149,24 +154,17 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
   }, [user, socket]);
 
-  const handleCloseSetTreatmentReadyModal = () => {
-    setSetTreatmentReadyModalOpen(false);
-  };
-  const handleOpenSetTreatmentReadyModal = () => {
-    setSetTreatmentReadyModalOpen(true);
-  };
-
   const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
     { field: "id", headerName: "id", hide: true },
     checkinTimeColumn,
     chartNumberColumn,
     patientNameColumn,
-    opReadinessColumn(gridRef, handleOpenSetTreatmentReadyModal),
-    treatmentColumn(TREATMENT1, TREATMENT1_H, gridRef, tableType),
-    treatmentColumn(TREATMENT2, TREATMENT2_H, gridRef, tableType),
-    treatmentColumn(TREATMENT3, TREATMENT3_H, gridRef, tableType),
-    treatmentColumn(TREATMENT4, TREATMENT4_H, gridRef, tableType),
-    treatmentColumn(TREATMENT5, TREATMENT5_H, gridRef, tableType),
+    opReadinessColumn,
+    treatmentColumn(TREATMENT1, TREATMENT1_H, tableType),
+    treatmentColumn(TREATMENT2, TREATMENT2_H, tableType),
+    treatmentColumn(TREATMENT3, TREATMENT3_H, tableType),
+    treatmentColumn(TREATMENT4, TREATMENT4_H, tableType),
+    treatmentColumn(TREATMENT5, TREATMENT5_H, tableType),
     quantitytreat1Column,
     treatmentRoomColumn,
     doctorColumn(gridRef),
@@ -207,23 +205,17 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   };
 
   const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, rowIndex: number | null, api: GridApi<PRecord>) => {
-    editingRowRef.current = null;
     record.lockingUser = null;
 
-    // Open treatment ready modal
-    if (field == OP_READINESS && oldValue != OPREADINESS_Y && newValue == OPREADINESS_Y) {
+    // Open modal
+    if ((field === OP_READINESS && oldValue !== OPREADINESS_Y && newValue === OPREADINESS_Y) || (oldValue !== OPREADINESS_C && newValue === OPREADINESS_C)) {
       return;
     }
-
+    editingRowRef.current = null;
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 
     try {
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
-
-      if (rtecondition1) {
-        record.opReadiness = OPREADINESS_P;
-      }
-
       const updateResult = await updateRecord(record);
 
       if (updateResult.status === 200) {
@@ -241,7 +233,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
           update: [copyRecord],
         });
       }
-      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+      showErrorSnackbar("Internal server error");
     }
   };
 
@@ -281,7 +273,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         }
       }
     } catch (error) {
-      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+      showErrorSnackbar("Internal server error");
     }
   };
 
@@ -291,12 +283,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
     return params.nextCellPosition;
   };
-
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
-      <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} editingRowRef={editingRowRef} socket={socket} />
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
-      <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
+      <TableAction gridRef={gridRef} tableType={tableType} socket={socket} editingRowRef={editingRowRef} />
       <AgGridReact
         ref={gridRef}
         onCellEditingStopped={onCellEditingStopped}

@@ -15,11 +15,10 @@ import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { AgGridReact } from "ag-grid-react";
 import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
-import dayjs from "dayjs";
 import { updateRecord } from "~/utils/request.client";
 import { emitSaveRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
-import { OP_READINESS } from "~/constant";
+import { OP_READINESS, OPREADINESS_C } from "~/constant";
 
 export const SessionExpiredModal = () => {
   const [open, setOpen] = useRecoilState(sessionExpireModalOpenState);
@@ -36,7 +35,8 @@ export const SessionExpiredModal = () => {
     <div
       id="session-expired-modal"
       className={`${open ? "flex" : "hidden"} ${open ? "opacity-100" : "opacity-0"}`}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}>
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}
+    >
       <div className="flex flex-col" style={{ background: "white", padding: "20px", borderRadius: "5px" }}>
         <p>세션이 존재하지 않습니다. 다시 로그인해 주세요.</p>
         <button className="self-end " onClick={handleClose}>
@@ -50,7 +50,7 @@ export const SessionExpiredModal = () => {
 type TreatmentComponentProps = {
   onClick: () => void;
   number: number;
-  selectedTreatment: number | null;
+  selectedTreatment: number | undefined;
   treatmentId: string;
 };
 const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number, selectedTreatment, treatmentId }) => {
@@ -66,7 +66,8 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
         onClick={onClick}
         className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${
           selectedTreatment != null && selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"
-        }`}>
+        }`}
+      >
         <Typography className="text-sm">{`시술${number}`}</Typography>
         <Divider sx={{ bgcolor: "grey" }} orientation="vertical" flexItem variant="middle" />
         <Typography>{treatment.title}</Typography>
@@ -80,18 +81,24 @@ type SetTreatmentReadyModalProps = {
   editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
   gridRef: RefObject<AgGridReact<PRecord>>;
   handleClose: () => void;
+  handleConfirm: (record: PRecord | undefined, selectedTreatment: number | undefined) => void;
   socket: Socket | null;
 };
-export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, gridRef, editingRowRef, socket }) => {
-  const [record, setRecord] = useState<PRecord | undefined>(undefined);
-  const [selectedTreatment, setSelectedTreatment] = useState<number | null>(null);
+export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, handleConfirm, gridRef, editingRowRef, socket }) => {
+  const [record, setRecord] = useState<PRecord | undefined>();
+  const [selectedTreatment, setSelectedTreatment] = useState<number | undefined>();
   const [header, setHeader] = useState<string>();
-  let originalOpReadiness = useRef<OpReadiness | undefined>(undefined);
+  const [modalTitle, setModalTitle] = useState<string>("시술 준비 완료");
+  let originalOpReadiness = useRef<OpReadiness | undefined>();
 
   useEffect(() => {
     if (gridRef.current && editingRowRef.current) {
       originalOpReadiness.current = editingRowRef.current.opReadiness;
       const gridRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
+
+      if (gridRecord?.data?.opReadiness === OPREADINESS_C) {
+        setModalTitle("시술 진행 완료");
+      }
 
       setRecord(gridRecord?.data);
       setHeader(() => {
@@ -108,13 +115,10 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
     }
   }, [gridRef.current, editingRowRef.current]);
 
-  const handleConfirm = async () => {
+  const handleCancel = async () => {
     try {
-      if (!record || !selectedTreatment) return;
-      const time = dayjs().unix();
-      record[`treatmentReady${selectedTreatment}`] = time;
-      record[OP_READINESS] = "Y";
-
+      if (!record) return;
+      record[OP_READINESS] = originalOpReadiness.current;
       const row = gridRef.current?.api.getRowNode(record.id);
       if (row && row.rowIndex !== null) {
         row?.updateData(record);
@@ -127,26 +131,9 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
     }
   };
 
-  const handleCancel = async () => {
-    try {
-      if (!record) return;
-      record[OP_READINESS] = originalOpReadiness.current;
-      record["lockingUser"] = null;
-      gridRef.current?.api.applyTransaction({
-        update: [record],
-      });
-
-      await updateRecord(record);
-      emitSaveRecord([record], record[OP_READINESS] === "Y" ? "Ready" : "ExceptReady", socket, SCHEDULING_ROOM_ID);
-    } catch (error) {
-    } finally {
-      handleClose();
-    }
-  };
-
   return (
-    <Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
-      <DialogTitle id="alert-dialog-title">{"시술 준비 완료"}</DialogTitle>
+    <Dialog open={open} onClose={handleCancel} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+      <DialogTitle id="alert-dialog-title">{modalTitle}</DialogTitle>
       <DialogContent>
         <Box className="flex items-center gap-4 p-4 flex-col min-w-[300px]">
           <Box className="flex flex-col w-full">
@@ -155,7 +142,8 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
           {Array.from({ length: 5 }, (_, i) => i + 1).map(
             (number) =>
               record &&
-              record[`treatment${number}`] && (
+              record[`treatment${number}`] &&
+              ((record.opReadiness === "C" && record[`treatmentReady${number}`] && !record[`treatmentEnd${number}`]) || (record.opReadiness === "Y" && !record[`treatmentReady${number}`])) && (
                 <TreatmentComponent key={number} onClick={() => setSelectedTreatment(number)} number={number} treatmentId={record[`treatment${number}`]} selectedTreatment={selectedTreatment} />
               )
           )}
@@ -163,7 +151,7 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCancel}>취소</Button>
-        <Button disabled={selectedTreatment == null} onClick={handleConfirm} autoFocus>
+        <Button disabled={selectedTreatment == null} onClick={() => handleConfirm(record, selectedTreatment)} autoFocus>
           확인
         </Button>
       </DialogActions>

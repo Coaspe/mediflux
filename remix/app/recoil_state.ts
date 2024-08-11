@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { User } from "./type";
+import { GlobalSnackBark, User } from "./type";
 
 export const userState = atom<User | undefined>({
   key: "userState", // unique ID (with respect to other atoms/selectors)
@@ -11,7 +11,7 @@ export const sessionExpireModalOpenState = atom<boolean>({
   default: false,
 });
 
-export const globalSnackbarState = atom<{ open: boolean; msg: string; severity: "error" | "info" | "success" | "warning" }>({
+export const globalSnackbarState = atom<GlobalSnackBark>({
   key: "glbaoSnackbarState",
   default: { open: false, msg: "", severity: "success" },
 });

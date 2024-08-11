@@ -42,6 +42,7 @@ import { ColDef } from "ag-grid-community";
 import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { RefObject } from "react";
 import { TREATMENTS } from "shared";
+import { isCellEditable } from "material-react-table";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);
@@ -69,24 +70,23 @@ export const patientNameColumn: ColDef<PRecord, string> = {
   width: SHORT_COLUMN_LENGTH,
 };
 
-export const opReadinessColumn = (gridRef: RefObject<AgGridReact<PRecord>>, setOpenModal: () => void): ColDef<PRecord, OpReadiness> => {
-  return {
-    field: OP_READINESS,
-    headerName: OP_READINESS_H,
-    cellRenderer: opReadinessCell,
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP, setOpenModal),
-    width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
-    cellStyle: () => {
-      return {
-        alignItems: "center",
-        justifyContent: "center",
-        display: "flex",
-      };
-    },
-  };
+export const opReadinessColumn = {
+  field: OP_READINESS,
+  headerName: OP_READINESS_H,
+  cellRenderer: opReadinessCell,
+  editable: false,
+  // cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP),
+  width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+  cellStyle: () => {
+    return {
+      alignItems: "center",
+      justifyContent: "center",
+      display: "flex",
+    };
+  },
 };
 
-export const treatmentColumn = (field: string, headerName: string, gridRef: RefObject<AgGridReact<PRecord>>, tableType: TableType): ColDef<PRecord, string> => {
+export const treatmentColumn = (field: string, headerName: string, tableType: TableType): ColDef<PRecord, string> => {
   return {
     field,
     headerName,

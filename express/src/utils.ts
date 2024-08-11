@@ -59,6 +59,11 @@ export const deconstructRecord = (record: any) => {
     treatmentEnd3,
     treatmentEnd4,
     treatmentEnd5,
+    treatmentStart1,
+    treatmentStart2,
+    treatmentStart3,
+    treatmentStart4,
+    treatmentStart5,
   } = record;
 
   const retVal = [
@@ -98,6 +103,11 @@ export const deconstructRecord = (record: any) => {
     convertTime(treatmentEnd3),
     convertTime(treatmentEnd4),
     convertTime(treatmentEnd5),
+    // convertTime(treatmentStart1),
+    // convertTime(treatmentStart2),
+    // convertTime(treatmentStart3),
+    // convertTime(treatmentStart4),
+    // convertTime(treatmentStart5),
   ];
 
   const { id } = record;
