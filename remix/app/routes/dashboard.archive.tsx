@@ -1,7 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ArchiveChart from "~/components/Archive/Chart";
-import { Interval } from "~/type";
+import { CustomAgGridReactProps, Interval, PRecord, PRecordWithFocusedRow } from "~/type";
 import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
@@ -9,12 +9,30 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import ArchiveTable from "~/components/Archive/ArchiveTable";
+import SchedulingTable from "~/components/Table/SchedulingTable";
+import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT } from "shared";
+import { Socket, io } from "socket.io-client";
+import { useLoaderData } from "@remix-run/react";
+import { useRecoilState } from "recoil";
+import { userState } from "~/recoil_state";
 
 export default function Archive() {
   const [numOfInterval, setNumOfInterval] = useState<number>(7);
   const [interval, setInterval] = useState<Interval>("week");
   const [baseDate, setBaseDate] = useState<Dayjs>(dayjs());
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const tableRef = useRef<CustomAgGridReactProps<PRecord>>(null);
+  const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
+  const data: any = useLoaderData();
+
+  const [user, setUser] = useRecoilState(userState);
+
+  useEffect(() => {
+    const { user: suser } = data;
+    if (!user || user.id != suser.id) {
+      setUser(suser);
+    }
+  }, [data]);
 
   const handleIntervalChange = (event: SelectChangeEvent) => {
     setInterval(event.target.value as Interval);
@@ -28,6 +46,24 @@ export default function Archive() {
     }
   };
 
+  useEffect(() => {
+    const socketInstance = io(`http://localhost:${PORT}`);
+    setSocket(socketInstance);
+
+    // Default
+    socketInstance.on(CONNECT, () => {
+      socketInstance.emit(JOIN_ROOM, {
+        userId: user && user.id,
+        username: user && user.name,
+        roomId: ARCHIVE_ROOM_ID,
+      });
+    });
+
+    return () => {
+      socketInstance.off(CONNECTED_USERS);
+      socketInstance.disconnect();
+    };
+  }, []);
   return (
     <div className="w-full">
       <div className="flex gap-3 pb-5">
@@ -54,7 +90,12 @@ export default function Archive() {
         </FormControl>
       </div>
       <ArchiveChart numOfInterval={numOfInterval} interval={interval} baseDate={baseDate} />
-      <ArchiveTable
+      <SchedulingTable
+        tableType="Archive"
+        gridRef={tableRef}
+        socket={socket}
+        editingRowRef={editingRowRef}
+        roomId={ARCHIVE_ROOM_ID}
         startDate={dayjs(baseDate).startOf(interval)}
         endDate={dayjs(baseDate)
           .startOf(interval)

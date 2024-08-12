@@ -71,9 +71,9 @@ export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tabl
 export const onSaveRecord = (
   { records, tableType }: { records: PRecord[]; tableType: TableType; propertyName: string; newValue: any },
   gridRef: RefObject<CustomAgGridReactProps<any>>,
-  theOtherGridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
-  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>
+  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>,
+  theOtherGridRef?: RefObject<CustomAgGridReactProps<any>>
 ) => {
   if (curTableType !== tableType || !records) return;
 
@@ -81,7 +81,7 @@ export const onSaveRecord = (
     if (records.length > 0) {
       records.forEach((record) => {
         const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
-        if (etrcondition || rtecondition1 || rtecondition2) {
+        if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
           moveRecord(gridRef, theOtherGridRef, record, editingRowRef);
         } else {
           const row = gridRef.current?.api.getRowNode(record.id);
@@ -114,7 +114,7 @@ export const onCreateRecord = (
   gridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
   editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>,
-  audioRef: RefObject<HTMLAudioElement>
+  audioRef?: RefObject<HTMLAudioElement>
 ) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
@@ -125,7 +125,7 @@ export const onCreateRecord = (
 
     applyTransactionWithEvent(gridRef, transaction);
     focusEditingRecord(gridRef, editingRowRef);
-    if (audioRef.current && tableType === "Ready") {
+    if (audioRef && audioRef.current && tableType === "Ready") {
       audioRef.current.play();
     }
   }

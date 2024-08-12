@@ -1,6 +1,6 @@
 /** @format */
 
-import { checkInTimeCell, checkInTimeEdit, opReadinessCell, nameChipCell, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
+import { checkInTimeCell, checkInTimeEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
 import {
   CHECK_IN_TIME,
   CHECK_IN_TIME_H,
@@ -136,7 +136,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
     width: 150,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
-    cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipCell(colDef?.headerName, searchHelp, value),
+    cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipRendererByFieldname(colDef?.headerName, searchHelp, value),
   };
 };
 

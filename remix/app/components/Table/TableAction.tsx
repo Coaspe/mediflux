@@ -13,6 +13,7 @@ import { OPREADINESS_C, OPREADINESS_N, OPREADINESS_P, OPREADINESS_Y } from "~/co
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
+import Box from "@mui/material/Box";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
@@ -85,7 +86,6 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       handleCloseDeleteModal();
     }
   };
-
   const handleOpenDeleteModal = async () => {
     if (!gridRef.current || !user) return;
 
@@ -100,56 +100,75 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         setOpen(true);
       }
     } catch {
-      showErrorSnackbar("서버 오류로 레코드를 잠글 수 없습니다.");
+      showErrorSnackbar("서버 오류.");
     }
   };
-
   const handleCloseDeleteModal = useCallback(async () => {
-    if (selectedRows.length && user) {
-      const result = await lockOrUnlockRecords(
-        selectedRows.map((record) => record.id),
-        null
-      );
-      if (result.status === 200) {
-        emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+    try {
+      if (selectedRows.length && user) {
+        const result = await lockOrUnlockRecords(
+          selectedRows.map((record) => record.id),
+          null
+        );
+        if (result.status === 200) {
+          emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+        }
       }
+    } catch (error) {
+    } finally {
+      setOpen(false);
     }
-    setOpen(false);
   }, [selectedRows, user, tableType, socket]);
 
-  const handleOpenAssignModal = () => {
-    if (!gridRef.current) return;
+  const handleOpenAssignModal = async () => {
+    if (!gridRef.current || !user) return;
 
     try {
       const records = gridRef.current.api.getSelectedRows();
       if (records.length !== 1) {
-        showErrorSnackbar(records.length ? "하나의 시술만 선택해주세요." : "시술만 선택해주세요.");
+        showErrorSnackbar(records.length ? "하나의 시술만 선택해주세요." : "시술을 선택해주세요.");
         return;
       }
-
       const record = records[0];
-      setAssignRecord(record);
 
-      const treatmentNumber = getReadyTreatmentNumber(record);
-      const treatment = TREATMENTS.find((t) => t.id === record[`treatment${treatmentNumber}`]);
-      if (treatmentNumber > 0 && treatment) {
-        setReadyTreatment({ number: treatmentNumber, ...treatment });
-        setOpenAssignModal(true);
+      const result = await lockOrUnlockRecords([record.id], user.id);
+      if (result.status === 200) {
+        emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+        setAssignRecord(record);
+        const treatmentNumber = getReadyTreatmentNumber(record);
+        const treatment = TREATMENTS.find((t) => t.id === record[`treatment${treatmentNumber}`]);
+        if (treatmentNumber > 0 && treatment) {
+          setReadyTreatment({ number: treatmentNumber, ...treatment });
+          setOpenAssignModal(true);
+        }
       }
     } catch {
       showErrorSnackbar("서버 오류로 시술을 배정할 수 없습니다.");
     }
   };
-
   const getReadyTreatmentNumber = (record: PRecord): number => {
     for (let i = 1; i <= 5; i++) {
       if (record[`treatmentReady${i}`] && !record[`treatmentEnd${i}`]) return i;
     }
     return -1;
   };
-
-  const handleCloseAssignModal = () => setOpenAssignModal(false);
-
+  const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
+    for (let i = 1; i <= 5; i++) {
+      if (!record[`treatmentReady${i}`]) {
+        return i;
+      }
+    }
+    return -1;
+  };
+  const handleCloseAssignModal = async () => {
+    if (assignRecord) {
+      const result = await lockOrUnlockRecords([assignRecord?.id], null);
+      if (result.status === 200) {
+        emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+      }
+    }
+    setOpenAssignModal(false);
+  };
   const onAssignRecord = async () => {
     if (!readyTreatment || !assignRecord || !gridRef.current || !user) return;
 
@@ -170,18 +189,47 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       handleCloseAssignModal();
     }
   };
-  const handleCloseSetTreatmentReadyModal = () => {
-    setSetTreatmentReadyModalOpen(false);
+
+  const handleCloseSetTreatmentReadyModal = async () => {
+    try {
+      if (selectedRows.length && user) {
+        const result = await lockOrUnlockRecords(
+          selectedRows.map((record) => record.id),
+          null
+        );
+        if (result.status === 200) {
+          emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+        }
+      }
+    } catch (error) {
+    } finally {
+      setSetTreatmentReadyModalOpen(false);
+    }
   };
-  const handleOpenSetTreatmentReadyModal = () => {
-    const _seletedRows = gridRef.current?.api.getSelectedRows();
-    if (!_seletedRows || _seletedRows.length === 0) {
-      showErrorSnackbar("준비 완료된 차트를 선택해주세요.", "warning");
-    } else if (_seletedRows.length > 1) {
-      showErrorSnackbar("하나의 차트만 선택해주세요.", "warning");
-    } else if (_seletedRows.length === 1) {
-      setSelectedRows(_seletedRows);
-      setSetTreatmentReadyModalOpen(true);
+  const handleOpenSetTreatmentReadyModal = async () => {
+    try {
+      const _seletedRows = gridRef.current?.api.getSelectedRows();
+      if (!_seletedRows || _seletedRows.length === 0) {
+        showErrorSnackbar("차트를 선택해주세요.", "warning");
+      } else if (_seletedRows.length > 1) {
+        showErrorSnackbar("하나의 차트만 선택해주세요.", "warning");
+      } else if (_seletedRows.length === 1 && user) {
+        if (findCanbeReadyTreatmentNumber(_seletedRows[0]) === -1 || _seletedRows[0].opReadiness === OPREADINESS_C) {
+          showErrorSnackbar("준비 완료할 수 있는 시술이 없습니다.", "warning");
+          return;
+        } else if (_seletedRows[0].opReadiness === OPREADINESS_P) {
+          showErrorSnackbar("해당 차트는 시술이 진행중입니다.");
+          return;
+        }
+        const result = await lockOrUnlockRecords([_seletedRows[0].id], user.id);
+        if (result.status === 200) {
+          emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+          setSelectedRows(_seletedRows);
+          setSetTreatmentReadyModalOpen(true);
+        }
+      }
+    } catch (error) {
+      showErrorSnackbar("서버 오류");
     }
   };
 
@@ -216,24 +264,28 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   };
   return (
     <div>
-      <Button onClick={onAddRecord}>추가</Button>
-      <Button onClick={handleOpenDeleteModal}>삭제</Button>
-      {tableType === "Ready" && <Button onClick={handleOpenAssignModal}>시술 진행</Button>}
-      {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 준비 완료</Button>}
-      {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 완료</Button>}
+      <Box className="flex justify-between items-center w-fit gap-2">
+        {tableType === "ExceptReady" && <Button onClick={onAddRecord}>추가</Button>}
+        {tableType === "ExceptReady" && <Button onClick={handleOpenDeleteModal}>삭제</Button>}
+        {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 준비 완료</Button>}
+        {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 완료</Button>}
+      </Box>
 
-      <Dialog open={open} onClose={handleCloseDeleteModal}>
-        <DialogTitle>{"레코드 삭제"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{selectedRows.length}개의 레코드를 삭제하시겠습니까?</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteModal}>취소</Button>
-          <Button onClick={onDeleteRecord} autoFocus>
-            확인
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {tableType === "Ready" && <Button onClick={handleOpenAssignModal}>시술 진행</Button>}
+      {tableType === "ExceptReady" && (
+        <Dialog open={open} onClose={handleCloseDeleteModal}>
+          <DialogTitle>{"레코드 삭제"}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>{selectedRows.length}개의 레코드를 삭제하시겠습니까?</DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteModal}>취소</Button>
+            <Button onClick={onDeleteRecord} autoFocus>
+              확인
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       {tableType === "Ready" && (
         <Dialog open={openAssignModal} onClose={handleCloseAssignModal}>

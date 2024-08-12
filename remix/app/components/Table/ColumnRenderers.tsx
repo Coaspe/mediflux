@@ -60,7 +60,6 @@ export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   return <Chip size={size} label={label} color={color} />;
 };
 
-// C로 변할 때 line-through 이슈 해결해야함
 export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
   const endTime: keyof PRecord = `treatmentEnd${number}`;
@@ -71,7 +70,8 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, 
     <span
       className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
         tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-      }`}>
+      }`}
+    >
       {getValueWithId(TREATMENTS, value).title}
     </span>
   );
@@ -174,8 +174,4 @@ export const nameChipRendererByRole = (role: Role, name?: string) => {
       break;
   }
   return name ? <Chip size="small" color={color} label={name} /> : <></>;
-};
-
-export const nameChipCell = (headerName: string | undefined, searchHelp: SearchHelp[], id?: string) => {
-  return nameChipRendererByFieldname(headerName, searchHelp, id);
 };

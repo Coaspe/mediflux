@@ -73,8 +73,8 @@ export default function Scheduling() {
 
   return (
     <div className="flex w-full h-full flex-col">
-      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} editingRowRef={editingRowRef} />
-      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} editingRowRef={editingRowRef} />
+      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} editingRowRef={editingRowRef} roomId={SCHEDULING_ROOM_ID} />
+      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} editingRowRef={editingRowRef} roomId={SCHEDULING_ROOM_ID} />
     </div>
   );
 }
