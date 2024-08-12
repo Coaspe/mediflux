@@ -75,7 +75,6 @@ export const opReadinessColumn = {
   headerName: OP_READINESS_H,
   cellRenderer: opReadinessCell,
   editable: false,
-  // cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, OPREADINESS_SEARCH_HELP),
   width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   cellStyle: () => {
     return {
@@ -93,6 +92,10 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
     cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS),
     width: 250,
+    editable: (params) => {
+      const number = params.colDef.field?.charAt(params.colDef.field?.length - 1);
+      return !(params.data && params.data[`treatmentEnd${number}`]);
+    },
   };
 };
 export const quantitytreat1Column: ColDef<PRecord, number> = {

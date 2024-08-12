@@ -77,11 +77,11 @@ export type ServerPRecord = {
   treatment_ready_3?: number;
   treatment_ready_4?: number;
   treatment_ready_5?: number;
-  // treatment_start_1?: number;
-  // treatment_start_2?: number;
-  // treatment_start_3?: number;
-  // treatment_start_4?: number;
-  // treatment_start_5?: number;
+  treatment_start_1?: number;
+  treatment_start_2?: number;
+  treatment_start_3?: number;
+  treatment_start_4?: number;
+  treatment_start_5?: number;
   treatment_end_1?: number;
   treatment_end_2?: number;
   treatment_end_3?: number;

@@ -94,11 +94,11 @@ export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRe
     treatmentEnd3: convertServerTimeToClientTime(serverRecord.treatment_end_3),
     treatmentEnd4: convertServerTimeToClientTime(serverRecord.treatment_end_4),
     treatmentEnd5: convertServerTimeToClientTime(serverRecord.treatment_end_5),
-    // treatmentStart1: convertServerTimeToClientTime(serverRecord.treatment_start_1),
-    // treatmentStart2: convertServerTimeToClientTime(serverRecord.treatment_start_2),
-    // treatmentStart3: convertServerTimeToClientTime(serverRecord.treatment_start_3),
-    // treatmentStart4: convertServerTimeToClientTime(serverRecord.treatment_start_4),
-    // treatmentStart5: convertServerTimeToClientTime(serverRecord.treatment_start_5),
+    treatmentStart1: convertServerTimeToClientTime(serverRecord.treatment_start_1),
+    treatmentStart2: convertServerTimeToClientTime(serverRecord.treatment_start_2),
+    treatmentStart3: convertServerTimeToClientTime(serverRecord.treatment_start_3),
+    treatmentStart4: convertServerTimeToClientTime(serverRecord.treatment_start_4),
+    treatmentStart5: convertServerTimeToClientTime(serverRecord.treatment_start_5),
     quantityTreat1: serverRecord.quantity_treat_1,
     quantityTreat2: serverRecord.quantity_treat_2,
     quantityTreat3: serverRecord.quantity_treat_3,
@@ -196,4 +196,13 @@ export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: an
       onValueChange(optionRef.current.id);
     }
   }
+};
+
+export const checkForUnReadyTreatments = (record: PRecord) => {
+  for (let i = 1; i <= 5; i++) {
+    if (record[`treatment${i}`] && !record[`treatmentReady${i}`]) {
+      return true;
+    }
+  }
+  return false;
 };

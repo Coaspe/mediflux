@@ -1,13 +1,15 @@
+/** @format */
+
 import { AgGridReact } from "ag-grid-react";
-import { PRecord, PRecordWithFocusedRow, SearchHelp, TableType } from "../../type";
-import { FC, RefObject, useState, useCallback, MutableRefObject } from "react";
+import { PRecord, SearchHelp, TableType } from "../../type";
+import { FC, RefObject, useState, useCallback } from "react";
 import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
 import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";
 import { hideRecords, insertRecords, lockOrUnlockRecords } from "~/utils/request.client";
-import { convertServerPRecordtToPRecord } from "~/utils/utils";
+import { checkForUnReadyTreatments, convertServerPRecordtToPRecord } from "~/utils/utils";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
-import { OPREADINESS_P } from "~/constant";
+import { OPREADINESS_C, OPREADINESS_N, OPREADINESS_P, OPREADINESS_Y } from "~/constant";
 import dayjs from "dayjs";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -22,18 +24,17 @@ type TableActionHeader = {
   gridRef: RefObject<AgGridReact<PRecord>>;
   tableType: TableType;
   socket: Socket | null;
-  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
 };
 
 interface ReadyTreatment extends SearchHelp {
   number: number;
 }
 
-export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType, editingRowRef }) => {
+export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRows, setSelectedRows] = useState<PRecord[]>([]);
   const [open, setOpen] = useState(false);
   const [openAssignModal, setOpenAssignModal] = useState(false);
   const [assignRecord, setAssignRecord] = useState<PRecord | null>(null);
@@ -41,8 +42,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
   const [setTreatmentReadyModalOpen, setSetTreatmentReadyModalOpen] = useState(false);
 
   const showErrorSnackbar = useCallback(
-    (message: string) => {
-      setGlobalSnackBar({ open: true, msg: message, severity: "error" });
+    (message: string, severity: "error" | "info" | "success" | "warning" = "error") => {
+      setGlobalSnackBar({ open: true, msg: message, severity });
     },
     [setGlobalSnackBar]
   );
@@ -67,13 +68,14 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
   const onDeleteRecord = async () => {
     try {
       if (!gridRef.current || !selectedRows.length) throw new Error("삭제할 레코드가 선택되지 않았습니다.");
-
-      const records = gridRef.current.api.getSelectedRows();
-      const result = await hideRecords(selectedRows);
+      const ids = selectedRows.map((record) => record.id);
+      const result = await hideRecords(ids);
 
       if (result.status === 200) {
-        gridRef.current.api.applyTransaction({ remove: records });
-        emitDeleteRecords(selectedRows, tableType, socket, user, SCHEDULING_ROOM_ID);
+        gridRef.current.api.applyTransaction({
+          remove: selectedRows,
+        });
+        emitDeleteRecords(ids, tableType, socket, user, SCHEDULING_ROOM_ID);
       } else {
         showErrorSnackbar("서버 오류로 레코드를 삭제할 수 없습니다.");
       }
@@ -90,7 +92,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
     try {
       const records = gridRef.current.api.getSelectedRows();
       const ids = records.map((record) => record.id);
-      setSelectedRows(ids);
+      setSelectedRows(records);
 
       const result = await lockOrUnlockRecords(ids, user.id);
       if (result.status === 200) {
@@ -104,7 +106,10 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
 
   const handleCloseDeleteModal = useCallback(async () => {
     if (selectedRows.length && user) {
-      const result = await lockOrUnlockRecords(selectedRows, null);
+      const result = await lockOrUnlockRecords(
+        selectedRows.map((record) => record.id),
+        null
+      );
       if (result.status === 200) {
         emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
       }
@@ -169,25 +174,38 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
     setSetTreatmentReadyModalOpen(false);
   };
   const handleOpenSetTreatmentReadyModal = () => {
-    setSetTreatmentReadyModalOpen(true);
+    const _seletedRows = gridRef.current?.api.getSelectedRows();
+    if (!_seletedRows || _seletedRows.length === 0) {
+      showErrorSnackbar("준비 완료된 차트를 선택해주세요.", "warning");
+    } else if (_seletedRows.length > 1) {
+      showErrorSnackbar("하나의 차트만 선택해주세요.", "warning");
+    } else if (_seletedRows.length === 1) {
+      setSelectedRows(_seletedRows);
+      setSetTreatmentReadyModalOpen(true);
+    }
   };
 
-  const handleConfirmReady = async (record: PRecord | undefined, selectedTreatment: number | undefined) => {
+  const handleConfirm = async (record: PRecord | undefined, selectedTreatment: number | undefined) => {
     try {
       if (!record || !selectedTreatment) return;
       const time = dayjs().unix();
 
-      if (record.opReadiness === "Y") {
+      if (record.opReadiness !== "P") {
         record[`treatmentReady${selectedTreatment}`] = time;
-      } else if (record.opReadiness === "C") {
+        record.opReadiness = OPREADINESS_Y;
+      } else if (record.opReadiness === "P") {
         record[`treatmentEnd${selectedTreatment}`] = time;
-      } else {
-        return;
+        if (checkForUnReadyTreatments(record)) {
+          record.opReadiness = OPREADINESS_N;
+        } else {
+          record.opReadiness = OPREADINESS_C;
+        }
       }
 
       const row = gridRef.current?.api.getRowNode(record.id);
       if (row && row.rowIndex !== null) {
         row?.updateData(record);
+        console.log(record);
         gridRef.current?.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
         gridRef.current?.api.stopEditing();
       }
@@ -202,6 +220,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
       <Button onClick={handleOpenDeleteModal}>삭제</Button>
       {tableType === "Ready" && <Button onClick={handleOpenAssignModal}>시술 진행</Button>}
       {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 준비 완료</Button>}
+      {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 완료</Button>}
 
       <Dialog open={open} onClose={handleCloseDeleteModal}>
         <DialogTitle>{"레코드 삭제"}</DialogTitle>
@@ -233,15 +252,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType,
         </Dialog>
       )}
 
-      {tableType === "ExceptReady" && (
-        <SetTreatmentReadyModal
-          open={setTreatmentReadyModalOpen}
-          handleClose={handleCloseSetTreatmentReadyModal}
-          gridRef={gridRef}
-          editingRowRef={editingRowRef}
-          socket={socket}
-          handleConfirm={handleConfirmReady}
-        />
+      {tableType === "ExceptReady" && selectedRows.length === 1 && (
+        <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} selectedRow={selectedRows[0]} handleConfirm={handleConfirm} />
       )}
     </div>
   );

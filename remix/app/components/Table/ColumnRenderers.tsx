@@ -1,8 +1,10 @@
-import { ChipColor, GlobalSnackBark, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
+/** @format */
+
+import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS, OPREADINESS_C_TITLE, OPREADINESS_P_TITLE, OPREADINESS_Y_TITLE } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_C, OPREADINESS_N } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -12,9 +14,6 @@ import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { autoCompleteKeyDownCapture, getValueWithId } from "~/utils/utils";
-import { SetterOrUpdater, useSetRecoilState } from "recoil";
-import { globalSnackbarState } from "~/recoil_state";
-import { GridApi } from "ag-grid-community";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -61,65 +60,27 @@ export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   return <Chip size={size} label={label} color={color} />;
 };
 
+// C로 변할 때 line-through 이슈 해결해야함
 export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
   const endTime: keyof PRecord = `treatmentEnd${number}`;
   const canBeAssigned = data.opReadiness === "Y" && data[`treatmentReady${number}`] && !data[`treatmentEnd${number}`];
   const isInProgressTreatment = data[`treatmentStart${number}`] && !data[`treatmentEnd${number}`];
+
   return (
     <span
       className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
         tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-      }`}
-    >
+      }`}>
       {getValueWithId(TREATMENTS, value).title}
     </span>
   );
 };
 
-const opReadinessOnChange = (newValue: SearchHelp, data: PRecord, api: GridApi<any>, setGlobalSnackBar: SetterOrUpdater<GlobalSnackBark>, setModalOpen?: () => void) => {
-  let snackBarMsg = undefined;
-  let q = undefined;
-
-  switch (newValue.title) {
-    case OPREADINESS_C_TITLE:
-      snackBarMsg = "고객의 모든 시술이 완료되었습니다.";
-      q = (i: number) => data && data[`treatment${i + 1}`] && !data[`treatmentEnd${i + 1}`];
-      break;
-
-    case OPREADINESS_Y_TITLE:
-      snackBarMsg = "준비 완료할 수 있는 시술이 없습니다.";
-      q = (i: number) => data && data[`treatment${i + 1}`] && !data[`treatmentReady${i + 1}`] && !data[`treatmentEnd${i + 1}`];
-      break;
-
-    case OPREADINESS_P_TITLE:
-      snackBarMsg = "진행 할 수 있는 시술이 없습니다.";
-      q = (i: number) => data && data[`treatment${i + 1}`] && data[`treatmentReady${i + 1}`] && !data[`treatmentEnd${i + 1}`];
-      break;
-
-    default:
-      break;
-  }
-
-  if (!q || !snackBarMsg) return;
-
-  const condition = Array.from({ length: 5 })
-    .map((_, i) => q(i))
-    .some((v) => v);
-  if (condition) {
-    api.stopEditing();
-    setModalOpen?.();
-  } else {
-    api.stopEditing(true);
-    setGlobalSnackBar({ open: true, msg: snackBarMsg, severity: "warning" });
-  }
-};
-
-export const autoCompleteEdit = ({ value, onValueChange, data, api, colDef }: CustomCellEditorProps, searchHelp: SearchHelp[], setModalOpen?: () => void) => {
+export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: CustomCellEditorProps, searchHelp: SearchHelp[], setModalOpen?: () => void) => {
   const optionRef = useRef<SearchHelp | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isFirstKeyDown = useRef<boolean>(true);
-  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -138,8 +99,12 @@ export const autoCompleteEdit = ({ value, onValueChange, data, api, colDef }: Cu
   ) => {
     if (newValue) {
       onValueChange(newValue.id);
-      if (colDef.field === OP_READINESS) {
-        opReadinessOnChange(newValue, data, api, setGlobalSnackBar, setModalOpen);
+
+      if (colDef.field && /^treatment\d+$/.test(colDef.field)) {
+        const row = api.getRowNode(data.id);
+        if (row?.data.opReadiness === OPREADINESS_C) {
+          row.data.opReadiness = OPREADINESS_N;
+        }
       }
     }
   };

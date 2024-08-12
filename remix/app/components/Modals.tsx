@@ -9,16 +9,13 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import Box from "@mui/material/Box";
 import DialogTitle from "@mui/material/DialogTitle";
-import React, { MutableRefObject, RefObject, useEffect, useRef, useState } from "react";
-import { OpReadiness, PRecord, PRecordWithFocusedRow, SearchHelp } from "~/type";
+import React, { RefObject, useEffect, useState } from "react";
+import { PRecord, SearchHelp } from "~/type";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { AgGridReact } from "ag-grid-react";
-import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
-import { updateRecord } from "~/utils/request.client";
-import { emitSaveRecord } from "~/utils/Table/socket";
-import { Socket } from "socket.io-client";
-import { OP_READINESS, OPREADINESS_C } from "~/constant";
+import { TREATMENTS } from "shared";
+import { OPREADINESS_P } from "~/constant";
 
 export const SessionExpiredModal = () => {
   const [open, setOpen] = useRecoilState(sessionExpireModalOpenState);
@@ -35,8 +32,7 @@ export const SessionExpiredModal = () => {
     <div
       id="session-expired-modal"
       className={`${open ? "flex" : "hidden"} ${open ? "opacity-100" : "opacity-0"}`}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}
-    >
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}>
       <div className="flex flex-col" style={{ background: "white", padding: "20px", borderRadius: "5px" }}>
         <p>세션이 존재하지 않습니다. 다시 로그인해 주세요.</p>
         <button className="self-end " onClick={handleClose}>
@@ -64,10 +60,7 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
     treatment && (
       <Box
         onClick={onClick}
-        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${
-          selectedTreatment != null && selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"
-        }`}
-      >
+        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"}`}>
         <Typography className="text-sm">{`시술${number}`}</Typography>
         <Divider sx={{ bgcolor: "grey" }} orientation="vertical" flexItem variant="middle" />
         <Typography>{treatment.title}</Typography>
@@ -78,50 +71,40 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
 
 type SetTreatmentReadyModalProps = {
   open: boolean;
-  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
+  selectedRow: PRecord;
   gridRef: RefObject<AgGridReact<PRecord>>;
   handleClose: () => void;
   handleConfirm: (record: PRecord | undefined, selectedTreatment: number | undefined) => void;
-  socket: Socket | null;
 };
-export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, handleConfirm, gridRef, editingRowRef, socket }) => {
-  const [record, setRecord] = useState<PRecord | undefined>();
+export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, handleConfirm, gridRef, selectedRow }) => {
   const [selectedTreatment, setSelectedTreatment] = useState<number | undefined>();
   const [header, setHeader] = useState<string>();
   const [modalTitle, setModalTitle] = useState<string>("시술 준비 완료");
-  let originalOpReadiness = useRef<OpReadiness | undefined>();
 
   useEffect(() => {
-    if (gridRef.current && editingRowRef.current) {
-      originalOpReadiness.current = editingRowRef.current.opReadiness;
-      const gridRecord = gridRef.current.api.getRowNode(editingRowRef.current.rowId);
-
-      if (gridRecord?.data?.opReadiness === OPREADINESS_C) {
+    setSelectedTreatment(undefined);
+    if (gridRef.current) {
+      if (selectedRow.opReadiness === OPREADINESS_P) {
         setModalTitle("시술 진행 완료");
       }
 
-      setRecord(gridRecord?.data);
       setHeader(() => {
-        const data = gridRecord?.data;
-        if (data?.patientName && data.chartNum) {
-          return `${data?.patientName} - Chart #${data?.chartNum}`;
-        } else if (data?.patientName) {
-          return data?.patientName;
-        } else if (data?.chartNum) {
-          return data?.chartNum;
+        if (selectedRow.patientName && selectedRow.chartNum) {
+          return `${selectedRow.patientName} - Chart #${selectedRow.chartNum}`;
+        } else if (selectedRow.patientName) {
+          return selectedRow.patientName;
+        } else if (selectedRow.chartNum) {
+          return selectedRow.chartNum;
         }
         return "";
       });
     }
-  }, [gridRef.current, editingRowRef.current]);
+  }, [gridRef.current, selectedRow]);
 
   const handleCancel = async () => {
     try {
-      if (!record) return;
-      record[OP_READINESS] = originalOpReadiness.current;
-      const row = gridRef.current?.api.getRowNode(record.id);
+      const row = gridRef.current?.api.getRowNode(selectedRow.id);
       if (row && row.rowIndex !== null) {
-        row?.updateData(record);
         gridRef.current?.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
         gridRef.current?.api.stopEditing();
       }
@@ -141,17 +124,30 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
           </Box>
           {Array.from({ length: 5 }, (_, i) => i + 1).map(
             (number) =>
-              record &&
-              record[`treatment${number}`] &&
-              ((record.opReadiness === "C" && record[`treatmentReady${number}`] && !record[`treatmentEnd${number}`]) || (record.opReadiness === "Y" && !record[`treatmentReady${number}`])) && (
-                <TreatmentComponent key={number} onClick={() => setSelectedTreatment(number)} number={number} treatmentId={record[`treatment${number}`]} selectedTreatment={selectedTreatment} />
+              selectedRow &&
+              selectedRow[`treatment${number}`] &&
+              ((selectedRow.opReadiness === "P" && selectedRow[`treatmentStart${number}`] && !selectedRow[`treatmentEnd${number}`]) ||
+                (selectedRow.opReadiness !== "P" && !selectedRow[`treatmentReady${number}`])) && (
+                <TreatmentComponent key={number} onClick={() => setSelectedTreatment(number)} number={number} treatmentId={selectedRow[`treatment${number}`]} selectedTreatment={selectedTreatment} />
               )
           )}
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCancel}>취소</Button>
-        <Button disabled={selectedTreatment == null} onClick={() => handleConfirm(record, selectedTreatment)} autoFocus>
+        <Button
+          disabled={selectedTreatment == null}
+          onClick={() => {
+            handleConfirm(selectedRow, selectedTreatment);
+            const row = gridRef.current?.api.getRowNode(selectedRow.id);
+            row &&
+              gridRef.current?.api.refreshCells({
+                force: true,
+                rowNodes: [row],
+                columns: [`treatment${selectedTreatment}`],
+              });
+          }}
+          autoFocus>
           확인
         </Button>
       </DialogActions>

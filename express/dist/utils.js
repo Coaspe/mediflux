@@ -63,11 +63,11 @@ export const deconstructRecord = (record) => {
         convertTime(treatmentEnd3),
         convertTime(treatmentEnd4),
         convertTime(treatmentEnd5),
-        // convertTime(treatmentStart1),
-        // convertTime(treatmentStart2),
-        // convertTime(treatmentStart3),
-        // convertTime(treatmentStart4),
-        // convertTime(treatmentStart5),
+        convertTime(treatmentStart1),
+        convertTime(treatmentStart2),
+        convertTime(treatmentStart3),
+        convertTime(treatmentStart4),
+        convertTime(treatmentStart5),
     ];
     const { id } = record;
     if (id) {

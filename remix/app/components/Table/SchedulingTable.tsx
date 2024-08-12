@@ -1,3 +1,5 @@
+/** @format */
+
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
@@ -47,7 +49,6 @@ import {
   TREATMENT5,
   TREATMENT5_H,
 } from "~/constant";
-import dayjs from "dayjs";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -204,7 +205,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   };
 
-  const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, rowIndex: number | null, api: GridApi<PRecord>) => {
+  const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, api: GridApi<PRecord>) => {
     record.lockingUser = null;
 
     // Open modal
@@ -250,7 +251,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
 
     if (event.data && event.colDef.field && gridRef.current) {
-      saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, event.rowIndex, gridRef.current.api);
+      saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
     }
   };
 
@@ -283,10 +284,15 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
     return params.nextCellPosition;
   };
+
+  const noRowsOverlayComponent = () => {
+    return <span>차트가 존재하지 않습니다</span>;
+  };
+
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
-      <TableAction gridRef={gridRef} tableType={tableType} socket={socket} editingRowRef={editingRowRef} />
+      <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
       <AgGridReact
         ref={gridRef}
         onCellEditingStopped={onCellEditingStopped}
@@ -301,6 +307,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         rowSelection={"multiple"}
         tabToNextCell={tabToNextCell}
         loading={isLoading}
+        noRowsOverlayComponent={noRowsOverlayComponent}
       />
     </div>
   );
