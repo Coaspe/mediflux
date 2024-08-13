@@ -1,12 +1,9 @@
-/** @format */
-
-import { AgGridReact } from "ag-grid-react";
-import { PRecord, SearchHelp, TableType } from "../../type";
+import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "../../type";
 import { FC, RefObject, useState, useCallback } from "react";
 import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
 import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";
 import { hideRecords, insertRecords, lockOrUnlockRecords } from "~/utils/request.client";
-import { checkForUnReadyTreatments, convertServerPRecordtToPRecord } from "~/utils/utils";
+import { checkForUnReadyTreatments, convertServerPRecordtToPRecord, refreshTreatmentCells } from "~/utils/utils";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { OPREADINESS_C, OPREADINESS_N, OPREADINESS_P, OPREADINESS_Y } from "~/constant";
@@ -22,7 +19,7 @@ import { Socket } from "socket.io-client";
 import { SetTreatmentReadyModal } from "../Modals";
 
 type TableActionHeader = {
-  gridRef: RefObject<AgGridReact<PRecord>>;
+  gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;
   socket: Socket | null;
 };
@@ -36,7 +33,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   const [selectedRows, setSelectedRows] = useState<PRecord[]>([]);
-  const [open, setOpen] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openAssignModal, setOpenAssignModal] = useState(false);
   const [assignRecord, setAssignRecord] = useState<PRecord | null>(null);
   const [readyTreatment, setReadyTreatment] = useState<ReadyTreatment | null>(null);
@@ -78,7 +75,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         });
         emitDeleteRecords(ids, tableType, socket, user, SCHEDULING_ROOM_ID);
       } else {
-        showErrorSnackbar("서버 오류로 레코드를 삭제할 수 없습니다.");
+        throw new Error("서버 오류로 레코드를 삭제할 수 없습니다.");
       }
     } catch (error: any) {
       showErrorSnackbar(error.message || "알 수 없는 오류가 발생했습니다.");
@@ -91,16 +88,21 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
 
     try {
       const records = gridRef.current.api.getSelectedRows();
+
+      if (records.length === 0) {
+        throw new Error("삭제할 레코드가 선택되지 않았습니다.");
+      }
+
       const ids = records.map((record) => record.id);
       setSelectedRows(records);
 
       const result = await lockOrUnlockRecords(ids, user.id);
       if (result.status === 200) {
         emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
-        setOpen(true);
+        setOpenDeleteModal(true);
       }
-    } catch {
-      showErrorSnackbar("서버 오류.");
+    } catch (error: any) {
+      showErrorSnackbar(error.message || "알 수 없는 오류가 발생했습니다.");
     }
   };
   const handleCloseDeleteModal = useCallback(async () => {
@@ -116,7 +118,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       }
     } catch (error) {
     } finally {
-      setOpen(false);
+      setOpenDeleteModal(false);
     }
   }, [selectedRows, user, tableType, socket]);
 
@@ -126,8 +128,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     try {
       const records = gridRef.current.api.getSelectedRows();
       if (records.length !== 1) {
-        showErrorSnackbar(records.length ? "하나의 시술만 선택해주세요." : "시술을 선택해주세요.");
-        return;
+        throw new Error(records.length ? "하나의 시술만 선택해주세요." : "시술을 선택해주세요.");
       }
       const record = records[0];
 
@@ -135,20 +136,28 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       if (result.status === 200) {
         emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
         setAssignRecord(record);
-        const treatmentNumber = getReadyTreatmentNumber(record);
+        const treatmentNumber = findCanBeAssignedTreatmentNumber(record);
+
+        if (treatmentNumber === -1) {
+          throw new Error("준비된 시술이 없습니다.");
+        }
+
         const treatment = TREATMENTS.find((t) => t.id === record[`treatment${treatmentNumber}`]);
         if (treatmentNumber > 0 && treatment) {
+          console.log(treatmentNumber, treatment);
           setReadyTreatment({ number: treatmentNumber, ...treatment });
           setOpenAssignModal(true);
         }
       }
-    } catch {
-      showErrorSnackbar("서버 오류로 시술을 배정할 수 없습니다.");
+    } catch (error: any) {
+      showErrorSnackbar(error.mesasge || "서버 오류로 시술을 배정할 수 없습니다.");
     }
   };
-  const getReadyTreatmentNumber = (record: PRecord): number => {
+  const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
     for (let i = 1; i <= 5; i++) {
-      if (record[`treatmentReady${i}`] && !record[`treatmentEnd${i}`]) return i;
+      if (record[`treatmentReady${i}`] && record[`treatment${i}`] && !record[`treatmentStart${i}`]) {
+        return i;
+      }
     }
     return -1;
   };
@@ -271,6 +280,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         record.opReadiness = OPREADINESS_Y;
       } else if (record.opReadiness === "P") {
         record[`treatmentEnd${selectedTreatment}`] = time;
+        record["doctor"] = undefined;
         if (checkForUnReadyTreatments(record)) {
           record.opReadiness = OPREADINESS_N;
         } else {
@@ -281,6 +291,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       const row = gridRef.current?.api.getRowNode(record.id);
       if (row && row.rowIndex !== null) {
         row?.updateData(record);
+        refreshTreatmentCells(gridRef, record.id);
         gridRef.current?.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
         gridRef.current?.api.stopEditing();
       }
@@ -291,48 +302,50 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   };
   return (
     <div>
-      <Box className="flex justify-between items-center w-fit gap-2">
-        {tableType === "ExceptReady" && <Button onClick={onAddRecord}>추가</Button>}
-        {tableType === "ExceptReady" && <Button onClick={handleOpenDeleteModal}>삭제</Button>}
-        {tableType === "ExceptReady" && <Button onClick={() => handleOpenSetTreatmentReadyModal(true)}>시술 준비 완료</Button>}
-        {tableType === "ExceptReady" && <Button onClick={() => handleOpenSetTreatmentReadyModal(false)}>시술 완료</Button>}
-      </Box>
-
-      {tableType === "Ready" && <Button onClick={handleOpenAssignModal}>시술 진행</Button>}
       {tableType === "ExceptReady" && (
-        <Dialog open={open} onClose={handleCloseDeleteModal}>
-          <DialogTitle>{"레코드 삭제"}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>{selectedRows.length}개의 레코드를 삭제하시겠습니까?</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDeleteModal}>취소</Button>
-            <Button onClick={onDeleteRecord} autoFocus>
-              확인
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <>
+          <Box className="flex justify-between items-center w-fit gap-2">
+            <Button onClick={onAddRecord}>추가</Button>
+            <Button onClick={handleOpenDeleteModal}>삭제</Button>
+            <Button onClick={() => handleOpenSetTreatmentReadyModal(true)}>시술 준비 완료</Button>
+            <Button onClick={() => handleOpenSetTreatmentReadyModal(false)}>시술 완료</Button>
+          </Box>
+          <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
+            <DialogTitle>{"레코드 삭제"}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>{selectedRows.length}개의 레코드를 삭제하시겠습니까?</DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDeleteModal}>취소</Button>
+              <Button onClick={onDeleteRecord} autoFocus>
+                확인
+              </Button>
+            </DialogActions>
+          </Dialog>
+          {selectedRows.length === 1 && (
+            <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} selectedRow={selectedRows[0]} handleConfirm={handleConfirm} />
+          )}
+        </>
       )}
 
       {tableType === "Ready" && (
-        <Dialog open={openAssignModal} onClose={handleCloseAssignModal}>
-          <DialogTitle>{"시술 진행"}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              {assignRecord?.chartNum} - {assignRecord?.patientName} - {readyTreatment?.title}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseAssignModal}>취소</Button>
-            <Button onClick={onAssignRecord} autoFocus>
-              확인
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
-
-      {tableType === "ExceptReady" && selectedRows.length === 1 && (
-        <SetTreatmentReadyModal open={setTreatmentReadyModalOpen} handleClose={handleCloseSetTreatmentReadyModal} gridRef={gridRef} selectedRow={selectedRows[0]} handleConfirm={handleConfirm} />
+        <>
+          <Button onClick={handleOpenAssignModal}>시술 진행</Button>
+          <Dialog open={openAssignModal} onClose={handleCloseAssignModal}>
+            <DialogTitle>{"시술 진행"}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {assignRecord?.chartNum} - {assignRecord?.patientName} - {readyTreatment?.title}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseAssignModal}>취소</Button>
+              <Button onClick={onAssignRecord} autoFocus>
+                확인
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
       )}
     </div>
   );

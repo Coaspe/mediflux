@@ -129,6 +129,20 @@ app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, func
         return res.status(500).json({ message: "Internal server error" });
     }
 }));
+app.get("/api/isLocked", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.recordId;
+    try {
+        const lockingUser = yield pool.query(`SELECT locking_user FROM gn_ss_bailor.chart_schedule where record_id=$1;`, [id]);
+        if (lockingUser.rowCount == 0) {
+            return res.status(401).json({ message: "해당 레코드가 존재하지 않습니다." });
+        }
+        const user = lockingUser.rows[0];
+        return res.status(200).json({ user });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}));
 app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.query.userId;
     try {

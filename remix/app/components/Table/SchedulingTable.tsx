@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
-import { CustomAgGridReactProps, PRecord, PRecordWithFocusedRow, TableType } from "~/type";
+import { CustomAgGridReactProps, PRecord, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -65,10 +65,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const onLineChangingdEditingStoppedRef = useRef(false);
   const isTabPressed = useRef<boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const showErrorSnackbar = useCallback(
     (message: string) => {
@@ -297,6 +297,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
     isTabPressed.current = true;
+
     return params.nextCellPosition;
   };
 

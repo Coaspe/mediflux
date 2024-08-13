@@ -178,7 +178,8 @@ export const moveRecord = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, 
 
 export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
   const etrcondition = tableType === "ExceptReady" && record.opReadiness === "Y";
-  const rtecondition1 = tableType === "Ready" && record.doctor;
+  const rtecondition1 = tableType === "Ready" && record.opReadiness !== "Y";
+  // const rtecondition1 = tableType === "Ready" && record.doctor;
   const rtecondition2 = tableType === "Ready" && record.opReadiness !== "Y";
   return { etrcondition, rtecondition1, rtecondition2 };
 };
@@ -207,4 +208,21 @@ export const checkForUnReadyTreatments = (record: PRecord) => {
 
 export const getEditingCell = (gridRef: RefObject<CustomAgGridReactProps<PRecord>> | undefined) => {
   return gridRef?.current?.api.getEditingCells()[0];
+};
+
+export const refreshTreatmentCells = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, recordId: string) => {
+  const row = gridRef.current?.api.getRowNode(recordId);
+
+  if (!row || !row.data) return;
+  const columns = [];
+  for (let i = 1; i <= 5; i++) {
+    if (row.data[`treatment${i}`]) {
+      columns.push(`treatment${i}`);
+    }
+  }
+  gridRef.current?.api.refreshCells({
+    force: true,
+    rowNodes: [row],
+    columns,
+  });
 };

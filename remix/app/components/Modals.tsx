@@ -32,7 +32,8 @@ export const SessionExpiredModal = () => {
     <div
       id="session-expired-modal"
       className={`${open ? "flex" : "hidden"} ${open ? "opacity-100" : "opacity-0"}`}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}>
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}
+    >
       <div className="flex flex-col" style={{ background: "white", padding: "20px", borderRadius: "5px" }}>
         <p>세션이 존재하지 않습니다. 다시 로그인해 주세요.</p>
         <button className="self-end " onClick={handleClose}>
@@ -60,7 +61,8 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
     treatment && (
       <Box
         onClick={onClick}
-        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"}`}>
+        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"}`}
+      >
         <Typography className="text-sm">{`시술${number}`}</Typography>
         <Divider sx={{ bgcolor: "grey" }} orientation="vertical" flexItem variant="middle" />
         <Typography>{treatment.title}</Typography>
@@ -164,7 +166,8 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
                 columns: [`treatment${selectedTreatment}`],
               });
           }}
-          autoFocus>
+          autoFocus
+        >
           확인
         </Button>
       </DialogActions>
