@@ -44,3 +44,7 @@ export const getSchedulingRecords = async (op: string, where: string = "") => {
 export const lockOrUnlockRecords = async (recordIds: string[], lockingUser: string | null) => {
   return await axios.put("http://localhost:5000/api/lockOrUnlockRecords", { recordIds, lockingUser });
 };
+
+export const isLocked = async (recordId: string) => {
+  return await axios.get("https://localhost:5000/api/isLocked", { params: { recordId } });
+};

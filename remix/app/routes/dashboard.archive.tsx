@@ -1,3 +1,5 @@
+/** @format */
+
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import ArchiveChart from "~/components/Archive/Chart";
@@ -94,7 +96,6 @@ export default function Archive() {
         tableType="Archive"
         gridRef={tableRef}
         socket={socket}
-        editingRowRef={editingRowRef}
         roomId={ARCHIVE_ROOM_ID}
         startDate={dayjs(baseDate).startOf(interval)}
         endDate={dayjs(baseDate)

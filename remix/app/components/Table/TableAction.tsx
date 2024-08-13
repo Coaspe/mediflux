@@ -154,7 +154,15 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   };
   const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
     for (let i = 1; i <= 5; i++) {
-      if (!record[`treatmentReady${i}`]) {
+      if (!record[`treatmentReady${i}`] && record[`treatment${i}`]) {
+        return i;
+      }
+    }
+    return -1;
+  };
+  const findCanCompleteTreatmentNumber = (record: PRecord): number => {
+    for (let i = 1; i <= 5; i++) {
+      if (record[`treatment${i}`] && record[`treatmentStart${i}`] && !record[`treatmentEnd${i}`]) {
         return i;
       }
     }
@@ -206,27 +214,47 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       setSetTreatmentReadyModalOpen(false);
     }
   };
-  const handleOpenSetTreatmentReadyModal = async () => {
+  const handleOpenSetTreatmentReadyModal = async (isSetReadyBtn: boolean) => {
     try {
       const _seletedRows = gridRef.current?.api.getSelectedRows();
+      let msg = null;
+
       if (!_seletedRows || _seletedRows.length === 0) {
-        showErrorSnackbar("차트를 선택해주세요.", "warning");
+        msg = "차트를 선택해주세요.";
       } else if (_seletedRows.length > 1) {
-        showErrorSnackbar("하나의 차트만 선택해주세요.", "warning");
+        msg = "하나의 차트만 선택해주세요.";
       } else if (_seletedRows.length === 1 && user) {
-        if (findCanbeReadyTreatmentNumber(_seletedRows[0]) === -1 || _seletedRows[0].opReadiness === OPREADINESS_C) {
-          showErrorSnackbar("준비 완료할 수 있는 시술이 없습니다.", "warning");
-          return;
-        } else if (_seletedRows[0].opReadiness === OPREADINESS_P) {
-          showErrorSnackbar("해당 차트는 시술이 진행중입니다.");
-          return;
+        const opReadiness = _seletedRows[0].opReadiness;
+        if (isSetReadyBtn) {
+          if (opReadiness === OPREADINESS_N && findCanbeReadyTreatmentNumber(_seletedRows[0]) === -1) {
+            msg = "준비 완료할 수 있는 시술이 없습니다.";
+          } else if (opReadiness === OPREADINESS_P) {
+            msg = "해당 차트는 시술이 진행중입니다.";
+          } else if (opReadiness === OPREADINESS_C) {
+            msg = "모든 시술이 완료되었습니다.";
+          }
+        } else {
+          // Open Set complete modal
+          if (opReadiness !== OPREADINESS_P || findCanCompleteTreatmentNumber(_seletedRows[0]) === -1) {
+            msg = "진행중인 시술이 없습니다.";
+          }
         }
-        const result = await lockOrUnlockRecords([_seletedRows[0].id], user.id);
-        if (result.status === 200) {
-          emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
-          setSelectedRows(_seletedRows);
-          setSetTreatmentReadyModalOpen(true);
-        }
+      }
+
+      if (msg) {
+        showErrorSnackbar(msg, "warning");
+        return;
+      }
+
+      if (!user || !_seletedRows) {
+        return;
+      }
+
+      const result = await lockOrUnlockRecords([_seletedRows[0].id], user.id);
+      if (result.status === 200) {
+        emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+        setSelectedRows(_seletedRows);
+        setSetTreatmentReadyModalOpen(true);
       }
     } catch (error) {
       showErrorSnackbar("서버 오류");
@@ -253,7 +281,6 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       const row = gridRef.current?.api.getRowNode(record.id);
       if (row && row.rowIndex !== null) {
         row?.updateData(record);
-        console.log(record);
         gridRef.current?.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
         gridRef.current?.api.stopEditing();
       }
@@ -267,8 +294,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       <Box className="flex justify-between items-center w-fit gap-2">
         {tableType === "ExceptReady" && <Button onClick={onAddRecord}>추가</Button>}
         {tableType === "ExceptReady" && <Button onClick={handleOpenDeleteModal}>삭제</Button>}
-        {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 준비 완료</Button>}
-        {tableType === "ExceptReady" && <Button onClick={handleOpenSetTreatmentReadyModal}>시술 완료</Button>}
+        {tableType === "ExceptReady" && <Button onClick={() => handleOpenSetTreatmentReadyModal(true)}>시술 준비 완료</Button>}
+        {tableType === "ExceptReady" && <Button onClick={() => handleOpenSetTreatmentReadyModal(false)}>시술 완료</Button>}
       </Box>
 
       {tableType === "Ready" && <Button onClick={handleOpenAssignModal}>시술 진행</Button>}

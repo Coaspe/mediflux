@@ -34,7 +34,6 @@ export default function Scheduling() {
 
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
-  const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
 
   useEffect(() => {
     if (exceptReadyRef.current) {
@@ -43,7 +42,7 @@ export default function Scheduling() {
     if (readyRef.current) {
       readyRef.current.tableType = "Ready";
     }
-  }, [exceptReadyRef.current, editingRowRef.current]);
+  }, [exceptReadyRef.current, readyRef.current]);
 
   useEffect(() => {
     const { user: suser } = data;
@@ -73,8 +72,8 @@ export default function Scheduling() {
 
   return (
     <div className="flex w-full h-full flex-col">
-      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} editingRowRef={editingRowRef} roomId={SCHEDULING_ROOM_ID} />
-      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} editingRowRef={editingRowRef} roomId={SCHEDULING_ROOM_ID} />
+      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} />
+      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} />
     </div>
   );
 }

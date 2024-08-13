@@ -31,7 +31,7 @@ import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
-import { checkIsInvaildRecord, convertServerPRecordtToPRecord, moveRecord } from "~/utils/utils";
+import { checkIsInvaildRecord, convertServerPRecordtToPRecord, getEditingCell, moveRecord } from "~/utils/utils";
 import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 import {
   LOCKING_USER,
@@ -55,14 +55,13 @@ type SchedulingTableProps = {
   socket: Socket | null;
   gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   theOtherGridRef?: RefObject<CustomAgGridReactProps<PRecord>>;
-  editingRowRef: MutableRefObject<PRecordWithFocusedRow | null>;
   tableType: TableType;
   roomId: string;
   startDate?: Dayjs;
   endDate?: Dayjs;
 };
 
-const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, editingRowRef, startDate, endDate, roomId }) => {
+const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, startDate, endDate, roomId }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
@@ -81,7 +80,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   // Add custom tracnsaction event listener
   useEffect(() => {
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
-      if (editingRowRef.current) {
+      if (getEditingCell(gridRef)) {
         onLineChangingdEditingStoppedRef.current = true;
       }
     };
@@ -104,9 +103,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     if (!socket) return;
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
-    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, tableType, editingRowRef, theOtherGridRef,));
-    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, editingRowRef, audioRef));
-    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType, editingRowRef));
+    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, tableType, theOtherGridRef));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, audioRef));
+    socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType));
 
     return () => {
       socket.off(LOCK_RECORD);
@@ -224,7 +223,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     if ((field === OP_READINESS && oldValue !== OPREADINESS_Y && newValue === OPREADINESS_Y) || (oldValue !== OPREADINESS_C && newValue === OPREADINESS_C)) {
       return;
     }
-    editingRowRef.current = null;
+
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 
     try {
@@ -233,8 +232,11 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
       if (updateResult.status === 200) {
         emitSaveRecord([record], tableType, socket, roomId);
+        gridRef.current?.api.applyTransaction({
+          update: [record],
+        });
         if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
-          moveRecord(gridRef, theOtherGridRef, record, editingRowRef);
+          moveRecord(gridRef, theOtherGridRef, record);
         }
       }
     } catch (error) {
@@ -263,7 +265,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
 
     if (event.data && event.colDef.field && gridRef.current) {
-      saveRecord(event.data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
+      const data: PRecord = JSON.parse(JSON.stringify(event.data));
+      saveRecord(data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
     }
   };
 
@@ -272,17 +275,19 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     isTabPressed.current = false;
 
     try {
-      if (editingRowRef.current && theOtherGridRef) {
+      const theOtherEditingCell = getEditingCell(theOtherGridRef);
+      if (theOtherGridRef && theOtherEditingCell) {
         theOtherGridRef.current?.api.stopEditing();
-        editingRowRef.current = null;
       }
-      if (user && event.data && !editingRowRef.current) {
+
+      if (user && event.data && !event.data.lockingUser) {
         const result = await lockRecord(event.data.id, user.id);
         if (result.status === 200) {
           emitLockRecord(event.data?.id, tableType, socket, user, roomId);
-          if (gridRef.current) {
-            editingRowRef.current = { cellPosition: gridRef.current.api.getFocusedCell(), rowId: event.data?.id, ...event.data, tableType } as PRecordWithFocusedRow;
-          }
+          event.data.lockingUser = user.id;
+          gridRef.current?.api.applyTransaction({
+            update: [event.data],
+          });
         }
       }
     } catch (error) {
@@ -291,9 +296,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   };
 
   const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
-    if (editingRowRef.current) {
-      isTabPressed.current = true;
-    }
+    isTabPressed.current = true;
     return params.nextCellPosition;
   };
 

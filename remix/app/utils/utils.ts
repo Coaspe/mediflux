@@ -4,6 +4,7 @@ import { Role, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU } from "~/constant";
 import { CustomAgGridReactProps, FocusedRow, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
+import { AgGridReact } from "ag-grid-react";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -120,31 +121,28 @@ export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRe
   } as PRecord;
 }
 
-export const focusEditingRecord = (gridRef: RefObject<CustomAgGridReactProps<any>>, editingRowRef: MutableRefObject<FocusedRow | null>, rowIndex?: number | null | undefined) => {
-  if (gridRef.current && editingRowRef.current && gridRef.current.tableType === editingRowRef.current.tableType) {
+export const focusEditingRecord = (gridRef: RefObject<CustomAgGridReactProps<any>>, rowIndex?: number | null | undefined) => {
+  const editingCell = getEditingCell(gridRef);
+  if (gridRef.current && editingCell) {
     if (typeof rowIndex !== "number") {
-      rowIndex = gridRef.current.api.getRowNode(editingRowRef.current.rowId)?.rowIndex;
+      rowIndex = editingCell.rowIndex;
     }
     if (typeof rowIndex === "number") {
-      gridRef.current.api.setFocusedCell(rowIndex, editingRowRef.current.cellPosition.column.getId());
+      gridRef.current.api.setFocusedCell(rowIndex, editingCell.column.getColId());
       gridRef.current.api.startEditingCell({
         rowIndex,
-        colKey: editingRowRef.current.cellPosition.column.getId(),
+        colKey: editingCell.column.getColId(),
       });
     }
   }
 };
 
-export const moveRecord = (
-  gridRef: RefObject<CustomAgGridReactProps<PRecord>>,
-  theOtherGridRef: RefObject<CustomAgGridReactProps<PRecord>>,
-  data: PRecord,
-  editingRowRef: MutableRefObject<FocusedRow | null>
-) => {
+export const moveRecord = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, theOtherGridRef: RefObject<CustomAgGridReactProps<PRecord>>, data: PRecord) => {
   let needFocus = false;
   let soonRemovedIndex = gridRef.current?.api.getRowNode(data.id)?.rowIndex;
 
-  if (gridRef.current?.tableType === editingRowRef.current?.tableType) {
+  const editingCell = getEditingCell(gridRef);
+  if (editingCell) {
     const editingCellsCurGrid = gridRef.current?.api.getEditingCells();
     if (editingCellsCurGrid && editingCellsCurGrid.length > 0 && typeof soonRemovedIndex === "number") {
       needFocus = editingCellsCurGrid[0].rowIndex > soonRemovedIndex;
@@ -158,11 +156,11 @@ export const moveRecord = (
   });
 
   if (needFocus) {
-    focusEditingRecord(gridRef, editingRowRef);
+    focusEditingRecord(gridRef);
   }
 
-  const editingCellsTheOtherGrid = theOtherGridRef.current?.api.getEditingCells();
-  if (theOtherGridRef.current?.tableType === editingRowRef.current?.tableType && editingCellsTheOtherGrid && editingCellsTheOtherGrid.length > 0) {
+  const theOtherEditingCell = getEditingCell(theOtherGridRef);
+  if (theOtherEditingCell) {
     const event = new CustomEvent("onLineChangingTransactionApplied");
     theOtherGridRef.current?.api.dispatchEvent(event);
   }
@@ -175,7 +173,7 @@ export const moveRecord = (
   });
 
   // O(1)
-  focusEditingRecord(theOtherGridRef, editingRowRef);
+  focusEditingRecord(theOtherGridRef);
 };
 
 export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
@@ -205,4 +203,8 @@ export const checkForUnReadyTreatments = (record: PRecord) => {
     }
   }
   return false;
+};
+
+export const getEditingCell = (gridRef: RefObject<CustomAgGridReactProps<PRecord>> | undefined) => {
+  return gridRef?.current?.api.getEditingCells()[0];
 };

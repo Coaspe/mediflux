@@ -32,8 +32,7 @@ export const SessionExpiredModal = () => {
     <div
       id="session-expired-modal"
       className={`${open ? "flex" : "hidden"} ${open ? "opacity-100" : "opacity-0"}`}
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}
-    >
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" }}>
       <div className="flex flex-col" style={{ background: "white", padding: "20px", borderRadius: "5px" }}>
         <p>세션이 존재하지 않습니다. 다시 로그인해 주세요.</p>
         <button className="self-end " onClick={handleClose}>
@@ -61,8 +60,7 @@ const TreatmentComponent: React.FC<TreatmentComponentProps> = ({ onClick, number
     treatment && (
       <Box
         onClick={onClick}
-        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"}`}
-      >
+        className={`flex cursor-pointer border p-2 rounded-lg w-full items-center font-noto gap-2 transition-colors duration-200 ${selectedTreatment == number ? "bg-gray-300" : "hover:bg-gray-200"}`}>
         <Typography className="text-sm">{`시술${number}`}</Typography>
         <Divider sx={{ bgcolor: "grey" }} orientation="vertical" flexItem variant="middle" />
         <Typography>{treatment.title}</Typography>
@@ -80,13 +78,24 @@ type SetTreatmentReadyModalProps = {
 };
 export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ open, handleClose, handleConfirm, gridRef, selectedRow }) => {
   const [selectedTreatment, setSelectedTreatment] = useState<number | undefined>();
+  const [treatmentTitle, setTreatmentTitle] = useState<string | undefined>();
   const [header, setHeader] = useState<string>();
   const [modalTitle, setModalTitle] = useState<string>("시술 준비 완료");
 
   useEffect(() => {
-    if (gridRef.current) {
+    if (gridRef.current && open) {
       if (selectedRow.opReadiness === OPREADINESS_P) {
         setModalTitle("시술 진행 완료");
+      }
+
+      if (selectedRow.opReadiness === "P") {
+        for (let number = 1; number <= 5; number++) {
+          if (selectedRow && selectedRow[`treatment${number}`] && selectedRow[`treatmentStart${number}`] && !selectedRow[`treatmentEnd${number}`]) {
+            setSelectedTreatment(number);
+            setTreatmentTitle(TREATMENTS.find((val) => val.id === selectedRow[`treatment${number}`])?.title);
+            break;
+          }
+        }
       }
 
       setHeader(() => {
@@ -100,11 +109,11 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
         return "";
       });
     }
-  }, [gridRef.current, selectedRow]);
 
-  useEffect(() => {
-    setSelectedTreatment(undefined);
-  }, [open]);
+    if (!open) {
+      setSelectedTreatment(undefined);
+    }
+  }, [gridRef.current, selectedRow, open]);
 
   const handleCancel = async () => {
     try {
@@ -127,14 +136,17 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
           <Box className="flex flex-col w-full">
             <Typography className="font-bold">{header}</Typography>
           </Box>
-          {Array.from({ length: 5 }, (_, i) => i + 1).map(
-            (number) =>
-              selectedRow &&
-              selectedRow[`treatment${number}`] &&
-              ((selectedRow.opReadiness === "P" && selectedRow[`treatmentStart${number}`] && !selectedRow[`treatmentEnd${number}`]) ||
-                (selectedRow.opReadiness !== "P" && !selectedRow[`treatmentReady${number}`])) && (
-                <TreatmentComponent key={number} onClick={() => setSelectedTreatment(number)} number={number} treatmentId={selectedRow[`treatment${number}`]} selectedTreatment={selectedTreatment} />
-              )
+          {selectedRow.opReadiness === "N" ? (
+            Array.from({ length: 5 }, (_, i) => i + 1).map(
+              (number) =>
+                selectedRow &&
+                selectedRow[`treatment${number}`] &&
+                !selectedRow[`treatmentReady${number}`] && (
+                  <TreatmentComponent key={number} onClick={() => setSelectedTreatment(number)} number={number} treatmentId={selectedRow[`treatment${number}`]} selectedTreatment={selectedTreatment} />
+                )
+            )
+          ) : (
+            <>{treatmentTitle} </>
           )}
         </Box>
       </DialogContent>
@@ -152,8 +164,7 @@ export const SetTreatmentReadyModal: React.FC<SetTreatmentReadyModalProps> = ({ 
                 columns: [`treatment${selectedTreatment}`],
               });
           }}
-          autoFocus
-        >
+          autoFocus>
           확인
         </Button>
       </DialogActions>
