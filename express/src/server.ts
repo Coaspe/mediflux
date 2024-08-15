@@ -225,7 +225,6 @@ app.post("/api/getRecords", async (req, res) => {
     let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
 
     if (where) {
-      baseQuery += " ";
       baseQuery += where;
     }
     const result = await pool.query(baseQuery, values);

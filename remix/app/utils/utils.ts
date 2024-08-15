@@ -4,7 +4,6 @@ import { Role, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU } from "~/constant";
 import { CustomAgGridReactProps, FocusedRow, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
-import { AgGridReact } from "ag-grid-react";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {

@@ -7,7 +7,7 @@ import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { userState } from "~/recoil_state";
 import { checkSessionExists } from "~/services/session.server";
-import { CustomAgGridReactProps, PRecord, PRecordWithFocusedRow } from "~/type";
+import { CustomAgGridReactProps, PRecord } from "~/type";
 import { getUserByID } from "~/utils/request.server";
 import { redirect } from "@remix-run/node";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";

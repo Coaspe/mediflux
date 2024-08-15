@@ -59,9 +59,10 @@ type SchedulingTableProps = {
   roomId: string;
   startDate?: Dayjs;
   endDate?: Dayjs;
+  data?: PRecord[];
 };
 
-const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, startDate, endDate, roomId }) => {
+const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, startDate, endDate, roomId, data }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
@@ -119,20 +120,27 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   // Get records and process unlocked records.
   useEffect(() => {
-    if (!socket || !user) return;
+    if (!socket || !user || data) return;
     const getData = async () => {
       try {
         setIsLoading(true);
-        const op = tableType === "Ready" ? "=" : "!=";
         let where = "";
-        if (startDate) {
-          where += ` and check_in_time >= ${startDate.toISOString()}`;
-        }
-        if (endDate) {
-          where += ` and check_in_time <= ${endDate.toISOString}`;
+        if (tableType === "Ready") {
+          where = " AND op_readiness = 'Y'";
+        } else if (tableType === "ExceptReady") {
+          where = " AND op_readiness != 'Y'";
         }
 
-        const { data } = await getSchedulingRecords(op, where);
+        if (startDate) {
+          console.log(startDate.toISOString());
+
+          where += ` and check_in_time >= '${startDate.toISOString()}'`;
+        }
+        if (endDate) {
+          where += ` and check_in_time <= '${endDate.toISOString()}'`;
+        }
+
+        const { data } = await getSchedulingRecords(where);
         const records: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
 
         const mustBeUnlocked = [];
@@ -155,6 +163,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
         return records;
       } catch (error) {
+        console.log(error);
+
         showErrorSnackbar("Internal server error");
       } finally {
         setIsLoading(false);

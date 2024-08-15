@@ -204,7 +204,6 @@ app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
         const values = req.body.values ? req.body.values : [];
         let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
         if (where) {
-            baseQuery += " ";
             baseQuery += where;
         }
         const result = yield pool.query(baseQuery, values);

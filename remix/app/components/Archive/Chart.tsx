@@ -1,9 +1,8 @@
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { MOCK } from "~/constant";
 import React from "react";
-import { Interval } from "~/type";
+import { Interval, PRecord } from "~/type";
 
 type ChartData = {
   name: string;
@@ -30,10 +29,12 @@ type props = {
   numOfInterval: number;
   interval: Interval;
   baseDate: Dayjs;
+  data: PRecord[];
 };
 
-const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate }) => {
+const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate, data }) => {
   const [chartData, setChartData] = useState<ChartData[]>();
+
   const calIntervalAndSetChartData = (interval: Interval, numOfInterval: number): void => {
     let mapping: { [key: number]: ChartData } = {};
     let date = dayjs(baseDate).startOf(interval).unix();
@@ -48,7 +49,7 @@ const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate }) =>
         .unix();
     }
 
-    MOCK.forEach((record) => {
+    data.forEach((record) => {
       if (record.checkInTime !== undefined) {
         const start = dayjs(record.checkInTime * 1000)
           .startOf(interval)
@@ -63,12 +64,16 @@ const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate }) =>
     const entries = Object.entries(mapping);
     entries.sort((a, b) => a[0].localeCompare(b[0]));
     const en = entries.map((entry) => entry[1]);
+    console.log(mapping);
+
     setChartData(en);
   };
 
   useEffect(() => {
-    calIntervalAndSetChartData(interval, numOfInterval);
-  }, [interval, numOfInterval, baseDate]);
+    if (data) {
+      calIntervalAndSetChartData(interval, numOfInterval);
+    }
+  }, [interval, numOfInterval, baseDate, data]);
 
   return (
     <div className="w-full h-1/3">

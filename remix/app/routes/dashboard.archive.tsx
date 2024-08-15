@@ -3,7 +3,7 @@
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import ArchiveChart from "~/components/Archive/Chart";
-import { CustomAgGridReactProps, Interval, PRecord, PRecordWithFocusedRow } from "~/type";
+import { CustomAgGridReactProps, Interval, PRecord } from "~/type";
 import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
@@ -17,22 +17,27 @@ import { Socket, io } from "socket.io-client";
 import { useLoaderData } from "@remix-run/react";
 import { useRecoilState } from "recoil";
 import { userState } from "~/recoil_state";
+import { getSchedulingRecords, unlockRecord } from "~/utils/request.client";
+import { emitUnlockRecord } from "~/utils/Table/socket";
+import { convertServerPRecordtToPRecord } from "~/utils/utils";
 
 export default function Archive() {
   const [numOfInterval, setNumOfInterval] = useState<number>(7);
   const [interval, setInterval] = useState<Interval>("week");
   const [baseDate, setBaseDate] = useState<Dayjs>(dayjs());
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [rowData, setRowData] = useState<PRecord[]>([]);
   const tableRef = useRef<CustomAgGridReactProps<PRecord>>(null);
-  const editingRowRef = useRef<PRecordWithFocusedRow | null>(null);
   const data: any = useLoaderData();
 
   const [user, setUser] = useRecoilState(userState);
 
   useEffect(() => {
-    const { user: suser } = data;
-    if (!user || user.id != suser.id) {
-      setUser(suser);
+    if (data) {
+      const { user: suser } = data;
+      if (!user || user.id != suser.id) {
+        setUser(suser);
+      }
     }
   }, [data]);
 
@@ -66,6 +71,52 @@ export default function Archive() {
       socketInstance.disconnect();
     };
   }, []);
+  // Get records and process unlocked records.
+  useEffect(() => {
+    if (!socket || !user || data) return;
+    const getData = async () => {
+      try {
+        let where = "";
+        where += ` and check_in_time >= '${dayjs(baseDate).startOf(interval).toISOString()}'`;
+        where += ` and check_in_time <= '${dayjs(baseDate)
+          .startOf(interval)
+          .add(numOfInterval - 1, interval)
+          .endOf(interval)
+          .toISOString()}'`;
+
+        const { data } = await getSchedulingRecords(where);
+        const records: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
+
+        const mustBeUnlocked = [];
+
+        for (let i = 0; i < records.length; i++) {
+          const record = records[i];
+          if (record.lockingUser === user?.id) {
+            record.lockingUser = null;
+            mustBeUnlocked.push(record);
+            break;
+          }
+        }
+
+        const promised = mustBeUnlocked.map((record) => unlockRecord(record.id));
+        await Promise.all(promised);
+
+        mustBeUnlocked.forEach((record) => emitUnlockRecord(record.id, "Archive", socket, ARCHIVE_ROOM_ID));
+        records.sort((a, b) => (b.checkInTime ?? 0) - (a.checkInTime ?? 0));
+        setRowData(records);
+
+        return records;
+      } catch (error) {
+        // showErrorSnackbar("Internal server error");
+      } finally {
+        // setIsLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      getData();
+    }
+  }, [user, socket]);
   return (
     <div className="w-full">
       <div className="flex gap-3 pb-5">
@@ -91,7 +142,7 @@ export default function Archive() {
           </Select>
         </FormControl>
       </div>
-      <ArchiveChart numOfInterval={numOfInterval} interval={interval} baseDate={baseDate} />
+      <ArchiveChart numOfInterval={numOfInterval} interval={interval} baseDate={baseDate} data={rowData} />
       <SchedulingTable
         tableType="Archive"
         gridRef={tableRef}
