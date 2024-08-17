@@ -60,6 +60,7 @@ export const checkinTimeColumn: ColDef<PRecord, number> = {
 
 export const chartNumberColumn: ColDef<PRecord, string> = {
   field: CHART_NUMBER,
+  width: 100,
   comparator: (valueA, valueB) => parseInt(valueA ? valueA : "0") - parseInt(valueB ? valueB : "0"),
   headerName: CHART_NUMBER_H,
 };
@@ -75,7 +76,7 @@ export const opReadinessColumn = {
   headerName: OP_READINESS_H,
   cellRenderer: opReadinessCell,
   editable: false,
-  width: SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
+  width: 70,
   cellStyle: () => {
     return {
       alignItems: "center",
@@ -91,7 +92,7 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
     headerName,
     cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS),
-    width: 250,
+    width: 150,
     editable: (params) => {
       const number = params.colDef.field?.charAt(params.colDef.field?.length - 1);
       return !(params.data && params.data[`treatmentEnd${number}`]);

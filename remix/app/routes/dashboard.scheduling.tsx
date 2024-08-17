@@ -1,36 +1,41 @@
-/** @format */
-
 import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { userState } from "~/recoil_state";
-import { checkSessionExists } from "~/services/session.server";
-import { CustomAgGridReactProps, PRecord } from "~/type";
-import { getUserByID } from "~/utils/request.server";
+import { CustomAgGridReactProps, PRecord, User } from "~/type";
+import { getSchedulingRecords, getUserByID } from "~/utils/request.server";
 import { redirect } from "@remix-run/node";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
+import { OPREADINESS_Y } from "~/constant";
+import { convertServerPRecordtToPRecord } from "~/utils/utils";
+import { getUserSession } from "~/services/session.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    const uuid = await checkSessionExists(request);
-    if (uuid) {
-      const user = await getUserByID(uuid);
-      return json({ user });
-    } else {
-      return redirect("/");
+    const sessionData = await getUserSession(request);
+    if (sessionData.id) {
+      const user = await getUserByID(sessionData.id);
+      if (user) {
+        const { data } = await getSchedulingRecords();
+        return json({ user, records: data.rows });
+      }
     }
   } catch (error) {
     return redirect("/");
   }
+  return null;
 };
 
 export default function Scheduling() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [user, setUser] = useRecoilState(userState);
-  const data: any = useLoaderData();
+  const loaderData = useLoaderData<{ user: User; records: PRecord[] }>();
+
+  const [readyData, setReadyData] = useState<PRecord[]>([]);
+  const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
 
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
@@ -45,11 +50,30 @@ export default function Scheduling() {
   }, [exceptReadyRef.current, readyRef.current]);
 
   useEffect(() => {
-    const { user: suser } = data;
+    const { user: suser, records } = loaderData;
     if (!user || user.id != suser.id) {
       setUser(suser);
     }
-  }, [data]);
+
+    if (user) {
+      const recordsData: PRecord[] = records.map((record: any) => convertServerPRecordtToPRecord(record));
+      const ready = [];
+      const exceptReady = [];
+
+      while (recordsData.length > 0) {
+        const record = recordsData.pop();
+        if (!record) continue;
+        if (record?.opReadiness === OPREADINESS_Y) {
+          ready.push(record);
+        } else {
+          exceptReady.push(record);
+        }
+      }
+
+      setReadyData(ready);
+      setExceptReadyData(exceptReady);
+    }
+  }, [loaderData]);
 
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);
@@ -72,8 +96,8 @@ export default function Scheduling() {
 
   return (
     <div className="flex w-full h-full flex-col">
-      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} />
-      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} />
+      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={readyData} />
+      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={exceptReadyData} />
     </div>
   );
 }

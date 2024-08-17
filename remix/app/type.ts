@@ -154,3 +154,8 @@ export interface CustomAgGridReactProps<TData> extends AgGridReact<TData> {
 }
 
 export type GlobalSnackBark = { open: boolean; msg: string; severity: "error" | "info" | "success" | "warning" };
+
+export type ChartData = {
+  name: string;
+  numOfPRecords: number;
+};

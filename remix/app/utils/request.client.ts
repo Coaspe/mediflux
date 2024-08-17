@@ -37,9 +37,7 @@ export const unlockRecord = async (recordId: string) => {
   return await axios.put("http://localhost:5000/api/unlockRecord", { recordId });
 };
 
-export const getSchedulingRecords = async (where: string = "") => {
-  console.log(where);
-
+export const getSchedulingRecords = async (where: string[] = []) => {
   return await axios.post("http://localhost:5000/api/getRecords", { where });
 };
 

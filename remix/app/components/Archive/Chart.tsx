@@ -2,12 +2,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import React from "react";
-import { Interval, PRecord } from "~/type";
-
-type ChartData = {
-  name: string;
-  numOfPRecords: number;
-};
+import { ChartData, Interval, PRecord } from "~/type";
 
 function formatDateString(date: number, format: Interval) {
   date *= 1000;
@@ -25,14 +20,14 @@ function formatDateString(date: number, format: Interval) {
   }
 }
 
-type props = {
+type ArchiveChartProps = {
   numOfInterval: number;
   interval: Interval;
   baseDate: Dayjs;
   data: PRecord[];
 };
 
-const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate, data }) => {
+const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, baseDate, data }) => {
   const [chartData, setChartData] = useState<ChartData[]>();
 
   const calIntervalAndSetChartData = (interval: Interval, numOfInterval: number): void => {
@@ -64,8 +59,6 @@ const ArchiveChart: React.FC<props> = ({ numOfInterval, interval, baseDate, data
     const entries = Object.entries(mapping);
     entries.sort((a, b) => a[0].localeCompare(b[0]));
     const en = entries.map((entry) => entry[1]);
-    console.log(mapping);
-
     setChartData(en);
   };
 

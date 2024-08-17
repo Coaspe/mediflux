@@ -1,4 +1,3 @@
-/** @format */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -203,9 +202,10 @@ app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
     try {
         const values = req.body.values ? req.body.values : [];
         let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
-        if (where) {
-            baseQuery += where;
-        }
+        where.forEach((w) => {
+            baseQuery += " ";
+            baseQuery += w;
+        });
         const result = yield pool.query(baseQuery, values);
         return res.status(200).json(result);
     }

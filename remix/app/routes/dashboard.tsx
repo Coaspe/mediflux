@@ -1,5 +1,3 @@
-/** @format */
-
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
@@ -9,8 +7,8 @@ import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
-import { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
-import { checkSessionExists, destroyUserSession } from "~/services/session.server";
+import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from "@remix-run/node";
+import { destroyUserSession, getUserSession } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
@@ -27,12 +25,15 @@ const isSideMenu = (value: any): value is SideMenu => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let idOrRedirect = await checkSessionExists(request);
+  let sessionData = await getUserSession(request);
 
-  if (typeof idOrRedirect !== "string") {
-    return "sessionExpire";
+  if (sessionData.status === "session-expired") {
+    return sessionData.status;
+  } else if (sessionData.status === "no-session") {
+    return redirect("/");
   }
-  let user = await getUserByID(idOrRedirect);
+
+  let user = await getUserByID(sessionData.id);
   return user;
 }
 
@@ -49,6 +50,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       return null;
   }
 };
+
 export default function Dashboard() {
   const [clickedMenu, setClickedMenu] = useState<SideMenu>();
   const location = useLocation();
@@ -57,7 +59,7 @@ export default function Dashboard() {
   const setModalOpen = useSetRecoilState(sessionExpireModalOpenState);
 
   useEffect(() => {
-    if (loadData === "sessionExpire") {
+    if (loadData === "session-expired") {
       setModalOpen(true);
     } else if (typeof loadData === "object") {
       setUser(loadData as User);

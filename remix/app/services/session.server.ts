@@ -20,7 +20,7 @@ const sessionSecret = "remxe12i2mfdmx";
 if (!sessionSecret) {
   throw new Error("SESSION_SECRET must be set");
 }
-
+const SESSION_AGE = 60 * 60 * 24 * 30;
 const storage = createCookieSessionStorage({
   cookie: {
     name: "__session",
@@ -31,14 +31,16 @@ const storage = createCookieSessionStorage({
     secrets: [sessionSecret],
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: SESSION_AGE,
     httpOnly: true,
   },
 });
 
 export async function createUserSession(user: User, redirectTo: string) {
   const session = await storage.getSession();
+
   session.set("id", user.id);
+  session.set("expires", Date.now() + SESSION_AGE);
 
   return redirect(redirectTo, {
     headers: {
@@ -57,24 +59,22 @@ export async function register({ userId, password, role, firstName, lastName }: 
 }
 
 export async function getUserSession(request: Request) {
-  return await storage.getSession(request.headers.get("Cookie"));
-}
+  const session = await storage.getSession(request.headers.get("Cookie"));
+  const userId = session.get("id");
+  const expires = session.get("expires");
 
-export async function getUserID(request: Request) {
-  const session = await getUserSession(request);
-  return session.get("id") as string;
-}
-
-export async function checkSessionExists(request: Request) {
-  let id = await getUserID(request);
-  if (!id) {
-    return undefined;
+  if (!userId) {
+    return { status: "no-session" };
   }
-  return id;
+  if (Date.now() > expires) {
+    return { status: "session-expired" };
+  }
+
+  return { status: "active", id: userId };
 }
 
 export async function destroyUserSession(request: Request) {
-  const session = await getUserSession(request);
+  const session = await storage.getSession(request.headers.get("Cookie"));
   if (session) {
     return redirect("/", {
       headers: {

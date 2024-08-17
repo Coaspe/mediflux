@@ -1,5 +1,3 @@
-/** @format */
-
 import express, { Express } from "express";
 import { Server } from "socket.io";
 import http from "http";
@@ -224,9 +222,10 @@ app.post("/api/getRecords", async (req, res) => {
     const values: any = req.body.values ? req.body.values : [];
     let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
 
-    if (where) {
-      baseQuery += where;
-    }
+    where.forEach((w: string) => {
+      baseQuery += " ";
+      baseQuery += w;
+    });
     const result = await pool.query(baseQuery, values);
     return res.status(200).json(result);
   } catch (error) {

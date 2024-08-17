@@ -4,7 +4,7 @@ import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../ty
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_C, OPREADINESS_N } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_C, OPREADINESS_N, OPREADINESS_P } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -14,7 +14,7 @@ import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { autoCompleteKeyDownCapture, getValueWithId } from "~/utils/utils";
-
+import Tooltip from "@mui/material/Tooltip";
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
   return (
@@ -57,7 +57,7 @@ export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = "small";
   let label: ReactNode = value;
   let color: ChipColor = getStatusChipColor(label);
-  return <Chip size={size} label={label} color={color} />;
+  return value && <Chip size={size} label={label} color={color} />;
 };
 
 export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, tableType: TableType) => {
@@ -67,6 +67,7 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, 
   const isInProgressTreatment = data[`treatmentStart${number}`] && !data[`treatmentEnd${number}`];
 
   return (
+    // <Tooltip disableHoverListener={data.opReadiness !== OPREADINESS_P || !value} placement="top" title={"asfa"} arrow>
     <span
       className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
         tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
@@ -74,6 +75,7 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, 
     >
       {getValueWithId(TREATMENTS, value).title}
     </span>
+    // </Tooltip>
   );
 };
 

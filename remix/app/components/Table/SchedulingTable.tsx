@@ -1,5 +1,3 @@
-/** @format */
-
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
@@ -31,8 +29,8 @@ import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
-import { checkIsInvaildRecord, convertServerPRecordtToPRecord, getEditingCell, moveRecord } from "~/utils/utils";
-import { getSchedulingRecords, lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
+import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils";
+import { lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 import {
   LOCKING_USER,
   OPREADINESS_C,
@@ -49,7 +47,6 @@ import {
   TREATMENT5,
   TREATMENT5_H,
 } from "~/constant";
-import { Dayjs } from "dayjs";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -57,12 +54,10 @@ type SchedulingTableProps = {
   theOtherGridRef?: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;
   roomId: string;
-  startDate?: Dayjs;
-  endDate?: Dayjs;
-  data?: PRecord[];
+  records: PRecord[];
 };
 
-const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, startDate, endDate, roomId, data }) => {
+const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, roomId, records }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
@@ -120,29 +115,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   // Get records and process unlocked records.
   useEffect(() => {
-    if (!socket || !user || data) return;
-    const getData = async () => {
+    if (!socket || !user || !records) return;
+    const processData = async () => {
       try {
         setIsLoading(true);
-        let where = "";
-        if (tableType === "Ready") {
-          where = " AND op_readiness = 'Y'";
-        } else if (tableType === "ExceptReady") {
-          where = " AND op_readiness != 'Y'";
-        }
-
-        if (startDate) {
-          console.log(startDate.toISOString());
-
-          where += ` and check_in_time >= '${startDate.toISOString()}'`;
-        }
-        if (endDate) {
-          where += ` and check_in_time <= '${endDate.toISOString()}'`;
-        }
-
-        const { data } = await getSchedulingRecords(where);
-        const records: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
-
         const mustBeUnlocked = [];
 
         for (let i = 0; i < records.length; i++) {
@@ -160,21 +136,15 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         mustBeUnlocked.forEach((record) => emitUnlockRecord(record.id, tableType, socket, roomId));
         records.sort((a, b) => (b.checkInTime ?? 0) - (a.checkInTime ?? 0));
         setRowData(records);
-
-        return records;
       } catch (error) {
-        console.log(error);
-
         showErrorSnackbar("Internal server error");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (user?.id) {
-      getData();
-    }
-  }, [user, socket]);
+    processData();
+  }, [user, socket, records]);
 
   const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
     { field: "id", headerName: "id", hide: true },
@@ -315,6 +285,11 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     return <span>차트가 존재하지 않습니다</span>;
   };
 
+  const rowStyle = {
+    fontSize: "0.75rem" /* 12px */,
+    lineheight: "1rem" /* 16px */,
+  };
+
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
@@ -331,6 +306,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         paginationPageSize={20}
         getRowStyle={getRowStyle}
         rowSelection={"multiple"}
+        rowStyle={rowStyle}
         tabToNextCell={tabToNextCell}
         loading={isLoading}
         noRowsOverlayComponent={noRowsOverlayComponent}

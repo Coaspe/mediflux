@@ -1,10 +1,8 @@
-/** @format */
-
 import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
 import { badRequest, checkSameIdExists } from "~/utils/request.server";
-import { createUserSession, getUserID, login, register } from "~/services/session.server";
+import { createUserSession, getUserSession, login, register } from "~/services/session.server";
 import { LoginResponse, User } from "~/type";
 import { ROLE, ServerUser } from "shared";
 import { json } from "@remix-run/react";
@@ -42,9 +40,9 @@ function validateUrl(url: string) {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let id = await getUserID(request);
+  let sessionResult = await getUserSession(request);
 
-  if (!id) {
+  if (!sessionResult.id) {
     return null;
   }
   return redirect("/dashboard/scheduling");
