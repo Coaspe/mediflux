@@ -17,7 +17,9 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { Socket } from "socket.io-client";
 import { SetTreatmentReadyModal } from "../Modals";
-
+import IconButton from "@mui/material/IconButton";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import DeleteIcon from "@mui/icons-material/Delete";
 type TableActionHeader = {
   gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;
@@ -301,12 +303,16 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     }
   };
   return (
-    <div>
+    <>
       {tableType === "ExceptReady" && (
         <>
           <Box className="flex justify-between items-center w-fit gap-2">
-            <Button onClick={onAddRecord}>추가</Button>
-            <Button onClick={handleOpenDeleteModal}>삭제</Button>
+            <IconButton onClick={onAddRecord}>
+              <AddCircleIcon />
+            </IconButton>
+            <IconButton onClick={handleOpenDeleteModal}>
+              <DeleteIcon />
+            </IconButton>
             <Button onClick={() => handleOpenSetTreatmentReadyModal(true)}>시술 준비 완료</Button>
             <Button onClick={() => handleOpenSetTreatmentReadyModal(false)}>시술 완료</Button>
           </Box>
@@ -329,7 +335,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       )}
 
       {tableType === "Ready" && (
-        <>
+        <div>
           <Button onClick={handleOpenAssignModal}>시술 진행</Button>
           <Dialog open={openAssignModal} onClose={handleCloseAssignModal}>
             <DialogTitle>{"시술 진행"}</DialogTitle>
@@ -345,8 +351,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
               </Button>
             </DialogActions>
           </Dialog>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };

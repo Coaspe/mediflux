@@ -1,5 +1,3 @@
-/** @format */
-
 import { OpReadiness, SearchHelp, User } from "./type";
 
 export const SERVERUSER_CLIENTUSER_MAPPING = {
@@ -61,12 +59,10 @@ export const CONSULTANT_H = "상담";
 export const COMMENTCAUTION = "commentCaution";
 export const COMMENTCAUTION_H = "비고/주의";
 export const LOCKING_USER = "lockingUser";
-export const SHORT_COLUMN_LENGTH = 110;
-export const SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH = 140;
-export const MEDIUM_COLUMN_LENGTH = 120;
-export const MEDIUM_CENTER_JUSTIFIED_COLUMN_LENGTH = 150;
-export const LONG_JUSTIFIED_CENTER_COLUMN_LENGTH = 190;
-export const LONG_LEFT_JUSTIFIED_COLUMN_LENGTH = 120;
+
+export const MEDIUM_COLUMN_LENGTH = 100;
+export const LONG_COLUMN_LENGTH = 150;
+export const SHORT_COLUMN_LENGTH = 70;
 
 export const FIELDS_STAFF = ["피부1", "피부2", "코디", "상담"];
 export const FIELDS_NURSE = ["간호1", "간호2"];

@@ -20,6 +20,7 @@ function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; t
     </li>
   );
 }
+
 const isSideMenu = (value: any): value is SideMenu => {
   return Object.values(SIDE_MENU).includes(value);
 };

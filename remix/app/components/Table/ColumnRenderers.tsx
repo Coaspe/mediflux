@@ -1,20 +1,24 @@
-/** @format */
-
 import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_C, OPREADINESS_N, OPREADINESS_P } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_C, OPREADINESS_N, OPREADINESS_P, OPREADINESS_Y } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import { ReactNode, useEffect, useRef } from "react";
+import React, { ReactNode, useEffect, useRef } from "react";
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { autoCompleteKeyDownCapture, getValueWithId } from "~/utils/utils";
-import Tooltip from "@mui/material/Tooltip";
+import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
+import { styled } from "@mui/material/styles";
+import { GridApi } from "ag-grid-community";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { globalSnackbarState, userState } from "~/recoil_state";
+
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
   return (
@@ -60,22 +64,75 @@ export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   return value && <Chip size={size} label={label} color={color} />;
 };
 
-export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, tableType: TableType) => {
+type TreatmentTooltipProps = {
+  record: PRecord;
+  api: GridApi<any>;
+  treatmentNumber: string | undefined;
+};
+
+export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api, treatmentNumber }) => {
+  const user = useRecoilValue(userState);
+  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
+
+  const onAssignRecord = async () => {
+    if (!treatmentNumber || !user) return;
+    try {
+      record.opReadiness = OPREADINESS_P;
+      record[`treatmentStart${treatmentNumber}`] = dayjs().unix();
+      record.doctor = user.id;
+
+      const rowNode = api.getRowNode(record.id);
+      if (rowNode && rowNode.rowIndex !== null) {
+        rowNode.updateData(record);
+        api.startEditingCell({ rowIndex: rowNode.rowIndex, colKey: "chartNum" });
+        api.stopEditing();
+      }
+    } catch {
+      setGlobalSnackBar({ open: true, msg: "시술 배정 중 오류가 발생했습니다.", severity: "error" });
+    } finally {
+    }
+  };
+
+  return (
+    <Button variant="contained" color="primary" onClick={onAssignRecord}>
+      시술 시작
+    </Button>
+  );
+};
+
+const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip {...props} classes={{ popper: className }} />)(({ theme }) => ({
+  [`& .${tooltipClasses.arrow}`]: {
+    color: theme.palette.common.white,
+    "&::before": {
+      backgroundColor: theme.palette.common.white,
+      border: "1px solid #999",
+    },
+  },
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: theme.palette.common.white,
+    color: "rgba(0, 0, 0, 0.87)",
+    boxShadow: theme.shadows[1],
+    fontSize: 11,
+  },
+}));
+
+export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererProps, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
   const endTime: keyof PRecord = `treatmentEnd${number}`;
   const canBeAssigned = data.opReadiness === "Y" && data[`treatmentReady${number}`] && !data[`treatmentEnd${number}`];
   const isInProgressTreatment = data[`treatmentStart${number}`] && !data[`treatmentEnd${number}`];
-
   return (
-    // <Tooltip disableHoverListener={data.opReadiness !== OPREADINESS_P || !value} placement="top" title={"asfa"} arrow>
-    <span
-      className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
-        tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-      }`}
-    >
-      {getValueWithId(TREATMENTS, value).title}
-    </span>
-    // </Tooltip>
+    <CustomToolTip disableHoverListener={data.opReadiness !== OPREADINESS_Y || !value} placement="top" title={<TreatmentTooltip treatmentNumber={number} api={api} record={data} />} arrow>
+      <div>
+        <span
+          className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
+            tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
+          }`}
+        >
+          {getValueWithId(TREATMENTS, value).title}
+        </span>
+      </div>
+    </CustomToolTip>
   );
 };
 

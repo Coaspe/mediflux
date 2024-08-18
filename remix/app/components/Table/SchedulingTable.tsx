@@ -289,7 +289,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     fontSize: "0.75rem" /* 12px */,
     lineheight: "1rem" /* 16px */,
   };
-
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}

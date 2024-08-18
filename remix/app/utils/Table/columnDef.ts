@@ -1,5 +1,3 @@
-/** @format */
-
 import { checkInTimeCell, checkInTimeEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
 import {
   CHECK_IN_TIME,
@@ -31,18 +29,17 @@ import {
   CONSULTANT_H,
   COMMENTCAUTION,
   COMMENTCAUTION_H,
-  SHORT_CENTER_JUSTIFIED_COLUMN_LENGTH,
   SHORT_COLUMN_LENGTH,
   COORDINATOR_H,
-  OPREADINESS_SEARCH_HELP,
   DOCTOR_SEARCH_HELP,
+  MEDIUM_COLUMN_LENGTH,
+  LONG_COLUMN_LENGTH,
 } from "~/constant";
-import { SearchHelp, PRecord, OpReadiness, TableType } from "~/type";
+import { SearchHelp, PRecord, TableType } from "~/type";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { RefObject } from "react";
 import { TREATMENTS } from "shared";
-import { isCellEditable } from "material-react-table";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);
@@ -60,7 +57,7 @@ export const checkinTimeColumn: ColDef<PRecord, number> = {
 
 export const chartNumberColumn: ColDef<PRecord, string> = {
   field: CHART_NUMBER,
-  width: 100,
+  width: MEDIUM_COLUMN_LENGTH,
   comparator: (valueA, valueB) => parseInt(valueA ? valueA : "0") - parseInt(valueB ? valueB : "0"),
   headerName: CHART_NUMBER_H,
 };
@@ -76,7 +73,7 @@ export const opReadinessColumn = {
   headerName: OP_READINESS_H,
   cellRenderer: opReadinessCell,
   editable: false,
-  width: 70,
+  width: SHORT_COLUMN_LENGTH,
   cellStyle: () => {
     return {
       alignItems: "center",
@@ -92,7 +89,7 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
     headerName,
     cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS),
-    width: 150,
+    width: LONG_COLUMN_LENGTH,
     editable: (params) => {
       const number = params.colDef.field?.charAt(params.colDef.field?.length - 1);
       return !(params.data && params.data[`treatmentEnd${number}`]);
@@ -102,12 +99,12 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
 export const quantitytreat1Column: ColDef<PRecord, number> = {
   field: QUANTITYTREAT1,
   headerName: QUANTITYTREAT1_H,
-  width: 70,
+  width: SHORT_COLUMN_LENGTH,
 };
 export const treatmentRoomColumn: ColDef<PRecord, number> = {
   field: TREATMENT_ROOM,
   headerName: TREATMENT_ROOM_H,
-  width: 70,
+  width: SHORT_COLUMN_LENGTH,
 };
 
 const personComparator = (searchHelp: SearchHelp[], valueA: string | null | undefined, valueB: string | null | undefined) => {
@@ -134,7 +131,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
   return {
     field,
     headerName,
-    width: 150,
+    width: LONG_COLUMN_LENGTH,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipRendererByFieldname(colDef?.headerName, searchHelp, value),
