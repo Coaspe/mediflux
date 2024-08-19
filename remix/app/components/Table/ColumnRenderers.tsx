@@ -9,11 +9,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimeField } from "@mui/x-date-pickers/DateTimeField";
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { autoCompleteKeyDownCapture, checkForUnReadyTreatments, editAndStopRecord, getValueWithId, refreshTreatmentCells, statusTransition } from "~/utils/utils";
+import { autoCompleteKeyDownCapture, editAndStopRecord, getValueWithId, statusTransition } from "~/utils/utils";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import { GridApi } from "ag-grid-community";
@@ -23,8 +23,9 @@ import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
+import ChecklistIcon from '@mui/icons-material/Checklist';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Paper from "@mui/material/Paper";
-import Divider from "@mui/material/Divider";
 import ContentCut from "@mui/icons-material/ContentCut";
 
 export const checkInTimeCell = (value: number) => {
@@ -66,15 +67,15 @@ export const getStatusChipColor = (label: ReactNode): ChipColor => {
 };
 
 export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
-  let size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = "small";
-  let label: ReactNode = value;
-  let color: ChipColor = getStatusChipColor(label);
+  const size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = "small";
+  const label: ReactNode = value;
+  const color: ChipColor = getStatusChipColor(label);
   return value && <Chip size={size} label={label} color={color} />;
 };
 
 type TreatmentTooltipProps = {
   record: PRecord;
-  api: GridApi<any>;
+  api: GridApi<PRecord>;
   treatmentNumber: string | undefined;
   closeTooltip: () => void;
 };
@@ -84,24 +85,17 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [confirmItemTitle, setConfirmItemTitle] = useState("");
   const [cancelItemTitle, setCancelItemTitle] = useState("");
-
+  const [confirmIcon, setConfirmIcon] = useState<ReactElement | null>(null)
   useEffect(() => {
     setConfirmItemTitle(() => {
       if (record.opReadiness === OPREADINESS_N) {
+        setConfirmIcon(<ChecklistIcon fontSize="small" />)
         return "준비 완료";
       } else if (record.opReadiness === OPREADINESS_P) {
+        setConfirmIcon(<CheckCircleIcon fontSize="small" />)
         return "시술 완료";
       } else if (record.opReadiness === OPREADINESS_Y) {
-        return "시술 시작";
-      }
-      return "";
-    });
-    setCancelItemTitle(() => {
-      if (record.opReadiness === OPREADINESS_N) {
-        return "준비 완료";
-      } else if (record.opReadiness === OPREADINESS_P) {
-        return "시술 완료";
-      } else if (record.opReadiness === OPREADINESS_Y) {
+        setConfirmIcon(<ContentCut fontSize="small" />)
         return "시술 시작";
       }
       return "";
@@ -159,11 +153,11 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
     }
   };
   return (
-    <Paper sx={{ width: 200, maxWidth: "100%" }}>
+    <Paper sx={{ width: 150, maxWidth: "100%" }}>
       <MenuList>
         <MenuItem onClick={handleConfirm}>
           <ListItemIcon>
-            <ContentCut fontSize="small" />
+            {confirmIcon}
           </ListItemIcon>
           <ListItemText>{confirmItemTitle}</ListItemText>
         </MenuItem>
@@ -178,7 +172,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       </MenuList>
     </Paper>
   );
-};
+}
 
 const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip {...props} classes={{ popper: className }} />)(({ theme }) => ({
   [`& .${tooltipClasses.arrow}`]: {

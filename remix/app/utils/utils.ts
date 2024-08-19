@@ -280,8 +280,9 @@ export const statusTransition = (record: PRecord): OpReadiness => {
   }
 
   if (returnFlag) return OPREADINESS_N;
-  if (c_flag) return OPREADINESS_C;
+  if (y_flag) return OPREADINESS_Y
   if (p_flag) return OPREADINESS_P;
+  if (c_flag) return OPREADINESS_C;
 
   return OPREADINESS_N;
 };

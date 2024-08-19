@@ -47,7 +47,7 @@ export default function Scheduling() {
     if (readyRef.current) {
       readyRef.current.tableType = "Ready";
     }
-  }, [exceptReadyRef.current, readyRef.current]);
+  }, []);
 
   useEffect(() => {
     const { user: suser, records } = loaderData;
@@ -73,7 +73,7 @@ export default function Scheduling() {
       setReadyData(ready);
       setExceptReadyData(exceptReady);
     }
-  }, [loaderData]);
+  }, [loaderData, user]);
 
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);
@@ -92,10 +92,10 @@ export default function Scheduling() {
       socketInstance.off(CONNECTED_USERS);
       socketInstance.disconnect();
     };
-  }, []);
+  }, [user]);
 
   return (
-    <div className="flex w-full h-full flex-col">
+    <div className="flex w-full h-full flex-col gap-5">
       <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={readyData} />
       <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={exceptReadyData} />
     </div>

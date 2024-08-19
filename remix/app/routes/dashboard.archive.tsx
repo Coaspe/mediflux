@@ -9,10 +9,9 @@ import { Socket, io } from "socket.io-client";
 import { json, redirect, useLoaderData } from "@remix-run/react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
-import { getSchedulingRecords } from "~/utils/request.client";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getUserByID } from "~/utils/request.server";
+import { getUserByID,getSchedulingRecords } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
 
