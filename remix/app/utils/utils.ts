@@ -4,6 +4,7 @@ import { Role, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU } from "~/constant";
 import { CustomAgGridReactProps, FocusedRow, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
+import { GridApi } from "ag-grid-community";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -209,8 +210,9 @@ export const getEditingCell = (gridRef: RefObject<CustomAgGridReactProps<PRecord
   return gridRef?.current?.api.getEditingCells()[0];
 };
 
-export const refreshTreatmentCells = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, recordId: string) => {
-  const row = gridRef.current?.api.getRowNode(recordId);
+export const refreshTreatmentCells = (api: GridApi<PRecord> | undefined, recordId: string) => {
+  if (!api) return;
+  const row = api.getRowNode(recordId);
 
   if (!row || !row.data) return;
   const columns = [];
@@ -219,9 +221,33 @@ export const refreshTreatmentCells = (gridRef: RefObject<CustomAgGridReactProps<
       columns.push(`treatment${i}`);
     }
   }
-  gridRef.current?.api.refreshCells({
+  api.refreshCells({
     force: true,
     rowNodes: [row],
     columns,
   });
+};
+export const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
+  for (let i = 1; i <= 5; i++) {
+    if (record[`treatmentReady${i}`] && record[`treatment${i}`] && !record[`treatmentStart${i}`]) {
+      return i;
+    }
+  }
+  return -1;
+};
+export const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
+  for (let i = 1; i <= 5; i++) {
+    if (!record[`treatmentReady${i}`] && record[`treatment${i}`]) {
+      return i;
+    }
+  }
+  return -1;
+};
+export const findCanCompleteTreatmentNumber = (record: PRecord): number => {
+  for (let i = 1; i <= 5; i++) {
+    if (record[`treatment${i}`] && record[`treatmentStart${i}`] && !record[`treatmentEnd${i}`]) {
+      return i;
+    }
+  }
+  return -1;
 };

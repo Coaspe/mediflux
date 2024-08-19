@@ -1,9 +1,18 @@
+/** @format */
+
 import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "../../type";
 import { FC, RefObject, useState, useCallback } from "react";
 import { SCHEDULING_ROOM_ID, TREATMENTS } from "shared";
 import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";
 import { hideRecords, insertRecords, lockOrUnlockRecords } from "~/utils/request.client";
-import { checkForUnReadyTreatments, convertServerPRecordtToPRecord, refreshTreatmentCells } from "~/utils/utils";
+import {
+  checkForUnReadyTreatments,
+  convertServerPRecordtToPRecord,
+  findCanBeAssignedTreatmentNumber,
+  findCanCompleteTreatmentNumber,
+  findCanbeReadyTreatmentNumber,
+  refreshTreatmentCells,
+} from "~/utils/utils";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { OPREADINESS_C, OPREADINESS_N, OPREADINESS_P, OPREADINESS_Y } from "~/constant";
@@ -155,30 +164,6 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       showErrorSnackbar(error.mesasge || "서버 오류로 시술을 배정할 수 없습니다.");
     }
   };
-  const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
-    for (let i = 1; i <= 5; i++) {
-      if (record[`treatmentReady${i}`] && record[`treatment${i}`] && !record[`treatmentStart${i}`]) {
-        return i;
-      }
-    }
-    return -1;
-  };
-  const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
-    for (let i = 1; i <= 5; i++) {
-      if (!record[`treatmentReady${i}`] && record[`treatment${i}`]) {
-        return i;
-      }
-    }
-    return -1;
-  };
-  const findCanCompleteTreatmentNumber = (record: PRecord): number => {
-    for (let i = 1; i <= 5; i++) {
-      if (record[`treatment${i}`] && record[`treatmentStart${i}`] && !record[`treatmentEnd${i}`]) {
-        return i;
-      }
-    }
-    return -1;
-  };
   const handleCloseAssignModal = async () => {
     if (assignRecord) {
       const result = await lockOrUnlockRecords([assignRecord?.id], null);
@@ -274,7 +259,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
 
   const handleConfirm = async (record: PRecord | undefined, selectedTreatment: number | undefined) => {
     try {
-      if (!record || !selectedTreatment) return;
+      if (!record || !selectedTreatment || !gridRef.current) return;
       const time = dayjs().unix();
 
       if (record.opReadiness !== "P") {
@@ -290,12 +275,12 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         }
       }
 
-      const row = gridRef.current?.api.getRowNode(record.id);
+      const row = gridRef.current.api.getRowNode(record.id);
       if (row && row.rowIndex !== null) {
         row?.updateData(record);
-        refreshTreatmentCells(gridRef, record.id);
-        gridRef.current?.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
-        gridRef.current?.api.stopEditing();
+        refreshTreatmentCells(gridRef.current.api, record.id);
+        gridRef.current.api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
+        gridRef.current.api.stopEditing();
       }
     } catch (error) {
     } finally {

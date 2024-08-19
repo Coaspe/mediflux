@@ -1,3 +1,5 @@
+/** @format */
+
 import express, { Express } from "express";
 import { Server } from "socket.io";
 import http from "http";
@@ -99,7 +101,6 @@ app.post("/api/register", async (req, res) => {
     return res.status(500).json({ error: (error as Error).message });
   }
 });
-
 app.post("/api/login", async (req, res) => {
   const { userId, password } = req.body;
 
@@ -123,7 +124,6 @@ app.post("/api/login", async (req, res) => {
   } finally {
   }
 });
-
 app.get("/api/getUserByID", async (req, res) => {
   const id = req.query.id;
 
@@ -169,7 +169,6 @@ app.get("/api/checkSameIDExists", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 app.post("/api/insertRecords", async (req, res) => {
   const records = req.body.records;
 
@@ -199,7 +198,6 @@ app.post("/api/insertRecords", async (req, res) => {
   } finally {
   }
 });
-
 app.put("/api/updateRecord", async (req, res) => {
   const record = req.body.record;
   try {
@@ -214,7 +212,6 @@ app.put("/api/updateRecord", async (req, res) => {
   } finally {
   }
 });
-
 app.post("/api/getRecords", async (req, res) => {
   const where = req.body.where;
 
@@ -232,7 +229,6 @@ app.post("/api/getRecords", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 app.put("/api/hideRecords", async (req, res) => {
   const ids: any[] = req.body.ids;
   try {
@@ -245,7 +241,6 @@ app.put("/api/hideRecords", async (req, res) => {
   } finally {
   }
 });
-
 app.put("/api/lockRecord", async (req, res) => {
   const recordId = req.body.recordId;
   const lockingUser = req.body.lockingUser;
@@ -259,7 +254,6 @@ app.put("/api/lockRecord", async (req, res) => {
     res.status(500).send("Error locking record");
   }
 });
-
 app.put("/api/unlockRecord", async (req, res) => {
   const recordId = req.body.recordId;
   try {
@@ -271,7 +265,6 @@ app.put("/api/unlockRecord", async (req, res) => {
     res.status(500).send("Error unlocking record");
   }
 });
-
 app.put("/api/lockOrUnlockRecords", async (req, res) => {
   const recordIds = req.body.recordIds;
   const lockingUser = req.body.lockingUser;

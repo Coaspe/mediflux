@@ -1,9 +1,9 @@
 /** @format */
 
-import { MutableRefObject, RefObject } from "react";
+import { RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
 import { Socket } from "socket.io-client";
-import { TableType, PRecord, User, PRecordWithFocusedRow, CustomAgGridReactProps } from "~/type";
+import { TableType, PRecord, User, CustomAgGridReactProps } from "~/type";
 import { checkIsInvaildRecord, focusEditingRecord, getEditingCell, moveRecord } from "../utils";
 import { RowDataTransaction } from "ag-grid-community";
 import { LOCKING_USER } from "~/constant";
