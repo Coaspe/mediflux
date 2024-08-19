@@ -1,8 +1,8 @@
 /** @format */
 
 import { Role, ServerUser, ROLE } from "shared";
-import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU } from "~/constant";
-import { CustomAgGridReactProps, FocusedRow, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
+import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU, OPREADINESS_N, TREATMENT_NUMBERS, OPREADINESS_C, OPREADINESS_P } from "~/constant";
+import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi } from "ag-grid-community";
 
@@ -250,4 +250,48 @@ export const findCanCompleteTreatmentNumber = (record: PRecord): number => {
     }
   }
   return -1;
+};
+export const statusTransition = (record: PRecord): OpReadiness => {
+  // 시술이 1개 이상 있고 모든 시술 완료 C
+  // 어떤 시술이 Ready가 있고 start가 없다면 Y
+  // 어떤 시술이 Ready가 있고 start가 있고 end가 없다면 P
+  // 나머지 N
+
+  let returnFlag = true;
+  let c_flag = true;
+  let y_flag = false;
+  let p_flag = false;
+
+  for (const number of TREATMENT_NUMBERS) {
+    if (record[`treatment${number}`]) {
+      returnFlag = false;
+      if (!record[`treatmentReady${number}`] || !record[`treatmentStart${number}`] || !record[`treatmentEnd${number}`]) {
+        c_flag = false;
+      }
+      if (record[`treatmentReady${number}`] && !record[`treatmentStart${number}`]) {
+        y_flag = true;
+        break;
+      }
+      if (record[`treatmentReady${number}`] && record[`treatmentStart${number}`] && !record[`treatmentEnd${number}`]) {
+        p_flag = true;
+        break;
+      }
+    }
+  }
+
+  if (returnFlag) return OPREADINESS_N;
+  if (c_flag) return OPREADINESS_C;
+  if (p_flag) return OPREADINESS_P;
+
+  return OPREADINESS_N;
+};
+
+export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {
+  const row = api.getRowNode(record.id);
+  if (row && row.rowIndex !== null) {
+    row?.updateData(record);
+    refreshTreatmentCells(api, record.id);
+    api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
+    api.stopEditing();
+  }
 };

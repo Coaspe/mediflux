@@ -1,3 +1,5 @@
+/** @format */
+
 import { OpReadiness, SearchHelp, User } from "./type";
 
 export const SERVERUSER_CLIENTUSER_MAPPING = {
@@ -98,3 +100,4 @@ export const EMPTY_SEARCHHELP: SearchHelp = {
   group: "",
   title: "",
 };
+export const TREATMENT_NUMBERS = Array.from({ length: 5 }, (_, k) => k + 1);

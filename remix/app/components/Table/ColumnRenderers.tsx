@@ -13,13 +13,19 @@ import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { autoCompleteKeyDownCapture, checkForUnReadyTreatments, getValueWithId, refreshTreatmentCells } from "~/utils/utils";
+import { autoCompleteKeyDownCapture, checkForUnReadyTreatments, editAndStopRecord, getValueWithId, refreshTreatmentCells, statusTransition } from "~/utils/utils";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
-import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import { GridApi } from "ag-grid-community";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
+import MenuList from "@mui/material/MenuList";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import Paper from "@mui/material/Paper";
+import Divider from "@mui/material/Divider";
+import ContentCut from "@mui/icons-material/ContentCut";
 
 export const checkInTimeCell = (value: number) => {
   const date = dayjs(value * 1000);
@@ -76,9 +82,21 @@ type TreatmentTooltipProps = {
 export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api, treatmentNumber, closeTooltip }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
-  const [btnTitle, setBtnTitle] = useState("");
+  const [confirmItemTitle, setConfirmItemTitle] = useState("");
+  const [cancelItemTitle, setCancelItemTitle] = useState("");
+
   useEffect(() => {
-    setBtnTitle(() => {
+    setConfirmItemTitle(() => {
+      if (record.opReadiness === OPREADINESS_N) {
+        return "준비 완료";
+      } else if (record.opReadiness === OPREADINESS_P) {
+        return "시술 완료";
+      } else if (record.opReadiness === OPREADINESS_Y) {
+        return "시술 시작";
+      }
+      return "";
+    });
+    setCancelItemTitle(() => {
       if (record.opReadiness === OPREADINESS_N) {
         return "준비 완료";
       } else if (record.opReadiness === OPREADINESS_P) {
@@ -99,53 +117,83 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
 
       if (record.opReadiness === OPREADINESS_N) {
         record[`treatmentReady${treatmentNumber}`] = time;
-        record.opReadiness = OPREADINESS_Y;
       } else if (record.opReadiness === OPREADINESS_P) {
         record[`treatmentEnd${treatmentNumber}`] = time;
         record["doctor"] = undefined;
-        if (checkForUnReadyTreatments(record)) {
-          record.opReadiness = OPREADINESS_N;
-        } else {
-          record.opReadiness = OPREADINESS_C;
-        }
       } else if (record.opReadiness === OPREADINESS_Y) {
-        record.opReadiness = OPREADINESS_P;
         record[`treatmentStart${treatmentNumber}`] = time;
         record.doctor = user.id;
       }
 
-      const row = api.getRowNode(record.id);
-      if (row && row.rowIndex !== null) {
-        row?.updateData(record);
-        refreshTreatmentCells(api, record.id);
-        api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
-        api.stopEditing();
-      }
+      record.opReadiness = statusTransition(record);
+      editAndStopRecord(api, record);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
     }
   };
+  const handleCancel = async () => {
+    closeTooltip();
 
+    try {
+      if (!record || !treatmentNumber || !user) return;
+      const ready = record[`treatmentReady${treatmentNumber}`];
+      const start = record[`treatmentStart${treatmentNumber}`];
+      const end = record[`treatmentEnd${treatmentNumber}`];
+
+      if (ready) {
+        if (!start && !end) {
+          record[`treatmentReady${treatmentNumber}`] = undefined;
+        }
+        if (start && !end) {
+          record[`treatmentStart${treatmentNumber}`] = undefined;
+        }
+        if (start && end) {
+          record[`treatmentEnd${treatmentNumber}`] = undefined;
+        }
+      }
+
+      record.opReadiness = statusTransition(record);
+      editAndStopRecord(api, record);
+    } catch (error) {
+      setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
+    }
+  };
   return (
-    <Button variant="contained" color="primary" onClick={handleConfirm}>
-      {btnTitle}
-    </Button>
+    <Paper sx={{ width: 200, maxWidth: "100%" }}>
+      <MenuList>
+        <MenuItem onClick={handleConfirm}>
+          <ListItemIcon>
+            <ContentCut fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>{confirmItemTitle}</ListItemText>
+        </MenuItem>
+        {cancelItemTitle && (
+          <MenuItem onClick={handleCancel}>
+            <ListItemIcon>
+              <ContentCut fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{cancelItemTitle}</ListItemText>
+          </MenuItem>
+        )}
+      </MenuList>
+    </Paper>
   );
 };
 
 const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip {...props} classes={{ popper: className }} />)(({ theme }) => ({
   [`& .${tooltipClasses.arrow}`]: {
-    color: theme.palette.common.white,
+    color: "white",
     "&::before": {
-      backgroundColor: theme.palette.common.white,
+      backgroundColor: "white",
       border: "1px solid #999",
     },
   },
   [`& .${tooltipClasses.tooltip}`]: {
     backgroundColor: theme.palette.common.white,
     color: "rgba(0, 0, 0, 0.87)",
-    boxShadow: theme.shadows[1],
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
     fontSize: 11,
+    padding: 0,
   },
 }));
 
@@ -167,12 +215,14 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
   return (
     <div onMouseEnter={onMouseEnter} onMouseLeave={closeTooltip}>
       <CustomToolTip open={open} placement="top" title={<TreatmentTooltip treatmentNumber={number} api={api} record={data} closeTooltip={closeTooltip} />} arrow>
-        <span
-          className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
-            tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-          }`}>
-          {getValueWithId(TREATMENTS, value).title}
-        </span>
+        <div>
+          <span
+            className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
+              tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
+            }`}>
+            {getValueWithId(TREATMENTS, value).title}
+          </span>
+        </div>
       </CustomToolTip>
     </div>
   );
