@@ -12,6 +12,7 @@ import { Socket, io } from "socket.io-client";
 import { OPREADINESS_Y } from "~/constant";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import { getUserSession } from "~/services/session.server";
+import dayjs from "dayjs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -19,7 +20,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (sessionData.id) {
       const user = await getUserByID(sessionData.id);
       if (user) {
-        const { data } = await getSchedulingRecords();
+        const where = [];
+        where.push(`and check_in_time >= '${dayjs().startOf('day').toISOString()}'`);
+        where.push(
+          `and check_in_time <= '${dayjs()
+            .endOf('day')
+            .toISOString()}'`
+        );
+        const { data } = await getSchedulingRecords(where);
         return json({ user, records: data.rows });
       }
     }
@@ -95,7 +103,7 @@ export default function Scheduling() {
   }, [user]);
 
   return (
-    <div className="flex w-full h-full flex-col gap-5">
+    <div className="flex w-full h-full flex-col gap-5 pb-5">
       <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={readyData} />
       <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={exceptReadyData} />
     </div>
