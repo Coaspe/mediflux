@@ -107,7 +107,7 @@ export default function Archive() {
         // setIsLoading(false);
       }
     }
-  }, [user, socket, baseDate]);
+  }, [socket, baseDate, interval, numOfInterval, loaderData]);
   return (
     <div className="w-full">
       <ArchiveHeader
