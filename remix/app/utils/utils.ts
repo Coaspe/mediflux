@@ -68,7 +68,7 @@ export const getBrowserType = () => {
 };
 
 export const convertServerUserToClientUser = (user: ServerUser) => {
-  return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name } as User;
+  return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id } as User;
 };
 const convertServerTimeToClientTime = (time: number | undefined) => {
   return time ? new Date(time).getTime() / 1000 : undefined;
@@ -280,7 +280,7 @@ export const statusTransition = (record: PRecord): OpReadiness => {
   }
 
   if (returnFlag) return OPREADINESS_N;
-  if (y_flag) return OPREADINESS_Y
+  if (y_flag) return OPREADINESS_Y;
   if (p_flag) return OPREADINESS_P;
   if (c_flag) return OPREADINESS_C;
 

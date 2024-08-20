@@ -1,3 +1,5 @@
+/** @format */
+
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ArchiveChart from "~/components/Archive/Chart";
@@ -11,7 +13,7 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getUserByID,getSchedulingRecords } from "~/utils/request.server";
+import { getUserByID, getSchedulingRecords } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
 
@@ -19,10 +21,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const sessionData = await getUserSession(request);
     if (sessionData.id) {
-      const user = await getUserByID(sessionData.id);
-      if (user) {
+      const result = await getUserByID(sessionData.id);
+      if ("user" in result) {
         const { data } = await getSchedulingRecords();
-        return json({ user, records: data.rows });
+        return json({ user: result.user, records: data.rows });
       }
     }
   } catch (error) {

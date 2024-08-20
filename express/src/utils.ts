@@ -121,7 +121,7 @@ export const deconstructRecord = (record: any) => {
   return retVal;
 };
 
-export const updateQuery = (tableName: string) => {
+export const updateRecordsQuery = (tableName: string) => {
   let baseQuery = `UPDATE ${tableName} SET `;
   for (let i = 1; i < KEYOFSERVERPRECORD.length; i++) {
     const field = KEYOFSERVERPRECORD[i];
@@ -132,6 +132,10 @@ export const updateQuery = (tableName: string) => {
   }
   baseQuery += ` WHERE record_id=$${KEYOFSERVERPRECORD.length}`;
   return baseQuery;
+};
+
+export const setUserSessionQuery = (tableName: string) => {
+  return `UPDATE ${tableName} SET session_id=$1 WHERE contact_id=$2 RETURNING *;`;
 };
 
 export const lockOrUnlockRowsQuery = (tableName: string, length: number) => {

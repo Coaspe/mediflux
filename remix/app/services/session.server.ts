@@ -3,18 +3,7 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { LoginForm, RegisgerForm, User } from "~/type";
 import axios from "axios";
-
-export async function login({ userId, password }: LoginForm) {
-  try {
-    const response = await axios.post("http://localhost:5000/api/login", { userId, password }, { withCredentials: true });
-    if (response.status === 200) {
-      return { status: response.status, user: response.data.user };
-    }
-  } catch (error: any) {
-    return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
-  }
-}
-
+import { getUserByID, setUserSession } from "~/utils/request.server";
 // const sessionSecret = process.env.SESSION_SECRET;
 const sessionSecret = "remxe12i2mfdmx";
 if (!sessionSecret) {
@@ -36,17 +25,36 @@ const storage = createCookieSessionStorage({
   },
 });
 
+export async function login({ userId, password }: LoginForm) {
+  try {
+    const response = await axios.post("http://localhost:5000/api/login", { userId, password }, { withCredentials: true });
+    if (response.status === 200) {
+      return { status: response.status, user: response.data.user };
+    }
+  } catch (error: any) {
+    return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
+  }
+}
+
 export async function createUserSession(user: User, redirectTo: string) {
   const session = await storage.getSession();
 
   session.set("id", user.id);
   session.set("expires", Date.now() + SESSION_AGE);
 
-  return redirect(redirectTo, {
-    headers: {
-      "Set-Cookie": await storage.commitSession(session),
-    },
-  });
+  console.log(session.data.id);
+
+  user.sessionId = session.data.id;
+  const setUserSessionResult = await setUserSession(user);
+
+  if (setUserSessionResult.statusCode === 200) {
+    return redirect(redirectTo, {
+      headers: {
+        "Set-Cookie": await storage.commitSession(session),
+      },
+    });
+  }
+  return redirect("/");
 }
 
 export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
@@ -60,27 +68,44 @@ export async function register({ userId, password, role, firstName, lastName }: 
 
 export async function getUserSession(request: Request) {
   const session = await storage.getSession(request.headers.get("Cookie"));
+
   const userId = session.get("id");
   const expires = session.get("expires");
 
   if (!userId) {
     return { status: "no-session" };
   }
+
   if (Date.now() > expires) {
     return { status: "session-expired" };
   }
 
-  return { status: "active", id: userId };
+  const result = await getUserByID(userId);
+  console.log(result);
+
+  if ("user" in result) {
+    if (result.user?.sessionId !== session.id) {
+      return { status: "invalid-session", id: userId };
+    }
+  } else {
+    return { status: "user-dose-not-exist" };
+  }
+
+  return { status: "active", id: userId, sessionId: session.id };
 }
 
-export async function destroyUserSession(request: Request) {
-  const session = await storage.getSession(request.headers.get("Cookie"));
-  if (session) {
-    return redirect("/", {
-      headers: {
-        "Set-Cookie": await storage.destroySession(session),
-      },
-    });
-  }
-  return null;
+export async function destroyUserSession(request: Request, userId: string) {
+  try {
+    const result = await setUserSession({ id: userId, sessionId: null } as User);
+    if (result.statusCode == 200) {
+      const session = await storage.getSession(request.headers.get("Cookie"));
+      if (session) {
+        return redirect("/", {
+          headers: {
+            "Set-Cookie": await storage.destroySession(session),
+          },
+        });
+      }
+    }
+  } catch (error) {}
 }

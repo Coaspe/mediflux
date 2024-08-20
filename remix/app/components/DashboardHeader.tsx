@@ -15,9 +15,12 @@ function DashboardUser() {
   const submit = useSubmit();
 
   const logout = () => {
-    const formData = new FormData();
-    formData.append("requestType", "destroySession");
-    submit(formData, { method: "POST" });
+    if (user) {
+      const formData = new FormData();
+      formData.append("requestType", "destroySession");
+      formData.append("userId", user?.id);
+      submit(formData, { method: "POST" });
+    }
   };
 
   return (

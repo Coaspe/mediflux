@@ -14,6 +14,7 @@ export type User = {
   name: string;
   image?: string;
   role?: Role;
+  sessionId?: string | null;
 };
 
 export type PRecord = {

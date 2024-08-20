@@ -1,3 +1,5 @@
+/** @format */
+
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
@@ -27,15 +29,20 @@ const isSideMenu = (value: any): value is SideMenu => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let sessionData = await getUserSession(request);
+  console.log(sessionData);
 
-  if (sessionData.status === "session-expired") {
-    return sessionData.status;
-  } else if (sessionData.status === "no-session") {
+  if (sessionData.status === "invalid-session" || sessionData.status === "session-expired") {
+    return await destroyUserSession(request, sessionData.id);
+  } else if (sessionData.status !== "active") {
     return redirect("/");
   }
 
-  let user = await getUserByID(sessionData.id);
-  return user;
+  let result = await getUserByID(sessionData.id);
+  if ("user" in result) {
+    return result.user;
+  }
+
+  return redirect("/");
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -44,8 +51,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   switch (requestType) {
     case "destroySession":
-      const result = await destroyUserSession(request);
-      return result;
+      const userId = formData.get("userId")?.toString();
+      if (userId) {
+        const result = await destroyUserSession(request, userId);
+        return result;
+      }
+      return null;
 
     default:
       return null;

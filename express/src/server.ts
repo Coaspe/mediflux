@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, lockOrUnlockRowsQuery, updateQuery } from "./utils.js";
+import { deconstructRecord, lockOrUnlockRowsQuery, updateRecordsQuery, setUserSessionQuery } from "./utils.js";
 import { KEYOFSERVERPRECORD } from "./contants.js";
 
 dotenv.config();
@@ -201,7 +201,7 @@ app.post("/api/insertRecords", async (req, res) => {
 app.put("/api/updateRecord", async (req, res) => {
   const record = req.body.record;
   try {
-    const query = updateQuery("gn_ss_bailor.chart_schedule");
+    const query = updateRecordsQuery("gn_ss_bailor.chart_schedule");
 
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
@@ -212,23 +212,43 @@ app.put("/api/updateRecord", async (req, res) => {
   } finally {
   }
 });
-app.post("/api/getRecords", async (req, res) => {
-  const where = req.body.where;
+
+app.put("/api/setUserSession", async (req, res) => {
+  const sessionId = req.body.sessionId;
+  const id = req.body.id;
+  console.log(id, sessionId);
 
   try {
+    if (!id) return res.status(400).send("Invalid user data.");
+    const query = setUserSessionQuery("admin.user");
+    const result = await pool.query(query, [sessionId, id]);
+    res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).send("Error updating records.");
+  } finally {
+  }
+});
+
+app.post("/api/getRecords", async (req, res) => {
+  const where = req.body.where;
+  try {
     const values: any = req.body.values ? req.body.values : [];
-    let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
+    let query = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
 
     where.forEach((w: string) => {
-      baseQuery += " ";
-      baseQuery += w;
+      query += " ";
+      query += w;
     });
-    const result = await pool.query(baseQuery, values);
+
+    const result = await pool.query(query, values);
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 app.put("/api/hideRecords", async (req, res) => {
   const ids: any[] = req.body.ids;
   try {

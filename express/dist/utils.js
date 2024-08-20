@@ -78,7 +78,7 @@ export const deconstructRecord = (record) => {
     }
     return retVal;
 };
-export const updateQuery = (tableName) => {
+export const updateRecordsQuery = (tableName) => {
     let baseQuery = `UPDATE ${tableName} SET `;
     for (let i = 1; i < KEYOFSERVERPRECORD.length; i++) {
         const field = KEYOFSERVERPRECORD[i];
@@ -89,6 +89,9 @@ export const updateQuery = (tableName) => {
     }
     baseQuery += ` WHERE record_id=$${KEYOFSERVERPRECORD.length}`;
     return baseQuery;
+};
+export const setUserSessionQuery = (tableName) => {
+    return `UPDATE ${tableName} SET session_id=$1 WHERE contact_id=$2 RETURNING *;`;
 };
 export const lockOrUnlockRowsQuery = (tableName, length) => {
     return `UPDATE ${tableName} SET locking_user=$1

@@ -17,7 +17,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, lockOrUnlockRowsQuery, updateQuery } from "./utils.js";
+import { deconstructRecord, lockOrUnlockRowsQuery, updateRecordsQuery, setUserSessionQuery } from "./utils.js";
 import { KEYOFSERVERPRECORD } from "./contants.js";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
@@ -186,7 +186,7 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
 app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const record = req.body.record;
     try {
-        const query = updateQuery("gn_ss_bailor.chart_schedule");
+        const query = updateRecordsQuery("gn_ss_bailor.chart_schedule");
         const values = deconstructRecord(record);
         const result = yield pool.query(query, values);
         res.status(200).json(result);
@@ -198,16 +198,35 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
     finally {
     }
 }));
+app.put("/api/setUserSession", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const sessionId = req.body.sessionId;
+    const id = req.body.id;
+    console.log(id, sessionId);
+    try {
+        if (!id)
+            return res.status(400).send("Invalid user data.");
+        const query = setUserSessionQuery("admin.user");
+        console.log(query);
+        const result = yield pool.query(query, [sessionId, id]);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send("Error updating records.");
+    }
+    finally {
+    }
+}));
 app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const where = req.body.where;
     try {
         const values = req.body.values ? req.body.values : [];
-        let baseQuery = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
+        let query = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
         where.forEach((w) => {
-            baseQuery += " ";
-            baseQuery += w;
+            query += " ";
+            query += w;
         });
-        const result = yield pool.query(baseQuery, values);
+        const result = yield pool.query(query, values);
         return res.status(200).json(result);
     }
     catch (error) {

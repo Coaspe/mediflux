@@ -41,6 +41,7 @@ declare module "shared" {
     login_id: string;
     login_pw: string;
     user_role: Role;
+    session_id?: string;
   };
 
   export type Role = (typeof ROLE)[keyof typeof ROLE];

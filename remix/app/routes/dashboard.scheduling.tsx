@@ -1,3 +1,5 @@
+/** @format */
+
 import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
@@ -17,18 +19,15 @@ import dayjs from "dayjs";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const sessionData = await getUserSession(request);
+
     if (sessionData.id) {
-      const user = await getUserByID(sessionData.id);
-      if (user) {
+      const result = await getUserByID(sessionData.id);
+      if ("user" in result) {
         const where = [];
-        where.push(`and check_in_time >= '${dayjs().startOf('day').toISOString()}'`);
-        where.push(
-          `and check_in_time <= '${dayjs()
-            .endOf('day')
-            .toISOString()}'`
-        );
+        where.push(`and check_in_time >= '${dayjs().startOf("day").toISOString()}'`);
+        where.push(`and check_in_time <= '${dayjs().endOf("day").toISOString()}'`);
         const { data } = await getSchedulingRecords(where);
-        return json({ user, records: data.rows });
+        return json({ user: result.user, records: data.rows });
       }
     }
   } catch (error) {
