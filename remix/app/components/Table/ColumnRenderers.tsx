@@ -23,8 +23,8 @@ import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import ChecklistIcon from '@mui/icons-material/Checklist';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ChecklistIcon from "@mui/icons-material/Checklist";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Paper from "@mui/material/Paper";
 import ContentCut from "@mui/icons-material/ContentCut";
 
@@ -85,17 +85,17 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [confirmItemTitle, setConfirmItemTitle] = useState("");
   const [cancelItemTitle, setCancelItemTitle] = useState("");
-  const [confirmIcon, setConfirmIcon] = useState<ReactElement | null>(null)
+  const [confirmIcon, setConfirmIcon] = useState<ReactElement | null>(null);
   useEffect(() => {
     setConfirmItemTitle(() => {
       if (record.opReadiness === OPREADINESS_N) {
-        setConfirmIcon(<ChecklistIcon fontSize="small" />)
+        setConfirmIcon(<ChecklistIcon fontSize="small" />);
         return "준비 완료";
       } else if (record.opReadiness === OPREADINESS_P) {
-        setConfirmIcon(<CheckCircleIcon fontSize="small" />)
+        setConfirmIcon(<CheckCircleIcon fontSize="small" />);
         return "시술 완료";
       } else if (record.opReadiness === OPREADINESS_Y) {
-        setConfirmIcon(<ContentCut fontSize="small" />)
+        setConfirmIcon(<ContentCut fontSize="small" />);
         return "시술 시작";
       }
       return "";
@@ -156,9 +156,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
     <Paper sx={{ width: 150, maxWidth: "100%" }}>
       <MenuList>
         <MenuItem onClick={handleConfirm}>
-          <ListItemIcon>
-            {confirmIcon}
-          </ListItemIcon>
+          <ListItemIcon>{confirmIcon}</ListItemIcon>
           <ListItemText>{confirmItemTitle}</ListItemText>
         </MenuItem>
         {cancelItemTitle && (
@@ -172,7 +170,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       </MenuList>
     </Paper>
   );
-}
+};
 
 const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip {...props} classes={{ popper: className }} />)(({ theme }) => ({
   [`& .${tooltipClasses.arrow}`]: {
@@ -193,13 +191,18 @@ const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip
 
 export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererProps, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
-  const endTime: keyof PRecord = `treatmentEnd${number}`;
-  const canBeAssigned = data.opReadiness === "Y" && data[`treatmentReady${number}`] && !data[`treatmentEnd${number}`];
-  const isInProgressTreatment = data[`treatmentStart${number}`] && !data[`treatmentEnd${number}`];
-  const canBeReady = !data[`treatmentReady${number}`] && data[`treatment${number}`];
+  const end = data[`treatmentEnd${number}`];
+  const ready = data[`treatmentReady${number}`];
+  const start = data[`treatmentStart${number}`];
+
+  const canBeAssigned = data.opReadiness === OPREADINESS_Y && ready && !start && !end;
+  const isInProgressTreatment = data.opReadiness === OPREADINESS_P && ready && start && !end;
+  const canBeReady = data.opReadiness === OPREADINESS_N && !ready && !start && !end;
+
   const [open, setOpen] = useState(false);
 
   const disableHoverListener = (!canBeAssigned && !isInProgressTreatment && !canBeReady) || !value;
+
   const onMouseEnter = () => {
     setOpen(!disableHoverListener);
   };
@@ -207,11 +210,11 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
     setOpen(false);
   };
   return (
-    <div onMouseEnter={onMouseEnter} onMouseLeave={closeTooltip}>
+    <div className="cursor-pointer" onMouseEnter={onMouseEnter} onMouseLeave={closeTooltip}>
       <CustomToolTip open={open} placement="top" title={<TreatmentTooltip treatmentNumber={number} api={api} record={data} closeTooltip={closeTooltip} />} arrow>
         <div>
           <span
-            className={`${data[endTime] && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
+            className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
             }`}>
             {getValueWithId(TREATMENTS, value).title}
