@@ -13,9 +13,10 @@ import { useRecoilState, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import { LoaderFunctionArgs } from "@remix-run/node";
-import { getUserByID, getSchedulingRecords } from "~/utils/request.server";
+import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
+import { getSchedulingRecords } from "~/utils/request.client";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -23,8 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (sessionData.id) {
       const result = await getUserByID(sessionData.id);
       if ("user" in result) {
-        const { data } = await getSchedulingRecords();
-        return json({ user: result.user, records: data.rows });
+        return json({ user: result.user });
       }
     }
   } catch (error) {
@@ -82,34 +82,39 @@ export default function Archive() {
     };
   }, []);
 
+  const getRecords = async () => {
+    try {
+      let where = [];
+      where.push(`and check_in_time >= '${dayjs(baseDate).startOf(interval).toISOString()}'`);
+      where.push(
+        `and check_in_time <= '${dayjs(baseDate)
+          .startOf(interval)
+          .add(numOfInterval - 1, interval)
+          .endOf(interval)
+          .toISOString()}'`
+      );
+      const { data } = await getSchedulingRecords(where);
+      const recordsData: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
+      setRowData(recordsData);
+    } catch (error) {
+      showErrorSnackbar("Internal server error");
+    } finally {
+      // setIsLoading(false);
+    }
+  };
+
   // Get records and process unlocked records.
   useEffect(() => {
-    const { user: suser, records } = loaderData;
+    const { user: suser } = loaderData;
     if (!user || user.id != suser.id) {
       setUser(suser);
     }
 
     if (suser) {
-      try {
-        let where = [];
-        where.push(`and check_in_time >= '${dayjs(baseDate).startOf(interval).toISOString()}'`);
-        where.push(
-          `and check_in_time <= '${dayjs(baseDate)
-            .startOf(interval)
-            .add(numOfInterval - 1, interval)
-            .endOf(interval)
-            .toISOString()}'`
-        );
-
-        const recordsData: PRecord[] = records.map((record: any) => convertServerPRecordtToPRecord(record));
-        setRowData(recordsData);
-      } catch (error) {
-        showErrorSnackbar("Internal server error");
-      } finally {
-        // setIsLoading(false);
-      }
+      getRecords();
     }
   }, [socket, baseDate, interval, numOfInterval, loaderData]);
+
   return (
     <div className="w-full">
       <ArchiveHeader
