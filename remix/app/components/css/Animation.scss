@@ -1,0 +1,29 @@
+@keyframes showTopText {
+  0% {
+    transform: translate3d(0, 100%, 0);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes showBottomText {
+  0% {
+    transform: translate3d(0, -110%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+.animated-title > div:first-child > h2 {
+  animation: showTopText 0.5s;
+  animation-delay: 0.5s;
+  animation-fill-mode: forwards;
+  transform: translate(0, 100%);
+}
+.animated-title > div:nth-child(2) > h2 {
+  animation: showBottomText 0.5s;
+  animation-delay: 1s;
+  animation-fill-mode: forwards;
+  transform: translate(0, -110%);
+}

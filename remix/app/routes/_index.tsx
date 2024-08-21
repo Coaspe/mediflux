@@ -9,7 +9,7 @@ import { LoginResponse, User } from "~/type";
 import { ROLE, ServerUser } from "shared";
 import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";
-
+import "../components/css/Animation.scss";
 async function validateUserid(userId: string) {
   if (userId.length <= 3) {
     return "아이디는 4글자 이상이어야합니다.";
@@ -152,10 +152,14 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
-      <div className="flex justify-center ">
-        <div className="rounded-lg shadow-lg p-8 font-noto">
-          <h2 className="text-9xl font-bold font-playfair mb-10">Efficient care,</h2>
-          <h2 className="text-9xl font-bold font-playfair mb-10">Every time</h2>
+      <div className="flex justify-center">
+        <div className="rounded-lg shadow-lg p-8 font-noto relative animated-title">
+          <div className="overflow-hidden">
+            <h2 className="text-9xl font-bold font-playfair">Efficient care,</h2>
+          </div>
+          <div className=" overflow-hidden">
+            <h2 className="text-9xl font-bold font-playfair mb-10">Every time</h2>
+          </div>
           <LoginButton
             onClick={() => {
               setIsModalOpen(true);
