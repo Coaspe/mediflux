@@ -29,7 +29,7 @@ import Paper from "@mui/material/Paper";
 import ContentCut from "@mui/icons-material/ContentCut";
 
 export const checkInTimeCell = (value: number) => {
-  const date = dayjs(value * 1000);
+  const date = dayjs(value * 1000).add(9, "hour");
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
       <span>

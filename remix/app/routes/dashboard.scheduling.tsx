@@ -46,7 +46,6 @@ export default function Scheduling() {
 
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
-
   useEffect(() => {
     if (exceptReadyRef.current) {
       exceptReadyRef.current.tableType = "ExceptReady";

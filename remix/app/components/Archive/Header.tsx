@@ -1,10 +1,12 @@
+/** @format */
+
 import React from "react";
 import MenuItem from "@mui/material/MenuItem";
 import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker,LocalizationProvider } from "@mui/x-date-pickers";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import { Interval } from "~/type";
 import { styled } from "@mui/material/styles";
@@ -22,10 +24,10 @@ const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleInte
     height: 40,
     fontSize: 14,
   };
-  const DatePickerCustom = styled(DatePicker)({ '& input': {width: 100, height: 7, fontSize:14 }, });
+  const DatePickerCustom = styled(DatePicker)({ "& input": { width: 100, height: 7, fontSize: 14 } });
   return (
     <header className="flex gap-3 pb-5">
-      <LocalizationProvider  dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePickerCustom label="기준일" defaultValue={dayjs()} format="YYYY/MM/DD" onChange={handleBaseDateChange} />
       </LocalizationProvider>
       <FormControl className="w-30">

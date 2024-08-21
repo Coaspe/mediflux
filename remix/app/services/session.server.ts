@@ -119,7 +119,10 @@ export async function destroyUserSession(request: Request, userId: string) {
   try {
     const result = await setUserSession({ id: userId, sessionId: null } as User);
     if (result.statusCode == 200) {
-      destoryBrowserSession("/", request);
+      return destoryBrowserSession("/", request);
     }
-  } catch (error) {}
+  } catch (error) {
+    return redirect("/");
+  }
+  return redirect("/");
 }

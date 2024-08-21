@@ -1,24 +1,10 @@
-import dayjs, { Dayjs } from "dayjs";
+/** @format */
+
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import React from "react";
 import { ChartData, Interval, PRecord } from "~/type";
-
-function formatDateString(date: number, format: Interval) {
-  date *= 1000;
-  switch (format) {
-    case "day":
-      return dayjs(date).format("YYYY-MM-DD");
-    case "week":
-      return dayjs(date).format("YYYY-MM-DD");
-    case "month":
-      return dayjs(date).format("YYYY-MM");
-    case "year":
-      return dayjs(date).format("YYYY");
-    default:
-      throw new Error(`Unsupported format: ${format}`);
-  }
-}
+import dayjs, { Dayjs } from "dayjs";
 
 type ArchiveChartProps = {
   numOfInterval: number;
@@ -30,6 +16,21 @@ type ArchiveChartProps = {
 const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, baseDate, data }) => {
   const [chartData, setChartData] = useState<ChartData[]>();
 
+  function formatDateString(date: number, format: Interval) {
+    date *= 1000;
+    switch (format) {
+      case "day":
+        return dayjs(date).format("YYYY-MM-DD");
+      case "week":
+        return dayjs(date).format("YYYY-MM-DD");
+      case "month":
+        return dayjs(date).format("YYYY-MM");
+      case "year":
+        return dayjs(date).format("YYYY");
+      default:
+        throw new Error(`Unsupported format: ${format}`);
+    }
+  }
   const calIntervalAndSetChartData = (interval: Interval, numOfInterval: number): void => {
     let mapping: { [key: number]: ChartData } = {};
     let date = dayjs(baseDate).startOf(interval).unix();
@@ -79,8 +80,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
               right: 30,
               left: 20,
               bottom: 5,
-            }}
-          >
+            }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis dataKey="numOfPRecords" />

@@ -46,6 +46,7 @@ export const links: LinksFunction = () => [
 
 export default function App() {
   const queryClient = new QueryClient();
+
   return (
     <html lang="en">
       <head>
