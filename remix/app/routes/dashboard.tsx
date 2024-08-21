@@ -10,7 +10,7 @@ import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
 import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from "@remix-run/node";
-import { destroyUserSession, getUserSession } from "~/services/session.server";
+import { destoryBrowserSession, destroyUserSession, getUserSession } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
 
 function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
@@ -29,10 +29,11 @@ const isSideMenu = (value: any): value is SideMenu => {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let sessionData = await getUserSession(request);
-  console.log(sessionData);
 
-  if (sessionData.status === "invalid-session" || sessionData.status === "session-expired") {
+  if (sessionData.status === "session-expired") {
     return await destroyUserSession(request, sessionData.id);
+  } else if (sessionData.status === "invalid-session") {
+    return destoryBrowserSession("/", request);
   } else if (sessionData.status !== "active") {
     return redirect("/");
   }

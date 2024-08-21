@@ -5,6 +5,7 @@ import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU, OPREAD
 import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi } from "ag-grid-community";
+import CryptoJS from "crypto-js";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -295,4 +296,9 @@ export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {
     api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
     api.stopEditing();
   }
+};
+
+export const encryptSessionId = (ip: string | null, browser: string | null, sessionSecret: string, userId: string) => {
+  const key = (ip || "") + (browser || "") + sessionSecret + userId;
+  return CryptoJS.SHA256(key).toString();
 };

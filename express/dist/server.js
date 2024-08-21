@@ -201,12 +201,10 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
 app.put("/api/setUserSession", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sessionId = req.body.sessionId;
     const id = req.body.id;
-    console.log(id, sessionId);
     try {
         if (!id)
             return res.status(400).send("Invalid user data.");
         const query = setUserSessionQuery("admin.user");
-        console.log(query);
         const result = yield pool.query(query, [sessionId, id]);
         res.status(200).json(result);
     }

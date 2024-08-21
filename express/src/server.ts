@@ -216,8 +216,6 @@ app.put("/api/updateRecord", async (req, res) => {
 app.put("/api/setUserSession", async (req, res) => {
   const sessionId = req.body.sessionId;
   const id = req.body.id;
-  console.log(id, sessionId);
-
   try {
     if (!id) return res.status(400).send("Invalid user data.");
     const query = setUserSessionQuery("admin.user");

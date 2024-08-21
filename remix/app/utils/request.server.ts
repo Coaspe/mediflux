@@ -37,7 +37,6 @@ export const setUserSession = async (user: User) => {
     if (result.data && result.data.rows.length > 0) {
       const resultUser = result.data.rows[0];
       const clientUser = convertServerUserToClientUser(resultUser);
-
       return { statusCode: result.status, user: clientUser };
     } else {
       throw { statusCode: result.status, body: { error: "User data is missing from response" } };

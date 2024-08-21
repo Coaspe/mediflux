@@ -4,6 +4,9 @@ import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { LoginForm, RegisgerForm, User } from "~/type";
 import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
+import { getClientIPAddress } from "remix-utils/get-client-ip-address";
+import { encryptSessionId } from "~/utils/utils";
+
 // const sessionSecret = process.env.SESSION_SECRET;
 const sessionSecret = "remxe12i2mfdmx";
 if (!sessionSecret) {
@@ -36,15 +39,18 @@ export async function login({ userId, password }: LoginForm) {
   }
 }
 
-export async function createUserSession(user: User, redirectTo: string) {
+export async function createUserSession(user: User, redirectTo: string, request: Request) {
+  const ip = getClientIPAddress(request.headers);
   const session = await storage.getSession();
+  const browser = request.headers.get("User-Agent");
+  const sessionId = encryptSessionId(ip, browser, sessionSecret, user.id);
 
   session.set("id", user.id);
   session.set("expires", Date.now() + SESSION_AGE);
+  session.set("ip", ip);
+  session.set("browser", browser);
 
-  console.log(session.data.id);
-
-  user.sessionId = session.data.id;
+  user.sessionId = sessionId;
   const setUserSessionResult = await setUserSession(user);
 
   if (setUserSessionResult.statusCode === 200) {
@@ -66,11 +72,27 @@ export async function register({ userId, password, role, firstName, lastName }: 
   }
 }
 
+export async function destoryBrowserSession(redirectTo: string, request: Request) {
+  const session = await storage.getSession(request.headers.get("Cookie"));
+  if (session) {
+    return redirect(redirectTo, {
+      headers: {
+        "Set-Cookie": await storage.destroySession(session),
+      },
+    });
+  }
+  return redirect(redirectTo);
+}
+
 export async function getUserSession(request: Request) {
   const session = await storage.getSession(request.headers.get("Cookie"));
 
   const userId = session.get("id");
   const expires = session.get("expires");
+  const ip = getClientIPAddress(request.headers);
+  const browser = request.headers.get("User-Agent");
+
+  const sessionId = encryptSessionId(ip, browser, sessionSecret, userId);
 
   if (!userId) {
     return { status: "no-session" };
@@ -81,31 +103,23 @@ export async function getUserSession(request: Request) {
   }
 
   const result = await getUserByID(userId);
-  console.log(result);
 
   if ("user" in result) {
-    if (result.user?.sessionId !== session.id) {
+    if (result.user?.sessionId !== sessionId) {
       return { status: "invalid-session", id: userId };
     }
   } else {
     return { status: "user-dose-not-exist" };
   }
 
-  return { status: "active", id: userId, sessionId: session.id };
+  return { status: "active", id: userId, sessionId: sessionId };
 }
 
 export async function destroyUserSession(request: Request, userId: string) {
   try {
     const result = await setUserSession({ id: userId, sessionId: null } as User);
     if (result.statusCode == 200) {
-      const session = await storage.getSession(request.headers.get("Cookie"));
-      if (session) {
-        return redirect("/", {
-          headers: {
-            "Set-Cookie": await storage.destroySession(session),
-          },
-        });
-      }
+      destoryBrowserSession("/", request);
     }
   } catch (error) {}
 }

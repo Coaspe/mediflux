@@ -1,3 +1,5 @@
+/** @format */
+
 import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
@@ -90,7 +92,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
       const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR } as User;
 
-      return await createUserSession(clientUser, redirectTo);
+      return await createUserSession(clientUser, redirectTo, request);
     }
 
     case "register": {
@@ -126,7 +128,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
         const user = result.data.user as ServerUser;
         const clientUser = { id: user.contact_id, name: firstName + lastName, role: user.user_role } as User;
 
-        return await createUserSession(clientUser, redirectTo);
+        return await createUserSession(clientUser, redirectTo, request);
       }
 
       return badRequest({
