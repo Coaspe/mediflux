@@ -11,7 +11,7 @@ import { getSchedulingRecords, getUserByID } from "~/utils/request.server";
 import { redirect } from "@remix-run/node";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
-import { OPREADINESS_Y } from "~/constant";
+import { OP_READINESS_Y } from "~/constant";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
 import { getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
@@ -70,7 +70,7 @@ export default function Scheduling() {
       while (recordsData.length > 0) {
         const record = recordsData.pop();
         if (!record) continue;
-        if (record?.opReadiness === OPREADINESS_Y) {
+        if (record?.opReadiness === OP_READINESS_Y) {
           ready.push(record);
         } else {
           exceptReady.push(record);

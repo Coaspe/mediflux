@@ -1,7 +1,7 @@
 /** @format */
 
 import pkg from "pg";
-import { KEYOFSERVERPRECORD } from "./contants.js";
+import { KEY_OF_SERVER_PRECORD } from "./contants.js";
 
 export const getUserByLoginID = async (pool: pkg.Pool, loginId: string) => {
   return await pool.query("select * from admin.user where login_id=$1;", [loginId]);
@@ -123,14 +123,14 @@ export const deconstructRecord = (record: any) => {
 
 export const updateRecordsQuery = (tableName: string) => {
   let baseQuery = `UPDATE ${tableName} SET `;
-  for (let i = 1; i < KEYOFSERVERPRECORD.length; i++) {
-    const field = KEYOFSERVERPRECORD[i];
+  for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
+    const field = KEY_OF_SERVER_PRECORD[i];
     baseQuery += `${field}=$${i}`;
-    if (i !== KEYOFSERVERPRECORD.length - 1) {
+    if (i !== KEY_OF_SERVER_PRECORD.length - 1) {
       baseQuery += ", ";
     }
   }
-  baseQuery += ` WHERE record_id=$${KEYOFSERVERPRECORD.length}`;
+  baseQuery += ` WHERE record_id=$${KEY_OF_SERVER_PRECORD.length}`;
   return baseQuery;
 };
 

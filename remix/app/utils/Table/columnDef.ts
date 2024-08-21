@@ -1,3 +1,5 @@
+/** @format */
+
 import { checkInTimeCell, checkInTimeEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
 import {
   CHECK_IN_TIME,
@@ -8,27 +10,27 @@ import {
   PATIENT_NAME_H,
   OP_READINESS,
   OP_READINESS_H,
-  QUANTITYTREAT1,
-  QUANTITYTREAT1_H,
+  QUANTITY_TREAT1,
+  QUANTITY_TREAT1_H,
   TREATMENT_ROOM,
   TREATMENT_ROOM_H,
   DOCTOR,
   DOCTOR_H,
-  ANESTHESIANOTE,
-  ANESTHESIANOTE_H,
-  SKINCARESPECIALIST1,
-  SKINCARESPECIALIST1_H,
-  SKINCARESPECIALIST2,
-  SKINCARESPECIALIST2_H,
-  NURSINGSTAFF1,
-  NURSINGSTAFF1_H,
-  NURSINGSTAFF2,
-  NURSINGSTAFF2_H,
+  ANESTHESIA_NOTE,
+  ANESTHESIA_NOTE_H,
+  SKINCARE_SPECIALIST1,
+  SKINCARE_SPECIALIST1_H,
+  SKINCARE_SPECIALIST2,
+  SKINCARE_SPECIALIST2_H,
+  NURSING_STAFF1,
+  NURSING_STAFF1_H,
+  NURSING_STAFF2,
+  NURSING_STAFF2_H,
   COORDINATOR,
   CONSULTANT,
   CONSULTANT_H,
-  COMMENTCAUTION,
-  COMMENTCAUTION_H,
+  COMMENT_CAUTION,
+  COMMENT_CAUTION_H,
   SHORT_COLUMN_LENGTH,
   COORDINATOR_H,
   DOCTOR_SEARCH_HELP,
@@ -97,8 +99,8 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
   };
 };
 export const quantitytreat1Column: ColDef<PRecord, number> = {
-  field: QUANTITYTREAT1,
-  headerName: QUANTITYTREAT1_H,
+  field: QUANTITY_TREAT1,
+  headerName: QUANTITY_TREAT1_H,
   width: SHORT_COLUMN_LENGTH,
 };
 export const treatmentRoomColumn: ColDef<PRecord, number> = {
@@ -139,11 +141,11 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
 };
 
 export const doctorColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(DOCTOR, DOCTOR_H, DOCTOR_SEARCH_HELP, gridRef);
-export const anesthesiaNoteColumn: ColDef<PRecord, string> = { field: ANESTHESIANOTE, headerName: ANESTHESIANOTE_H };
-export const skincareSpecialist1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARESPECIALIST1, SKINCARESPECIALIST1_H, DOCTOR_SEARCH_HELP, gridRef);
-export const skincareSpecialist2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARESPECIALIST2, SKINCARESPECIALIST2_H, DOCTOR_SEARCH_HELP, gridRef);
-export const nursingStaff1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSINGSTAFF1, NURSINGSTAFF1_H, DOCTOR_SEARCH_HELP, gridRef);
-export const nursingStaff2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSINGSTAFF2, NURSINGSTAFF2_H, DOCTOR_SEARCH_HELP, gridRef);
+export const anesthesiaNoteColumn: ColDef<PRecord, string> = { field: ANESTHESIA_NOTE, headerName: ANESTHESIA_NOTE_H };
+export const skincareSpecialist1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARE_SPECIALIST1, SKINCARE_SPECIALIST1_H, DOCTOR_SEARCH_HELP, gridRef);
+export const skincareSpecialist2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARE_SPECIALIST2, SKINCARE_SPECIALIST2_H, DOCTOR_SEARCH_HELP, gridRef);
+export const nursingStaff1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSING_STAFF1, NURSING_STAFF1_H, DOCTOR_SEARCH_HELP, gridRef);
+export const nursingStaff2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSING_STAFF2, NURSING_STAFF2_H, DOCTOR_SEARCH_HELP, gridRef);
 export const coordinatorColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(COORDINATOR, COORDINATOR_H, DOCTOR_SEARCH_HELP, gridRef);
 export const consultantColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(CONSULTANT, CONSULTANT_H, DOCTOR_SEARCH_HELP, gridRef);
-export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENTCAUTION, headerName: COMMENTCAUTION_H };
+export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENT_CAUTION, headerName: COMMENT_CAUTION_H };

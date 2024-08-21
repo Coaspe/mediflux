@@ -1,3 +1,5 @@
+/** @format */
+
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
@@ -33,8 +35,8 @@ import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils"
 import { lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
 import {
   LOCKING_USER,
-  OPREADINESS_C,
-  OPREADINESS_Y,
+  OP_READINESS_C,
+  OP_READINESS_Y,
   OP_READINESS,
   TREATMENT1,
   TREATMENT1_H,
@@ -200,7 +202,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     record.lockingUser = null;
 
     // Open modal
-    if ((field === OP_READINESS && oldValue !== OPREADINESS_Y && newValue === OPREADINESS_Y) || (oldValue !== OPREADINESS_C && newValue === OPREADINESS_C)) {
+    if ((field === OP_READINESS && oldValue !== OP_READINESS_Y && newValue === OP_READINESS_Y) || (oldValue !== OP_READINESS_C && newValue === OP_READINESS_C)) {
       return;
     }
 

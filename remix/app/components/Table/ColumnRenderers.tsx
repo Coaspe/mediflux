@@ -4,7 +4,7 @@ import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../ty
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role, TREATMENTS } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OPREADINESS_C, OPREADINESS_N, OPREADINESS_P, OPREADINESS_Y } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS_C, OP_READINESS_N, OP_READINESS_P, OP_READINESS_Y } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -88,13 +88,13 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
   const [confirmIcon, setConfirmIcon] = useState<ReactElement | null>(null);
   useEffect(() => {
     setConfirmItemTitle(() => {
-      if (record.opReadiness === OPREADINESS_N) {
+      if (record.opReadiness === OP_READINESS_N) {
         setConfirmIcon(<ChecklistIcon fontSize="small" />);
         return "준비 완료";
-      } else if (record.opReadiness === OPREADINESS_P) {
+      } else if (record.opReadiness === OP_READINESS_P) {
         setConfirmIcon(<CheckCircleIcon fontSize="small" />);
         return "시술 완료";
-      } else if (record.opReadiness === OPREADINESS_Y) {
+      } else if (record.opReadiness === OP_READINESS_Y) {
         setConfirmIcon(<ContentCut fontSize="small" />);
         return "시술 시작";
       }
@@ -109,12 +109,12 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       if (!record || !treatmentNumber || !user) return;
       const time = dayjs().unix();
 
-      if (record.opReadiness === OPREADINESS_N) {
+      if (record.opReadiness === OP_READINESS_N) {
         record[`treatmentReady${treatmentNumber}`] = time;
-      } else if (record.opReadiness === OPREADINESS_P) {
+      } else if (record.opReadiness === OP_READINESS_P) {
         record[`treatmentEnd${treatmentNumber}`] = time;
         record["doctor"] = undefined;
-      } else if (record.opReadiness === OPREADINESS_Y) {
+      } else if (record.opReadiness === OP_READINESS_Y) {
         record[`treatmentStart${treatmentNumber}`] = time;
         record.doctor = user.id;
       }
@@ -195,9 +195,9 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
   const ready = data[`treatmentReady${number}`];
   const start = data[`treatmentStart${number}`];
 
-  const canBeAssigned = data.opReadiness === OPREADINESS_Y && ready && !start && !end;
-  const isInProgressTreatment = data.opReadiness === OPREADINESS_P && ready && start && !end;
-  const canBeReady = data.opReadiness === OPREADINESS_N && !ready && !start && !end;
+  const canBeAssigned = data.opReadiness === OP_READINESS_Y && ready && !start && !end;
+  const isInProgressTreatment = data.opReadiness === OP_READINESS_P && ready && start && !end;
+  const canBeReady = data.opReadiness === OP_READINESS_N && !ready && !start && !end;
 
   const [open, setOpen] = useState(false);
 
@@ -250,8 +250,8 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
 
       if (colDef.field && /^treatment\d+$/.test(colDef.field)) {
         const row = api.getRowNode(data.id);
-        if (row?.data.opReadiness === OPREADINESS_C) {
-          row.data.opReadiness = OPREADINESS_N;
+        if (row?.data.opReadiness === OP_READINESS_C) {
+          row.data.opReadiness = OP_READINESS_N;
         }
       }
     }

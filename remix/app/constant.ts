@@ -25,7 +25,7 @@ export const CHECK_IN_TIME_H = "수납시간";
 export const CHART_NUMBER = "chartNum";
 export const CHART_NUMBER_H = "차트번호";
 export const PATIENT_NAME = "patientName";
-export const PATIENT_NAME_H = "고객이름";
+export const PATIENT_NAME_H = "고객";
 export const OP_READINESS = "opReadiness";
 export const OP_READINESS_H = "상태";
 export const TREATMENT1 = "treatment1";
@@ -38,38 +38,48 @@ export const TREATMENT2_H = "시술2";
 export const TREATMENT3_H = "시술3";
 export const TREATMENT4_H = "시술4";
 export const TREATMENT5_H = "시술5";
-export const QUANTITYTREAT1 = "quantityTreat1";
-export const QUANTITYTREAT1_H = "수량";
+export const QUANTITY_TREAT1 = "quantityTreat1";
+export const QUANTITY_TREAT1_H = "수량";
 export const TREATMENT_ROOM = "treatmentRoom";
 export const TREATMENT_ROOM_H = "시술실";
 export const DOCTOR = "doctor";
 export const DOCTOR_H = "의사";
-export const ANESTHESIANOTE = "anesthesiaNote";
-export const ANESTHESIANOTE_H = "마취 시간";
-export const SKINCARESPECIALIST1 = "skincareSpecialist1";
-export const SKINCARESPECIALIST1_H = "피부1";
-export const SKINCARESPECIALIST2 = "skincareSpecialist2";
-export const SKINCARESPECIALIST2_H = "피부2";
-export const NURSINGSTAFF1 = "nursingStaff1";
-export const NURSINGSTAFF1_H = "간호1";
-export const NURSINGSTAFF2 = "nursingStaff2";
-export const NURSINGSTAFF2_H = "간호2";
+export const ANESTHESIA_NOTE = "anesthesiaNote";
+export const ANESTHESIA_NOTE_H = "마취 시간";
+export const SKINCARE_SPECIALIST1 = "skincareSpecialist1";
+export const SKINCARE_SPECIALIST1_H = "피부1";
+export const SKINCARE_SPECIALIST2 = "skincareSpecialist2";
+export const SKINCARE_SPECIALIST2_H = "피부2";
+export const NURSING_STAFF1 = "nursingStaff1";
+export const NURSING_STAFF1_H = "간호1";
+export const NURSING_STAFF2 = "nursingStaff2";
+export const NURSING_STAFF2_H = "간호2";
 export const COORDINATOR = "coordinator";
 export const COORDINATOR_H = "코디";
 export const CONSULTANT = "consultant";
 export const CONSULTANT_H = "상담";
-export const COMMENTCAUTION = "commentCaution";
-export const COMMENTCAUTION_H = "비고/주의";
+export const COMMENT_CAUTION = "commentCaution";
+export const COMMENT_CAUTION_H = "비고/주의";
 export const LOCKING_USER = "lockingUser";
 
 export const MEDIUM_COLUMN_LENGTH = 100;
 export const LONG_COLUMN_LENGTH = 150;
 export const SHORT_COLUMN_LENGTH = 70;
 
-export const FIELDS_STAFF = ["피부1", "피부2", "코디", "상담"];
-export const FIELDS_NURSE = ["간호1", "간호2"];
-export const FIELDS_DOCTOR = ["의사"];
-export const FIELDS_PAITENT = ["고객 이름"];
+export const FIELDS_STAFF = [SKINCARE_SPECIALIST1_H, SKINCARE_SPECIALIST2_H, COORDINATOR_H, CONSULTANT_H];
+export const FIELDS_NURSE = [NURSING_STAFF1_H, NURSING_STAFF2_H];
+export const FIELDS_DOCTOR = [DOCTOR_H];
+export const FIELDS_PAITENT = [PATIENT_NAME_H];
+
+export const OP_READINESS_Y: OpReadiness = "Y";
+export const OP_READINESS_N: OpReadiness = "N";
+export const OP_READINESS_C: OpReadiness = "C";
+export const OP_READINESS_P: OpReadiness = "P";
+export const OP_READINESS_ENTRIES: OpReadiness[] = [OP_READINESS_Y, OP_READINESS_N, OP_READINESS_C, OP_READINESS_P];
+export const OP_READINESS_Y_TITLE = "준비 완료 (Y)";
+export const OP_READINESS_N_TITLE = "준비 미완료 (N)";
+export const OP_READINESS_C_TITLE = "시술 완료 (C)";
+export const OP_READINESS_P_TITLE = "시술 중 (P)";
 
 export const DOCTOR_SEARCH_HELP: SearchHelp[] = [
   { id: "1", group: "", title: "이우람" },
@@ -79,25 +89,11 @@ export const DOCTOR_SEARCH_HELP: SearchHelp[] = [
   { id: "5", group: "", title: "즐라탄" },
   { id: "6", group: "", title: "매머드" },
 ];
-export const OPREADINESS_Y: OpReadiness = "Y";
-export const OPREADINESS_N: OpReadiness = "N";
-export const OPREADINESS_C: OpReadiness = "C";
-export const OPREADINESS_P: OpReadiness = "P";
-export const OPREADINESS_ENTRIES: OpReadiness[] = [OPREADINESS_Y, OPREADINESS_N, OPREADINESS_C, OPREADINESS_P];
-export const OPREADINESS_Y_TITLE = "준비 완료 (Y)";
-export const OPREADINESS_N_TITLE = "준비 미완료 (N)";
-export const OPREADINESS_C_TITLE = "시술 완료 (C)";
-export const OPREADINESS_P_TITLE = "시술 중 (P)";
 
-export const OPREADINESS_SEARCH_HELP: SearchHelp[] = [
-  { title: OPREADINESS_Y_TITLE, id: OPREADINESS_Y, group: "" },
-  { title: OPREADINESS_N_TITLE, id: OPREADINESS_N, group: "" },
-  { title: OPREADINESS_C_TITLE, id: OPREADINESS_C, group: "" },
-  // { title: OPREADINESS_P_TITLE, id: OPREADINESS_P, group: "" },
-];
 export const EMPTY_SEARCHHELP: SearchHelp = {
   id: "",
   group: "",
   title: "",
 };
+
 export const TREATMENT_NUMBERS = Array.from({ length: 5 }, (_, k) => k + 1);

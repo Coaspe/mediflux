@@ -18,7 +18,7 @@ import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, updateRecordsQuery, setUserSessionQuery } from "./utils.js";
-import { KEYOFSERVERPRECORD } from "./contants.js";
+import { KEY_OF_SERVER_PRECORD } from "./contants.js";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
@@ -160,11 +160,11 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
     const records = req.body.records;
     try {
         const valuesTemplate = records
-            .map((_, i) => `(${Array.from({ length: KEYOFSERVERPRECORD.length - 2 }, (_, j) => `$${i * KEYOFSERVERPRECORD.length + j + 1}`).join(", ")})`)
+            .map((_, i) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
             .join(", ");
         const query = `
         INSERT INTO gn_ss_bailor.chart_schedule (
-        ${KEYOFSERVERPRECORD.slice(2).join(", ")}
+        ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
         ) VALUES ${valuesTemplate}
         RETURNING *;
       `;

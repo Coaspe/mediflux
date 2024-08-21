@@ -12,8 +12,7 @@ export const CONNECT = "connect";
 export const SCHEDULING_ROOM_ID = "100";
 export const CANCEL_EDITING = "cancel-editing";
 export const UNLOCK_RECORD = "unlock-record";
-export const SHURINK = "슈링크";
-export const KEYOFSERVERPRECORD = [
+export const KEY_OF_SERVER_PRECORD = [
   "record_id",
   "check_in_time",
   "chart_num",

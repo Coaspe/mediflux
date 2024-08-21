@@ -1,7 +1,7 @@
 /** @format */
 
 import { Role, ServerUser, ROLE } from "shared";
-import { EMPTY_SEARCHHELP, OPREADINESS_Y_TITLE, OPREADINESS_Y, SIDE_MENU, OPREADINESS_N, TREATMENT_NUMBERS, OPREADINESS_C, OPREADINESS_P } from "~/constant";
+import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P } from "~/constant";
 import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi } from "ag-grid-community";
@@ -40,7 +40,7 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
 };
 
 export const getTableType = (opReadiness?: OpReadiness): TableType => {
-  if (opReadiness === OPREADINESS_Y) {
+  if (opReadiness === OP_READINESS_Y) {
     return "Ready";
   } else {
     return "ExceptReady";
@@ -188,7 +188,7 @@ export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
 export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: any) => void, optionRef: MutableRefObject<SearchHelp | null>, setModalOpen?: () => void) => {
   if (event.key === "Enter") {
     onValueChange(optionRef.current?.id);
-    if (optionRef.current?.id === OPREADINESS_Y && optionRef.current?.title == OPREADINESS_Y_TITLE) {
+    if (optionRef.current?.id === OP_READINESS_Y && optionRef.current?.title == OP_READINESS_Y_TITLE) {
       setModalOpen?.();
     }
   } else if (event.key === "Tab") {
@@ -199,7 +199,7 @@ export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: an
 };
 
 export const checkForUnReadyTreatments = (record: PRecord) => {
-  for (let i = 1; i <= 5; i++) {
+  for (const i of TREATMENT_NUMBERS) {
     if (record[`treatment${i}`] && !record[`treatmentReady${i}`]) {
       return true;
     }
@@ -217,7 +217,7 @@ export const refreshTreatmentCells = (api: GridApi<PRecord> | undefined, recordI
 
   if (!row || !row.data) return;
   const columns = [];
-  for (let i = 1; i <= 5; i++) {
+  for (const i of TREATMENT_NUMBERS) {
     if (row.data[`treatment${i}`]) {
       columns.push(`treatment${i}`);
     }
@@ -229,7 +229,7 @@ export const refreshTreatmentCells = (api: GridApi<PRecord> | undefined, recordI
   });
 };
 export const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
-  for (let i = 1; i <= 5; i++) {
+  for (const i of TREATMENT_NUMBERS) {
     if (record[`treatmentReady${i}`] && record[`treatment${i}`] && !record[`treatmentStart${i}`]) {
       return i;
     }
@@ -237,7 +237,7 @@ export const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
   return -1;
 };
 export const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
-  for (let i = 1; i <= 5; i++) {
+  for (const i of TREATMENT_NUMBERS) {
     if (!record[`treatmentReady${i}`] && record[`treatment${i}`]) {
       return i;
     }
@@ -245,7 +245,7 @@ export const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
   return -1;
 };
 export const findCanCompleteTreatmentNumber = (record: PRecord): number => {
-  for (let i = 1; i <= 5; i++) {
+  for (const i of TREATMENT_NUMBERS) {
     if (record[`treatment${i}`] && record[`treatmentStart${i}`] && !record[`treatmentEnd${i}`]) {
       return i;
     }
@@ -280,12 +280,12 @@ export const statusTransition = (record: PRecord): OpReadiness => {
     }
   }
 
-  if (returnFlag) return OPREADINESS_N;
-  if (y_flag) return OPREADINESS_Y;
-  if (p_flag) return OPREADINESS_P;
-  if (c_flag) return OPREADINESS_C;
+  if (returnFlag) return OP_READINESS_N;
+  if (y_flag) return OP_READINESS_Y;
+  if (p_flag) return OP_READINESS_P;
+  if (c_flag) return OP_READINESS_C;
 
-  return OPREADINESS_N;
+  return OP_READINESS_N;
 };
 
 export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {

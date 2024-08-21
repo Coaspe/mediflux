@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { KEYOFSERVERPRECORD } from "./contants.js";
+import { KEY_OF_SERVER_PRECORD } from "./contants.js";
 export const getUserByLoginID = (pool, loginId) => __awaiter(void 0, void 0, void 0, function* () {
     return yield pool.query("select * from admin.user where login_id=$1;", [loginId]);
 });
@@ -80,14 +80,14 @@ export const deconstructRecord = (record) => {
 };
 export const updateRecordsQuery = (tableName) => {
     let baseQuery = `UPDATE ${tableName} SET `;
-    for (let i = 1; i < KEYOFSERVERPRECORD.length; i++) {
-        const field = KEYOFSERVERPRECORD[i];
+    for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
+        const field = KEY_OF_SERVER_PRECORD[i];
         baseQuery += `${field}=$${i}`;
-        if (i !== KEYOFSERVERPRECORD.length - 1) {
+        if (i !== KEY_OF_SERVER_PRECORD.length - 1) {
             baseQuery += ", ";
         }
     }
-    baseQuery += ` WHERE record_id=$${KEYOFSERVERPRECORD.length}`;
+    baseQuery += ` WHERE record_id=$${KEY_OF_SERVER_PRECORD.length}`;
     return baseQuery;
 };
 export const setUserSessionQuery = (tableName) => {

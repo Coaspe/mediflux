@@ -11,22 +11,14 @@ export const LOCK_EXCEPT_RECORD = "lock-except-record";
 export const SAVE_EXCEPT_RECORD = "save-except-record";
 export const DELETE_EXCEPT_RECORD = "delete-except-record";
 export const CREATE_EXCEPT_RECORD = "create-except-record";
-export const CONNETCION = "connETCion";
+export const CONNETCION = "connection";
 export const USER_JOINED = "user-join";
-export const CONNETC = "connETC";
+export const CONNETC = "connect";
 export const SCHEDULING_ROOM_ID = "100";
 export const ARCHIVE_ROOM_ID = "200";
 export const CANCEL_EDITING = "cancel-editing";
 export const UNLOCK_RECORD = "unlock-record";
 export const PORT = 5000;
-
-// Treatment
-export const TREATMENT_CATEGORY = [SHURINK, INMODE, ULTHERA, TITANIUM, JUVEDERM, EXCELV, PICOSURE, BOOSTER, FILLER, BOTOX, IV_THERAPY, OLIGIO, POTENZA, ERBIUM, ETC];
-export const ROLE = {
-  DOCTOR: "doctor",
-  NURSE: "nurse",
-  STAFF: "staff",
-} as const;
 
 export const SHURINK = "슈링크";
 export const INMODE = "인모드";
@@ -43,6 +35,14 @@ export const OLIGIO = "올리지오";
 export const POTENZA = "포텐자";
 export const ERBIUM = "어븀";
 export const ETC = "기타";
+
+// Treatment
+export const TREATMENT_CATEGORY = [SHURINK, INMODE, ULTHERA, TITANIUM, JUVEDERM, EXCELV, PICOSURE, BOOSTER, FILLER, BOTOX, IV_THERAPY, OLIGIO, POTENZA, ERBIUM, ETC];
+export const ROLE = {
+  DOCTOR: "doctor",
+  NURSE: "nurse",
+  STAFF: "staff",
+} as const;
 
 export const TREATMENTS: SearchHelp[] = [
   { id: "1", group: SHURINK, title: "슈링크 유니버스 울트라 MP모드 100샷" },
