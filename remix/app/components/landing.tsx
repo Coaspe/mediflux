@@ -231,7 +231,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
               <div className="w-full h-10 flex items-center justify-center">
                 {!isLoading ? (
                   <button
-                    className="bg-button hover:bg-blue-800 text-gray-200  font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
+                    className="bg-button hover:bg-blue-800 text-gray-200 font-noto font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
                     type="submit">
                     확인
                   </button>
@@ -240,7 +240,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                 )}
               </div>
             </Form>
-            <p className="text-blue-500 hover:underline cursor-pointer pt-5 text" onClick={changeMode}>
+            <p className="text-blue-500 hover:underline cursor-pointer font-noto" onClick={changeMode}>
               {isLoginMode ? "회원가입" : "로그인"}
             </p>
           </div>

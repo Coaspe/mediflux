@@ -153,7 +153,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center">
       <div className="flex justify-center">
-        <div className="rounded-lg shadow-lg p-8 font-noto relative animated-title">
+        <div className="rounded-lg animated-paper p-8 font-noto relative animated-title">
           <div className="overflow-hidden">
             <h2 className="text-9xl font-bold font-playfair">Efficient care,</h2>
           </div>

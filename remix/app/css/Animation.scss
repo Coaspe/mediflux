@@ -25,6 +25,14 @@
     opacity: 1;
   }
 }
+@keyframes paperShadow {
+  from {
+    box-shadow: none;
+  }
+  to {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  }
+}
 .animated-title > div:first-child > h2 {
   animation: 0.5s showTopText 0.5s ease-in-out;
   animation-fill-mode: forwards;
@@ -39,4 +47,9 @@
   animation: showButton 0.5s ease-in-out 1.5s;
   animation-fill-mode: forwards;
   opacity: 0;
+}
+.animated-paper {
+  animation: 2s paperShadow ease-in-out;
+  animation-fill-mode: forwards;
+  box-shadow: none;
 }

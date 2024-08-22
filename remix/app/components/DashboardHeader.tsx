@@ -49,7 +49,7 @@ export default function DashboardHeader({ selectedMenu }: { selectedMenu: SideMe
   return (
     <header className="min-h-24 font-playfair flex items-center justify-between pl-12 pr-12 w-full">
       <div className="flex items-center">
-        <h1 className="w-[250px] font-extrabold text-4xl">MediFlux</h1>
+        <h1 className="w-[250px] font-extrabold text-4xl cursor-pointer select-none">MediFlux</h1>
         <h2 className="font-work text-xl font-bold drag select-none">{getMenuName(selectedMenu)}</h2>
       </div>
       <div className="flex gap-10">
