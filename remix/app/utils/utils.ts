@@ -13,6 +13,8 @@ export function getMenuName(menu: SideMenu | undefined): string {
       return "Scheduling";
     case SIDE_MENU.ARCHIVE:
       return "Archive";
+    case SIDE_MENU.MEMBERS:
+      return "Members";
     default:
       return "";
   }

@@ -3,7 +3,7 @@
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
-import { Menu, SubMenu } from "react-pro-sidebar";
+import { Menu, MenuItem, SubMenu } from "react-pro-sidebar";
 import { SideMenu, User } from "~/type";
 import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
@@ -13,11 +13,28 @@ import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from "@remix-run/nod
 import { destoryBrowserSession, destroyUserSession, getUserSession } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
 
-function MenuItemLi({ onClick, to, name, clickedMenu }: { onClick: () => void; to: string; name: string; clickedMenu: SideMenu | undefined }) {
+function MenuItemLi({
+  onClick,
+  to,
+  name,
+  clickedMenu,
+  icon,
+  fontSize,
+  isSubMenu = false,
+}: {
+  onClick: () => void;
+  to: string;
+  name: string;
+  clickedMenu: SideMenu | undefined;
+  icon: string;
+  isSubMenu?: boolean;
+  fontSize?: string;
+}) {
   return (
-    <li onClick={onClick} className={`w-full relative ${clickedMenu == to ? "bg-button text-white" : "hover:bg-gray-100"}`}>
-      <Link className="flex items-center h-[50px] text-current cursor-pointer pr-[20px] pl-[40px]" to={to}>
-        <span className="flex-grow overflow-hidden overflow-ellipsis whitespace-nowrap text-sm">{name}</span>
+    <li className={`w-full ${clickedMenu == to ? "bg-button text-white" : "hover:bg-gray-100"}`}>
+      <Link onClick={onClick} className={`flex items-center h-[50px] text-current cursor-pointer pr-[20px] ${isSubMenu ? "pl-[40px]" : "pl-[20px]"}`} to={to}>
+        <Icon className={`text-gray-500 mr-[10px] ${fontSize} css-wx7wi4`} iconName={icon} />
+        <span className={`${fontSize} inline-block flex-grow overflow-hidden overflow-ellipsis whitespace-nowrap`}>{name}</span>
       </Link>
     </li>
   );
@@ -90,9 +107,18 @@ export default function Dashboard() {
         <aside className="font-work pr-5 w-[220px]">
           <Menu>
             <SubMenu icon={<Icon className={"text-gray-500 "} iconName={ICONS.EVENT_NOTE} />} label="Schedule">
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)} to={"scheduling"} name={"Scheduling"} clickedMenu={clickedMenu} />
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} clickedMenu={clickedMenu} />
+              <MenuItemLi
+                onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)}
+                to={"scheduling"}
+                name={"Scheduling"}
+                icon={"edit_calendar"}
+                clickedMenu={clickedMenu}
+                fontSize="text-sm"
+                isSubMenu={true}
+              />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} icon={"home_storage"} clickedMenu={clickedMenu} fontSize="text-sm" isSubMenu={true} />
             </SubMenu>
+            <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MEMBERS)} to={"members"} name={"Members"} icon={"groups"} clickedMenu={clickedMenu} />
           </Menu>
         </aside>
         <Outlet />

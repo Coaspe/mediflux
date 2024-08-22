@@ -11,6 +11,7 @@ export const SERVERUSER_CLIENTUSER_MAPPING = {
 export const SIDE_MENU = {
   SCHEDULING: "scheduling",
   ARCHIVE: "archive",
+  MEMBERS: "members",
 } as const;
 
 export const TABLE_CONTAINER_HEIGHT = "78%";
