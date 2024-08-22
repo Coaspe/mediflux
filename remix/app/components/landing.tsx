@@ -4,17 +4,17 @@ import { Form, useActionData } from "@remix-run/react";
 import React, { Dispatch, HTMLInputTypeAttribute, useEffect, useRef, useState } from "react";
 import Icon, { ICONS } from "./Icons";
 import { Transition } from "@headlessui/react";
-import "./css/LoginModal.css";
+import "../css/LoginModal.css";
 import { useSubmit } from "@remix-run/react";
 import { ROLE, Role } from "shared";
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
-
+import "../css/Animation.scss";
 export const LoginButton = ({ name, onClick }: { name: string; onClick: () => void }) => {
   return (
     <button
       onClick={onClick}
-      className="bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]">
+      className="animated-button bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]">
       {name}
     </button>
   );
@@ -111,6 +111,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
     clearActionData();
   };
 
+  const onTransitionEnd = () => {
+    if (!open) {
+      setIsModalOpen(false);
+      clearActionData();
+    }
+  };
+
   useEffect(() => {
     if (isLoading) {
       setIsLoading(false);
@@ -129,16 +136,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
       leave="transition-opacity duration-300 ease-in-out"
       leaveFrom="opacity-100"
       leaveTo="opacity-0 none">
-      <div
-        ref={divRef}
-        onTransitionEnd={() => {
-          if (!open) {
-            setIsModalOpen(false);
-            clearActionData();
-          }
-        }}
-        onClick={closeModal}
-        className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center example-style`}>
+      <div ref={divRef} onTransitionEnd={onTransitionEnd} onClick={closeModal} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center example-style`}>
         <div
           onClick={(event) => event.stopPropagation()}
           style={{ height: isLoginMode ? "400px" : "500px" }}
@@ -242,7 +240,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                 )}
               </div>
             </Form>
-            <p className="text-blue-500 hover:underline cursor-pointer pt-5" onClick={changeMode}>
+            <p className="text-blue-500 hover:underline cursor-pointer pt-5 text" onClick={changeMode}>
               {isLoginMode ? "회원가입" : "로그인"}
             </p>
           </div>

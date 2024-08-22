@@ -24,7 +24,7 @@ import {
   treatmentColumn,
   treatmentRoomColumn,
 } from "~/utils/Table/columnDef";
-import "../css/Table.css";
+import "../../css/Table.css";
 import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD } from "shared";
 import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";

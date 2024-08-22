@@ -1,3 +1,5 @@
+/** @format */
+
 @keyframes showTopText {
   0% {
     transform: translate3d(0, 100%, 0);
@@ -15,15 +17,26 @@
     transform: translate3d(0, 0, 0);
   }
 }
+@keyframes showButton {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 .animated-title > div:first-child > h2 {
-  animation: showTopText 0.5s;
-  animation-delay: 0.5s;
+  animation: 0.5s showTopText 0.5s ease-in-out;
   animation-fill-mode: forwards;
   transform: translate(0, 100%);
 }
 .animated-title > div:nth-child(2) > h2 {
-  animation: showBottomText 0.5s;
-  animation-delay: 1s;
+  animation: 0.5s showBottomText 1s ease-in-out;
   animation-fill-mode: forwards;
   transform: translate(0, -110%);
+}
+.animated-button {
+  animation: showButton 0.5s ease-in-out 1.5s;
+  animation-fill-mode: forwards;
+  opacity: 0;
 }
