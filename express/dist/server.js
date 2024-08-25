@@ -77,7 +77,7 @@ app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, functi
     const { userId, role, password, firstName, lastName } = req.body;
     try {
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const regisgerResult = yield pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5 RETURNING *;)`, [
+        const regisgerResult = yield pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5) RETURNING *;`, [
             role,
             firstName,
             lastName,
@@ -209,7 +209,6 @@ app.put("/api/setUserSession", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(200).json(result);
     }
     catch (error) {
-        console.log(error);
         res.status(500).send("Error updating records.");
     }
     finally {
@@ -239,7 +238,6 @@ app.put("/api/hideRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(200).send("Records deleted successfully.");
     }
     catch (error) {
-        console.error("Error inserting records:", error);
         res.status(500).send("Error deleting records.");
     }
     finally {

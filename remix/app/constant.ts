@@ -21,8 +21,8 @@ export const NEW_READY_RECORD_COLOR = "#fffacd";
 export const EDITING_RECORD_COLOR = "#dcdcdc";
 export const DEFAULT_RECORD_COLOR = "white";
 
-export const CHECK_IN_TIME = "checkInTime";
-export const CHECK_IN_TIME_H = "수납시간";
+export const CREATED_AT = "createdAt";
+export const CREATED_AT_H = "수납시간";
 export const CHART_NUMBER = "chartNum";
 export const CHART_NUMBER_H = "차트번호";
 export const PATIENT_NAME = "patientName";

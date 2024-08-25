@@ -1,9 +1,9 @@
 /** @format */
 
-import { checkInTimeCell, checkInTimeEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
+import { createdAtCell, createdAtEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
 import {
-  CHECK_IN_TIME,
-  CHECK_IN_TIME_H,
+  CREATED_AT,
+  CREATED_AT_H,
   CHART_NUMBER,
   CHART_NUMBER_H,
   PATIENT_NAME,
@@ -48,13 +48,13 @@ export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const title = record?.title;
   return title;
 };
-export const checkinTimeColumn: ColDef<PRecord, number> = {
-  field: CHECK_IN_TIME,
+export const createdAtColumn: ColDef<PRecord, number> = {
+  field: CREATED_AT,
   filter: true,
   checkboxSelection: true,
-  headerName: CHECK_IN_TIME_H,
-  cellRenderer: ({ value }: CustomCellRendererProps) => checkInTimeCell(value),
-  cellEditor: ({ value, onValueChange }: CustomCellEditorProps) => checkInTimeEdit(value, onValueChange),
+  headerName: CREATED_AT_H,
+  cellRenderer: ({ value }: CustomCellRendererProps) => createdAtCell(value),
+  cellEditor: ({ value, onValueChange }: CustomCellEditorProps) => createdAtEdit(value, onValueChange),
 };
 
 export const chartNumberColumn: ColDef<PRecord, string> = {

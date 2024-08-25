@@ -23,7 +23,7 @@ export const convertTime = (time: number | undefined) => {
 };
 export const deconstructRecord = (record: any) => {
   const {
-    checkInTime,
+    createdAt,
     chartNum,
     patientName,
     opReadiness,
@@ -67,7 +67,7 @@ export const deconstructRecord = (record: any) => {
   } = record;
 
   const retVal = [
-    convertTime(checkInTime),
+    convertTime(createdAt),
     chartNum,
     patientName,
     opReadiness,

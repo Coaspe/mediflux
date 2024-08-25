@@ -13,14 +13,16 @@ export type User = {
   id: string;
   userid: string;
   name: string;
+  resignFlag: boolean;
   image?: string;
   role?: Role;
+  point?: number;
   sessionId?: string | null;
 };
-
+export type Gender = "M" | "F";
 export type PRecord = {
   id: string; // Unique record id
-  checkInTime?: number; // TIMESTAMP (e.g., "14:08")
+  createdAt?: number; // TIMESTAMP (e.g., "14:08")
   chartNum?: string; // VARCHAR (15)
   patientName?: string; // VARCHAR (100)
   opReadiness?: OpReadiness; // BOOLEAN (e.g., "T", "F" interpreted as true/false)
@@ -65,7 +67,7 @@ export type PRecord = {
 };
 export type ServerPRecord = {
   record_id: string; // Unique record id
-  check_in_time?: number; // TIMESTAMP (e.g., "14:08")
+  created_at?: number; // TIMESTAMP (e.g., "14:08")
   chart_num?: string; // VARCHAR (15)
   patient_name?: string; // VARCHAR (100)
   op_readiness?: OpReadiness; // BOOLEAN (e.g., "T", "F" interpreted as true/false)

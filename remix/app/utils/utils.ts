@@ -79,7 +79,7 @@ const convertServerTimeToClientTime = (time: number | undefined) => {
 export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
   return {
     id: String(serverRecord.record_id),
-    checkInTime: convertServerTimeToClientTime(serverRecord.check_in_time),
+    createdAt: convertServerTimeToClientTime(serverRecord.created_at),
     chartNum: serverRecord.chart_num,
     patientName: serverRecord.patient_name,
     opReadiness: serverRecord.op_readiness,

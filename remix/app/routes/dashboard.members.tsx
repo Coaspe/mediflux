@@ -1,8 +1,13 @@
 /** @format */
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { useRecoilValue } from "recoil";
+import RankRow from "~/components/Members/RankRow";
+import { userState } from "~/recoil_state";
 
 const Members = () => {
+  const user = useRecoilValue(userState);
+
   const [columnWidths, setColumnWidths] = useState([200, 200, 200]);
   // const resizerRefs = useRef([]);
 
@@ -29,7 +34,7 @@ const Members = () => {
   return (
     <div className="flex flex-col border border-gray-300 w-max">
       <div className="flex">
-        {["Column 1", "Column 2", "Column 3"].map((header, index) => (
+        {["이름", "포인트", "Column 3"].map((header, index) => (
           <div key={index} className="relative flex items-center p-2 bg-gray-200 font-bold border-r border-gray-300" style={{ width: `${columnWidths[index]}px` }}>
             {header}
             <div
@@ -40,13 +45,13 @@ const Members = () => {
           </div>
         ))}
       </div>
-      <div className="flex">
-        {["Data 1", "Data 2", "Data 3"].map((data, index) => (
-          <div key={index} className="p-2 border-r border-t border-gray-300" style={{ width: `${columnWidths[index]}px` }}>
-            {data}
-          </div>
-        ))}
-      </div>
+      {user && (
+        <div className="flex">
+          {[user].map((data, index) => (
+            <RankRow width={`${columnWidths[index]}px`} user={user} key={index} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

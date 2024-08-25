@@ -85,9 +85,9 @@ export default function Archive() {
   const getRecords = async () => {
     try {
       let where = [];
-      where.push(`and check_in_time >= '${dayjs(baseDate).startOf(interval).toISOString()}'`);
+      where.push(`and created_at >= '${dayjs(baseDate).startOf(interval).toISOString()}'`);
       where.push(
-        `and check_in_time <= '${dayjs(baseDate)
+        `and created_at <= '${dayjs(baseDate)
           .startOf(interval)
           .add(numOfInterval - 1, interval)
           .endOf(interval)
@@ -116,7 +116,7 @@ export default function Archive() {
   }, [socket, baseDate, interval, numOfInterval, loaderData]);
 
   return (
-    <div className="w-full">
+    <div className="w-full h-full">
       <ArchiveHeader
         handleBaseDateChange={handleBaseDateChange}
         handleIntervalChange={handleIntervalChange}

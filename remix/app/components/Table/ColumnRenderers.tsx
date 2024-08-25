@@ -28,7 +28,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Paper from "@mui/material/Paper";
 import ContentCut from "@mui/icons-material/ContentCut";
 
-export const checkInTimeCell = (value: number) => {
+export const createdAtCell = (value: number) => {
   const date = dayjs(value * 1000).add(9, "hour");
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -39,7 +39,7 @@ export const checkInTimeCell = (value: number) => {
   );
 };
 
-export const checkInTimeEdit = (value: number, onValueChange: (value: number) => void) => {
+export const createdAtEdit = (value: number, onValueChange: (value: number) => void) => {
   const onChange = (val: Dayjs | null) => {
     onValueChange(dayjs(val).unix());
   };
@@ -216,7 +216,8 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}>
+            }`}
+          >
             {getValueWithId(TREATMENTS, value).title}
           </span>
         </div>

@@ -46,8 +46,8 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
     }
 
     data.forEach((record) => {
-      if (record.checkInTime !== undefined) {
-        const start = dayjs(record.checkInTime * 1000)
+      if (record.createdAt !== undefined) {
+        const start = dayjs(record.createdAt * 1000)
           .startOf(interval)
           .unix();
 
@@ -70,7 +70,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
   }, [interval, numOfInterval, baseDate, data]);
 
   return (
-    <div className="w-full h-1/3">
+    <div className="w-full h-1/2">
       {chartData && (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
@@ -80,7 +80,8 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
               right: 30,
               left: 20,
               bottom: 5,
-            }}>
+            }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis dataKey="numOfPRecords" />

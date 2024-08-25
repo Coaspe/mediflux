@@ -9,7 +9,7 @@ import { CustomAgGridReactProps, PRecord, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
-  checkinTimeColumn,
+  createdAtColumn,
   commentCautionColumn,
   consultantColumn,
   coordinatorColumn,
@@ -136,7 +136,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         await Promise.all(promised);
 
         mustBeUnlocked.forEach((record) => emitUnlockRecord(record.id, tableType, socket, roomId));
-        records.sort((a, b) => (b.checkInTime ?? 0) - (a.checkInTime ?? 0));
+        records.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
         setRowData(records);
       } catch (error) {
         showErrorSnackbar("Internal server error");
@@ -150,7 +150,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
     { field: "id", headerName: "id", hide: true },
-    checkinTimeColumn,
+    createdAtColumn,
     chartNumberColumn,
     patientNameColumn,
     opReadinessColumn,

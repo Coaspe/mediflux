@@ -8,12 +8,11 @@ import SchedulingTable from "~/components/Table/SchedulingTable";
 import { userState } from "~/recoil_state";
 import { CustomAgGridReactProps, PRecord, User } from "~/type";
 import { getSchedulingRecords, getUserByID } from "~/utils/request.server";
-import { redirect } from "@remix-run/node";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
 import { OP_READINESS_Y } from "~/constant";
 import { convertServerPRecordtToPRecord } from "~/utils/utils";
-import { getUserSession } from "~/services/session.server";
+import { destoryBrowserSession, destroyUserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -24,14 +23,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       const result = await getUserByID(sessionData.id);
       if ("user" in result) {
         const where = [];
-        where.push(`and check_in_time >= '${dayjs().startOf("day").toISOString()}'`);
-        where.push(`and check_in_time <= '${dayjs().endOf("day").toISOString()}'`);
+        where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
+        where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
         const { data } = await getSchedulingRecords(where);
         return json({ user: result.user, records: data.rows });
       }
     }
   } catch (error) {
-    return redirect("/");
+    return await destoryBrowserSession("/", request);
   }
   return null;
 };
@@ -79,7 +78,7 @@ export default function Scheduling() {
       setReadyData(ready);
       setExceptReadyData(exceptReady);
     }
-  }, [loaderData, user]);
+  }, [loaderData]);
 
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);

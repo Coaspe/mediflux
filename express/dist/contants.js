@@ -13,7 +13,7 @@ export const CANCEL_EDITING = "cancel-editing";
 export const UNLOCK_RECORD = "unlock-record";
 export const KEY_OF_SERVER_PRECORD = [
     "record_id",
-    "check_in_time",
+    "created_at",
     "chart_num",
     "patient_name",
     "op_readiness",

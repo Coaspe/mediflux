@@ -85,7 +85,7 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const regisgerResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5 RETURNING *;)`, [
+    const regisgerResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5) RETURNING *;`, [
       role,
       firstName,
       lastName,
@@ -222,8 +222,6 @@ app.put("/api/setUserSession", async (req, res) => {
     const result = await pool.query(query, [sessionId, id]);
     res.status(200).json(result);
   } catch (error) {
-    console.log(error);
-
     res.status(500).send("Error updating records.");
   } finally {
   }
@@ -254,7 +252,6 @@ app.put("/api/hideRecords", async (req, res) => {
     await pool.query(q);
     res.status(200).send("Records deleted successfully.");
   } catch (error) {
-    console.error("Error inserting records:", error);
     res.status(500).send("Error deleting records.");
   } finally {
   }
