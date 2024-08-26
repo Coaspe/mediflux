@@ -1,7 +1,8 @@
 /** @format */
 
-import { OpReadiness, SearchHelp, User } from "./type";
+import { OpReadiness, SearchHelp, Treatment, User } from "./type";
 
+export const TEST_TAG = "gn_ss_bailor";
 export const SERVERUSER_CLIENTUSER_MAPPING = {
   login_id: "userid" as keyof User,
   login_pw: "password" as keyof User,
@@ -44,6 +45,11 @@ export const QUANTITY_TREAT1_H = "수량";
 export const TREATMENT_ROOM = "treatmentRoom";
 export const TREATMENT_ROOM_H = "시술실";
 export const DOCTOR = "doctor";
+export const DOCTOR1 = "doctor1";
+export const DOCTOR2 = "doctor2";
+export const DOCTOR3 = "doctor3";
+export const DOCTOR4 = "doctor4";
+export const DOCTOR5 = "doctor5";
 export const DOCTOR_H = "의사";
 export const ANESTHESIA_NOTE = "anesthesiaNote";
 export const ANESTHESIA_NOTE_H = "마취 시간";
@@ -98,3 +104,5 @@ export const EMPTY_SEARCHHELP: SearchHelp = {
 };
 
 export const TREATMENT_NUMBERS = Array.from({ length: 5 }, (_, k) => k + 1);
+
+export const KEY_OF_CLIENT_TREATMENT: (keyof Treatment)[] = ["id", "group", "title", "duration", "price", "point"];

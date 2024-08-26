@@ -1,11 +1,12 @@
 /** @format */
 
 import axios from "axios";
+import { Role } from "shared";
 import { PRecord } from "~/type";
 
-export const insertRecords = async (records: PRecord[]) => {
+export const insertRecords = async (records: PRecord[], tag: string) => {
   try {
-    const result = await axios.post("http://localhost:5000/api/insertRecords", { records });
+    const result = await axios.post("http://localhost:5000/api/insertRecords", { records, tag });
     switch (result.status) {
       case 200:
         return result.data;
@@ -13,38 +14,39 @@ export const insertRecords = async (records: PRecord[]) => {
         return false;
     }
   } catch (error) {
+    console.log(error);
     return false;
   }
 };
 
-export const hideRecords = async (ids: string[]) => {
-  return await axios.put("http://localhost:5000/api/hideRecords", { ids });
+export const hideRecords = async (ids: string[], tag: string) => {
+  return await axios.put("http://localhost:5000/api/hideRecords", { ids, tag });
 };
 
-export const getAllRecords = async () => {
-  return await axios.get("http://localhost:5000/api/getAllRecords");
+export const updateRecord = async (record: PRecord, tag: string) => {
+  return await axios.put("http://localhost:5000/api/updateRecord", { record, tag });
 };
 
-export const updateRecord = async (record: PRecord) => {
-  return await axios.put("http://localhost:5000/api/updateRecord", { record });
+export const lockRecord = async (recordId: string, lockingUser: string, tag: string) => {
+  return await axios.put("http://localhost:5000/api/lockRecord", { recordId, lockingUser, tag });
 };
 
-export const lockRecord = async (recordId: string, lockingUser: string) => {
-  return await axios.put("http://localhost:5000/api/lockRecord", { recordId, lockingUser });
+export const unlockRecord = async (recordId: string, tag: string) => {
+  return await axios.put("http://localhost:5000/api/unlockRecord", { recordId, tag });
 };
 
-export const unlockRecord = async (recordId: string) => {
-  return await axios.put("http://localhost:5000/api/unlockRecord", { recordId });
+export const getRecords = async (where: string[] = [], tag: string) => {
+  return await axios.post("http://localhost:5000/api/getRecords", { where, tag });
 };
 
-export const getSchedulingRecords = async (where: string[] = []) => {
-  return await axios.post("http://localhost:5000/api/getRecords", { where });
+export const lockOrUnlockRecords = async (recordIds: string[], lockingUser: string | null, tag: string) => {
+  return await axios.put("http://localhost:5000/api/lockOrUnlockRecords", { recordIds, lockingUser, tag });
 };
 
-export const lockOrUnlockRecords = async (recordIds: string[], lockingUser: string | null) => {
-  return await axios.put("http://localhost:5000/api/lockOrUnlockRecords", { recordIds, lockingUser });
+export const getAllRoleEmployees = async (role: Role, tag: string) => {
+  return await axios.get(`http://localhost:5000/api/getAllRoleEmployees`, { params: { role, tag } });
 };
 
-export const isLocked = async (recordId: string) => {
-  return await axios.get("https://localhost:5000/api/isLocked", { params: { recordId } });
+export const getAllTreatments = async (tag: string) => {
+  return await axios.get(`http://localhost:5000/api/getAllTreatments`, { params: { tag } });
 };

@@ -140,22 +140,6 @@ app.get("/api/getUserByID", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-app.get("/api/isLocked", async (req, res) => {
-  const id = req.query.recordId;
-
-  try {
-    const lockingUser = await pool.query(`SELECT locking_user FROM gn_ss_bailor.chart_schedule where record_id=$1;`, [id]);
-    if (lockingUser.rowCount == 0) {
-      return res.status(401).json({ message: "해당 레코드가 존재하지 않습니다." });
-    }
-
-    const user = lockingUser.rows[0];
-
-    return res.status(200).json({ user });
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
-});
 app.get("/api/checkSameIDExists", async (req, res) => {
   const userId = req.query.userId;
 
@@ -171,6 +155,7 @@ app.get("/api/checkSameIDExists", async (req, res) => {
 });
 app.post("/api/insertRecords", async (req, res) => {
   const records = req.body.records;
+  const tag = req.body.tag;
 
   try {
     const valuesTemplate = records
@@ -178,7 +163,7 @@ app.post("/api/insertRecords", async (req, res) => {
       .join(", ");
 
     const query = `
-        INSERT INTO gn_ss_bailor.chart_schedule (
+        INSERT INTO ${tag}.chart_schedule (
         ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
         ) VALUES ${valuesTemplate}
         RETURNING *;
@@ -191,17 +176,21 @@ app.post("/api/insertRecords", async (req, res) => {
     });
 
     const result = await pool.query(query, queryValues);
+    console.log(result);
+
     res.status(200).json(result);
   } catch (error) {
-    console.error("Error inserting records:", error);
+    console.log(error);
+
     res.status(500).send("Error inserting records.");
   } finally {
   }
 });
 app.put("/api/updateRecord", async (req, res) => {
   const record = req.body.record;
+  const tag = req.body.tag;
   try {
-    const query = updateRecordsQuery("gn_ss_bailor.chart_schedule");
+    const query = updateRecordsQuery(`${tag}.chart_schedule`);
 
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
@@ -229,9 +218,10 @@ app.put("/api/setUserSession", async (req, res) => {
 
 app.post("/api/getRecords", async (req, res) => {
   const where = req.body.where;
+  const tag = req.body.tag;
   try {
     const values: any = req.body.values ? req.body.values : [];
-    let query = "select * from gn_ss_bailor.chart_schedule where delete_yn=false or delete_yn IS NULL";
+    let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
 
     where.forEach((w: string) => {
       query += " ";
@@ -239,6 +229,7 @@ app.post("/api/getRecords", async (req, res) => {
     });
 
     const result = await pool.query(query, values);
+
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -247,8 +238,9 @@ app.post("/api/getRecords", async (req, res) => {
 
 app.put("/api/hideRecords", async (req, res) => {
   const ids: any[] = req.body.ids;
+  const tag = req.body.tag;
   try {
-    const q = `update gn_ss_bailor.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
+    const q = `update ${tag}.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
     await pool.query(q);
     res.status(200).send("Records deleted successfully.");
   } catch (error) {
@@ -259,9 +251,9 @@ app.put("/api/hideRecords", async (req, res) => {
 app.put("/api/lockRecord", async (req, res) => {
   const recordId = req.body.recordId;
   const lockingUser = req.body.lockingUser;
-
+  const tag = req.body.tag;
   try {
-    const q = `update gn_ss_bailor.chart_schedule SET locking_user=$1 where record_id=$2`;
+    const q = `update ${tag}.chart_schedule SET locking_user=$1 where record_id=$2`;
     const values = [lockingUser, recordId];
     await pool.query(q, values);
     res.status(200).send("Records locking successfully.");
@@ -271,8 +263,9 @@ app.put("/api/lockRecord", async (req, res) => {
 });
 app.put("/api/unlockRecord", async (req, res) => {
   const recordId = req.body.recordId;
+  const tag = req.body.tag;
   try {
-    const q = `update gn_ss_bailor.chart_schedule SET locking_user=NULL where record_id=$1`;
+    const q = `update ${tag}.chart_schedule SET locking_user=NULL where record_id=$1`;
     const values = [recordId];
     await pool.query(q, values);
     res.status(200).send("Records unlocking successfully.");
@@ -283,8 +276,9 @@ app.put("/api/unlockRecord", async (req, res) => {
 app.put("/api/lockOrUnlockRecords", async (req, res) => {
   const recordIds = req.body.recordIds;
   const lockingUser = req.body.lockingUser;
+  const tag = req.body.tag;
   try {
-    const q = lockOrUnlockRowsQuery("gn_ss_bailor.chart_schedule", recordIds.length);
+    const q = lockOrUnlockRowsQuery(`${tag}.chart_schedule`, recordIds.length);
     const values = [lockingUser, ...recordIds];
     const result = await pool.query(q, values);
     res.status(200).json(result.rows);
@@ -293,4 +287,36 @@ app.put("/api/lockOrUnlockRecords", async (req, res) => {
   }
 });
 
+app.get("/api/getAllRoleEmployees", async (req, res) => {
+  const role = req.query.role;
+  const tag = req.query.tag;
+  if (!role || !tag) {
+    res.status(500).send("Invalid params");
+  }
+
+  try {
+    const q = `select * from admin.user where user_role='${role}'`;
+    console.log(q);
+
+    const result = await pool.query(q);
+    res.status(200).json(result.rows);
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+});
+
+app.get("/api/getAllTreatments", async (req, res) => {
+  const tag = req.query.tag;
+  if (!tag) {
+    res.status(500).send("Invalid params");
+  }
+
+  try {
+    const q = `select * from ${tag}.TREATMENTS`;
+    const result = await pool.query(q);
+    res.status(200).json(result.rows);
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+});
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

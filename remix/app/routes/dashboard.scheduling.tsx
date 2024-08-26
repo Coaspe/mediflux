@@ -6,13 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { userState } from "~/recoil_state";
-import { CustomAgGridReactProps, PRecord, User } from "~/type";
-import { getSchedulingRecords, getUserByID } from "~/utils/request.server";
+import { CustomAgGridReactProps, PRecord, SearchHelp, User } from "~/type";
+import { getRecords, getUserByID } from "~/utils/request.server";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
-import { OP_READINESS_Y } from "~/constant";
-import { convertServerPRecordtToPRecord } from "~/utils/utils";
-import { destoryBrowserSession, destroyUserSession, getUserSession } from "~/services/session.server";
+import { OP_READINESS_Y, TEST_TAG } from "~/constant";
+import { convertServerPRecordtToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
+import { destoryBrowserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -25,7 +25,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         const where = [];
         where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
         where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
-        const { data } = await getSchedulingRecords(where);
+        const { data } = await getRecords(where, TEST_TAG);
         return json({ user: result.user, records: data.rows });
       }
     }
@@ -45,6 +45,10 @@ export default function Scheduling() {
 
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
+
+  const [treatmentSearchHelp, setTreatmentSearchHelp] = useState<SearchHelp[]>([]);
+  const [doctorSearchHelp, setDoctorSearchHelp] = useState<SearchHelp[]>([]);
+
   useEffect(() => {
     if (exceptReadyRef.current) {
       exceptReadyRef.current.tableType = "ExceptReady";
@@ -52,6 +56,8 @@ export default function Scheduling() {
     if (readyRef.current) {
       readyRef.current.tableType = "Ready";
     }
+    getTreatmentSearchHelp(setTreatmentSearchHelp);
+    getDoctorSearchHelp(setDoctorSearchHelp);
   }, []);
 
   useEffect(() => {
@@ -101,8 +107,26 @@ export default function Scheduling() {
 
   return (
     <div className="flex w-full h-full flex-col gap-5 pb-5">
-      <SchedulingTable tableType="Ready" gridRef={readyRef} theOtherGridRef={exceptReadyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={readyData} />
-      <SchedulingTable tableType="ExceptReady" gridRef={exceptReadyRef} theOtherGridRef={readyRef} socket={socket} roomId={SCHEDULING_ROOM_ID} records={exceptReadyData} />
+      <SchedulingTable
+        tableType="Ready"
+        gridRef={readyRef}
+        theOtherGridRef={exceptReadyRef}
+        socket={socket}
+        roomId={SCHEDULING_ROOM_ID}
+        records={readyData}
+        treatmentSearchHelp={treatmentSearchHelp}
+        doctorSearchHelp={doctorSearchHelp}
+      />
+      <SchedulingTable
+        tableType="ExceptReady"
+        gridRef={exceptReadyRef}
+        theOtherGridRef={readyRef}
+        socket={socket}
+        roomId={SCHEDULING_ROOM_ID}
+        records={exceptReadyData}
+        treatmentSearchHelp={treatmentSearchHelp}
+        doctorSearchHelp={doctorSearchHelp}
+      />
     </div>
   );
 }

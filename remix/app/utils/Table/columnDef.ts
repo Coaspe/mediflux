@@ -39,9 +39,9 @@ import {
 } from "~/constant";
 import { SearchHelp, PRecord, TableType } from "~/type";
 import { ColDef } from "ag-grid-community";
-import { AgGridReact, CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { RefObject } from "react";
+import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { TREATMENTS } from "shared";
+import { findCanCompleteTreatmentNumber } from "../utils";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);
@@ -85,12 +85,12 @@ export const opReadinessColumn = {
   },
 };
 
-export const treatmentColumn = (field: string, headerName: string, tableType: TableType): ColDef<PRecord, string> => {
+export const treatmentColumn = (field: string, headerName: string, tableType: TableType, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
   return {
     field,
     headerName,
-    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, TREATMENTS),
+    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType, searchHelp),
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     width: LONG_COLUMN_LENGTH,
     editable: (params) => {
       const number = params.colDef.field?.charAt(params.colDef.field?.length - 1);
@@ -129,23 +129,29 @@ const personComparator = (searchHelp: SearchHelp[], valueA: string | null | unde
   }
 };
 
-export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[], gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => {
+export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
   return {
     field,
     headerName,
     width: LONG_COLUMN_LENGTH,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
-    cellRenderer: ({ value, colDef }: CustomCellRendererProps) => nameChipRendererByFieldname(colDef?.headerName, searchHelp, value),
+    cellRenderer: ({ value, colDef, data }: CustomCellRendererProps) => {
+      let number = -1;
+      if (data && colDef?.field && "doctor" === colDef.field) {
+        number = findCanCompleteTreatmentNumber(data);
+      }
+      return nameChipRendererByFieldname(colDef?.headerName, searchHelp, number !== -1 && data ? data[`doctor${number}`] : value);
+    },
   };
 };
 
-export const doctorColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(DOCTOR, DOCTOR_H, DOCTOR_SEARCH_HELP, gridRef);
+export const doctorColumn = (doctorSearchHelp: SearchHelp[]): ColDef<PRecord, string> => personColumn(DOCTOR, DOCTOR_H, doctorSearchHelp);
 export const anesthesiaNoteColumn: ColDef<PRecord, string> = { field: ANESTHESIA_NOTE, headerName: ANESTHESIA_NOTE_H, width: MEDIUM_COLUMN_LENGTH };
-export const skincareSpecialist1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARE_SPECIALIST1, SKINCARE_SPECIALIST1_H, DOCTOR_SEARCH_HELP, gridRef);
-export const skincareSpecialist2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(SKINCARE_SPECIALIST2, SKINCARE_SPECIALIST2_H, DOCTOR_SEARCH_HELP, gridRef);
-export const nursingStaff1Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSING_STAFF1, NURSING_STAFF1_H, DOCTOR_SEARCH_HELP, gridRef);
-export const nursingStaff2Column = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(NURSING_STAFF2, NURSING_STAFF2_H, DOCTOR_SEARCH_HELP, gridRef);
-export const coordinatorColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(COORDINATOR, COORDINATOR_H, DOCTOR_SEARCH_HELP, gridRef);
-export const consultantColumn = (gridRef: RefObject<AgGridReact<PRecord>>): ColDef<PRecord, string> => personColumn(CONSULTANT, CONSULTANT_H, DOCTOR_SEARCH_HELP, gridRef);
+export const skincareSpecialist1Column: ColDef<PRecord, string> = personColumn(SKINCARE_SPECIALIST1, SKINCARE_SPECIALIST1_H, DOCTOR_SEARCH_HELP);
+export const skincareSpecialist2Column: ColDef<PRecord, string> = personColumn(SKINCARE_SPECIALIST2, SKINCARE_SPECIALIST2_H, DOCTOR_SEARCH_HELP);
+export const nursingStaff1Column: ColDef<PRecord, string> = personColumn(NURSING_STAFF1, NURSING_STAFF1_H, DOCTOR_SEARCH_HELP);
+export const nursingStaff2Column: ColDef<PRecord, string> = personColumn(NURSING_STAFF2, NURSING_STAFF2_H, DOCTOR_SEARCH_HELP);
+export const coordinatorColumn: ColDef<PRecord, string> = personColumn(COORDINATOR, COORDINATOR_H, DOCTOR_SEARCH_HELP);
+export const consultantColumn: ColDef<PRecord, string> = personColumn(CONSULTANT, CONSULTANT_H, DOCTOR_SEARCH_HELP);
 export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENT_CAUTION, headerName: COMMENT_CAUTION_H };

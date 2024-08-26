@@ -1,11 +1,12 @@
 /** @format */
 
 import { Role, ServerUser, ROLE } from "shared";
-import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P } from "~/constant";
-import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, User } from "~/type";
-import { MutableRefObject, RefObject } from "react";
+import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG, KEY_OF_CLIENT_TREATMENT } from "~/constant";
+import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/type";
+import { Dispatch, MutableRefObject, RefObject, SetStateAction } from "react";
 import { GridApi } from "ag-grid-community";
 import CryptoJS from "crypto-js";
+import { getAllRoleEmployees, getAllTreatments } from "./request.client";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -109,7 +110,12 @@ export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRe
     quantityTreat4: serverRecord.quantity_treat_4,
     quantityTreat5: serverRecord.quantity_treat_5,
     treatmentRoom: serverRecord.treatment_room,
-    doctor: serverRecord.doctor,
+    patientCareRoom: serverRecord.patient_care_room,
+    doctor1: serverRecord.doctor_1,
+    doctor2: serverRecord.doctor_2,
+    doctor3: serverRecord.doctor_3,
+    doctor4: serverRecord.doctor_4,
+    doctor5: serverRecord.doctor_5,
     anesthesiaNote: serverRecord.anesthesia_note,
     skincareSpecialist1: serverRecord.skincare_specialist_1,
     skincareSpecialist2: serverRecord.skincare_specialist_2,
@@ -303,4 +309,41 @@ export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {
 export const encryptSessionId = (ip: string | null, browser: string | null, sessionSecret: string, userId: string) => {
   const key = (ip || "") + (browser || "") + sessionSecret + userId;
   return CryptoJS.SHA256(key).toString();
+};
+
+export const convertServerTreatmentToClient = (serverTreatment: Object): Treatment => {
+  let retVal = {} as Treatment;
+
+  for (const [key, value] of Object.entries(serverTreatment)) {
+    const field = key.split("_")[1];
+    if (field) {
+      retVal[`${field}`] = value;
+    }
+  }
+  return retVal;
+};
+export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: Dispatch<SetStateAction<SearchHelp[]>>) => {
+  try {
+    const rows = await getAllTreatments(TEST_TAG);
+    const treatment = rows.data
+      .map((treatment: any) => convertServerTreatmentToClient(treatment))
+      .map((treatment: Treatment) => {
+        return { id: treatment.id, title: treatment.title, group: treatment.group };
+      });
+    setTreatmentSearchHelp(treatment);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getDoctorSearchHelp = async (setDoctorSearchHelp: Dispatch<SetStateAction<SearchHelp[]>>) => {
+  try {
+    const rows = await getAllRoleEmployees("doctor", TEST_TAG);
+    const doctors = rows.data
+      .map((user: any) => convertServerUserToClientUser(user))
+      .map((user: User) => {
+        return { id: user.id, title: user.name, group: "" } as SearchHelp;
+      });
+    setDoctorSearchHelp(doctors);
+  } catch (error) {}
 };

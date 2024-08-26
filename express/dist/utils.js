@@ -25,7 +25,7 @@ export const convertTime = (time) => {
     return time ? new Date(time * 1000) : undefined;
 };
 export const deconstructRecord = (record) => {
-    const { createdAt, chartNum, patientName, opReadiness, treatment1, treatment2, treatment3, treatment4, treatment5, quantityTreat1, quantityTreat2, quantityTreat3, quantityTreat4, quantityTreat5, treatmentRoom, doctor, anesthesiaNote, skincareSpecialist1, skincareSpecialist2, nursingStaff1, nursingStaff2, coordinator, consultant, commentCaution, lockingUser, deleteYN, treatmentReady1, treatmentReady2, treatmentReady3, treatmentReady4, treatmentReady5, treatmentEnd1, treatmentEnd2, treatmentEnd3, treatmentEnd4, treatmentEnd5, treatmentStart1, treatmentStart2, treatmentStart3, treatmentStart4, treatmentStart5, } = record;
+    const { createdAt, chartNum, patientName, opReadiness, treatment1, treatment2, treatment3, treatment4, treatment5, quantityTreat1, quantityTreat2, quantityTreat3, quantityTreat4, quantityTreat5, treatmentRoom, doctor1, doctor2, doctor3, doctor4, doctor5, anesthesiaNote, skincareSpecialist1, skincareSpecialist2, nursingStaff1, nursingStaff2, coordinator, consultant, commentCaution, lockingUser, deleteYN, treatmentReady1, treatmentReady2, treatmentReady3, treatmentReady4, treatmentReady5, patientCareRoom, treatmentEnd1, treatmentEnd2, treatmentEnd3, treatmentEnd4, treatmentEnd5, treatmentStart1, treatmentStart2, treatmentStart3, treatmentStart4, treatmentStart5, } = record;
     const retVal = [
         convertTime(createdAt),
         chartNum,
@@ -42,13 +42,18 @@ export const deconstructRecord = (record) => {
         quantityTreat4,
         quantityTreat5,
         treatmentRoom,
-        doctor,
+        doctor1,
+        doctor2,
+        doctor3,
+        doctor4,
+        doctor5,
         anesthesiaNote,
         skincareSpecialist1,
         skincareSpecialist2,
         nursingStaff1,
         nursingStaff2,
         coordinator,
+        patientCareRoom,
         consultant,
         commentCaution,
         lockingUser,

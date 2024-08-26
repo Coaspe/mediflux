@@ -16,7 +16,8 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
-import { getSchedulingRecords } from "~/utils/request.client";
+import { getRecords } from "~/utils/request.client";
+import { TEST_TAG } from "~/constant";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
@@ -82,7 +83,7 @@ export default function Archive() {
     };
   }, []);
 
-  const getRecords = async () => {
+  const getData = async () => {
     try {
       let where = [];
       where.push(`and created_at >= '${dayjs(baseDate).startOf(interval).toISOString()}'`);
@@ -93,7 +94,7 @@ export default function Archive() {
           .endOf(interval)
           .toISOString()}'`
       );
-      const { data } = await getSchedulingRecords(where);
+      const { data } = await getRecords(where, TEST_TAG);
       const recordsData: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
       setRowData(recordsData);
     } catch (error) {
@@ -111,7 +112,7 @@ export default function Archive() {
     }
 
     if (suser) {
-      getRecords();
+      getData();
     }
   }, [socket, baseDate, interval, numOfInterval, loaderData]);
 

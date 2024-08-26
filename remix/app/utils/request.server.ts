@@ -26,8 +26,8 @@ export const checkSameIdExists = async (userId: string) => {
   return await axios.get(`http://localhost:5000/api/checkSameIDExists`, { params: { userId } });
 };
 
-export const getSchedulingRecords = async (where: string[] = []) => {
-  return await axios.post("http://localhost:5000/api/getRecords", { where });
+export const getRecords = async (where: string[] = [], tag: string) => {
+  return await axios.post("http://localhost:5000/api/getRecords", { where, tag });
 };
 
 export const setUserSession = async (user: User) => {

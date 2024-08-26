@@ -52,7 +52,12 @@ export type PRecord = {
   quantityTreat4?: number; // INTEGER, optional
   quantityTreat5?: number; // INTEGER, optional
   treatmentRoom?: number; // INTEGER
-  doctor?: string; // VARCHAR (50)
+  doctor1?: string; // VARCHAR (50)
+  doctor2?: string; // VARCHAR (50)
+  doctor3?: string; // VARCHAR (50)
+  doctor4?: string; // VARCHAR (50)
+  doctor5?: string; // VARCHAR (50)
+  patientCareRoom?: string;
   anesthesiaNote?: string; // VARCHAR (300), optional
   skincareSpecialist1?: string; // VARCHAR (50)
   skincareSpecialist2?: string; // VARCHAR (50), optional
@@ -97,7 +102,13 @@ export type ServerPRecord = {
   quantity_treat_4?: number; // INTEGER, optional
   quantity_treat_5?: number; // INTEGER, optional
   treatment_room?: number; // INTEGER
-  doctor?: string; // VARCHAR (50)
+  patient_care_room?: string;
+  doctor: string;
+  doctor_1?: string; // VARCHAR (50)
+  doctor_2?: string; // VARCHAR (50)
+  doctor_3?: string; // VARCHAR (50)
+  doctor_4?: string; // VARCHAR (50)
+  doctor_5?: string; // VARCHAR (50)
   anesthesia_note?: string; // VARCHAR (300), optional
   skincare_specialist_1?: string; // VARCHAR (50)
   skincare_specialist_2?: string; // VARCHAR (50), optional
@@ -108,6 +119,13 @@ export type ServerPRecord = {
   comment_caution?: string; // VARCHAR (300), optional
   locking_user?: string | null;
   delete_yn?: boolean;
+  [key: string]: any;
+};
+
+export type Treatment = SearchHelp & {
+  duration: number | null;
+  point: number | null;
+  price: number | null;
   [key: string]: any;
 };
 

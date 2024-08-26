@@ -19,6 +19,7 @@ import { Socket } from "socket.io-client";
 import IconButton from "@mui/material/IconButton";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { TEST_TAG } from "~/constant";
 type TableActionHeader = {
   gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;
@@ -44,7 +45,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       if (!gridRef.current) return;
 
       const newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
-      const { rows } = await insertRecords([newRecord]);
+      const { rows } = await insertRecords([newRecord], TEST_TAG);
+      console.log(rows);
 
       if (rows?.length) {
         const addedRecord = convertServerPRecordtToPRecord(rows[0]);
@@ -60,7 +62,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     try {
       if (!gridRef.current || !selectedRows.length) throw new Error("삭제할 레코드가 선택되지 않았습니다.");
       const ids = selectedRows.map((record) => record.id);
-      const result = await hideRecords(ids);
+      const result = await hideRecords(ids, TEST_TAG);
 
       if (result.status === 200) {
         gridRef.current.api.applyTransaction({
@@ -89,7 +91,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       const ids = records.map((record) => record.id);
       setSelectedRows(records);
 
-      const result = await lockOrUnlockRecords(ids, user.id);
+      const result = await lockOrUnlockRecords(ids, user.id, TEST_TAG);
       if (result.status === 200) {
         emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
         setOpenDeleteModal(true);
@@ -103,7 +105,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       if (selectedRows.length && user) {
         const result = await lockOrUnlockRecords(
           selectedRows.map((record) => record.id),
-          null
+          null,
+          TEST_TAG
         );
         if (result.status === 200) {
           emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);

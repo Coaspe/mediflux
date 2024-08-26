@@ -113,10 +113,10 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         record[`treatmentReady${treatmentNumber}`] = time;
       } else if (record.opReadiness === OP_READINESS_P) {
         record[`treatmentEnd${treatmentNumber}`] = time;
-        record["doctor"] = undefined;
+        record[`doctor${treatmentNumber}`] = undefined;
       } else if (record.opReadiness === OP_READINESS_Y) {
         record[`treatmentStart${treatmentNumber}`] = time;
-        record.doctor = user.id;
+        record[`doctor${treatmentNumber}`] = user.id;
       }
 
       record.opReadiness = statusTransition(record);
@@ -153,22 +153,24 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
     }
   };
   return (
-    <Paper sx={{ width: 150, maxWidth: "100%" }}>
-      <MenuList>
-        <MenuItem onClick={handleConfirm}>
-          <ListItemIcon>{confirmIcon}</ListItemIcon>
-          <ListItemText>{confirmItemTitle}</ListItemText>
-        </MenuItem>
-        {cancelItemTitle && (
-          <MenuItem onClick={handleCancel}>
-            <ListItemIcon>
-              <ContentCut fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>{cancelItemTitle}</ListItemText>
+    <Tooltip title="asdf" dir="left">
+      <Paper sx={{ width: 150, maxWidth: "100%" }}>
+        <MenuList>
+          <MenuItem onClick={handleConfirm}>
+            <ListItemIcon>{confirmIcon}</ListItemIcon>
+            <ListItemText>{confirmItemTitle}</ListItemText>
           </MenuItem>
-        )}
-      </MenuList>
-    </Paper>
+          {cancelItemTitle && (
+            <MenuItem onClick={handleCancel}>
+              <ListItemIcon>
+                <ContentCut fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>{cancelItemTitle}</ListItemText>
+            </MenuItem>
+          )}
+        </MenuList>
+      </Paper>
+    </Tooltip>
   );
 };
 
@@ -189,7 +191,7 @@ const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip
   },
 }));
 
-export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererProps, tableType: TableType) => {
+export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererProps, tableType: TableType, searchHelp: SearchHelp[]) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
   const end = data[`treatmentEnd${number}`];
   const ready = data[`treatmentReady${number}`];
@@ -209,6 +211,8 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
   const closeTooltip = () => {
     setOpen(false);
   };
+  console.log(searchHelp, value);
+
   return (
     <div className="cursor-pointer" onMouseEnter={onMouseEnter} onMouseLeave={closeTooltip}>
       <CustomToolTip open={open} placement="top" title={<TreatmentTooltip treatmentNumber={number} api={api} record={data} closeTooltip={closeTooltip} />} arrow>
@@ -218,7 +222,7 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
             }`}
           >
-            {getValueWithId(TREATMENTS, value).title}
+            {getValueWithId(searchHelp, value).title}
           </span>
         </div>
       </CustomToolTip>

@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
-import { CustomAgGridReactProps, PRecord, TableType } from "~/type";
+import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "~/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -48,6 +48,7 @@ import {
   TREATMENT4_H,
   TREATMENT5,
   TREATMENT5_H,
+  TEST_TAG,
 } from "~/constant";
 
 type SchedulingTableProps = {
@@ -57,9 +58,11 @@ type SchedulingTableProps = {
   tableType: TableType;
   roomId: string;
   records: PRecord[];
+  treatmentSearchHelp: SearchHelp[];
+  doctorSearchHelp: SearchHelp[];
 };
 
-const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, roomId, records }) => {
+const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theOtherGridRef, tableType, roomId, records, treatmentSearchHelp, doctorSearchHelp }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<PRecord[]>([]);
@@ -67,6 +70,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const audioRef = useRef<HTMLAudioElement>(null);
   const onLineChangingdEditingStoppedRef = useRef(false);
   const isTabPressed = useRef<boolean>(false);
+  const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([]);
 
   const showErrorSnackbar = useCallback(
     (message: string) => {
@@ -77,6 +81,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   // Add custom tracnsaction event listener
   useEffect(() => {
+    console.log(treatmentSearchHelp);
+
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
       if (getEditingCell(gridRef)) {
         onLineChangingdEditingStoppedRef.current = true;
@@ -115,6 +121,33 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   }, [socket]);
 
+  useEffect(() => {
+    setColDefs([
+      { field: "id", headerName: "id", hide: true },
+      createdAtColumn,
+      chartNumberColumn,
+      patientNameColumn,
+      opReadinessColumn,
+      treatmentColumn(TREATMENT1, TREATMENT1_H, tableType, treatmentSearchHelp),
+      treatmentColumn(TREATMENT2, TREATMENT2_H, tableType, treatmentSearchHelp),
+      treatmentColumn(TREATMENT3, TREATMENT3_H, tableType, treatmentSearchHelp),
+      treatmentColumn(TREATMENT4, TREATMENT4_H, tableType, treatmentSearchHelp),
+      treatmentColumn(TREATMENT5, TREATMENT5_H, tableType, treatmentSearchHelp),
+      quantitytreat1Column,
+      treatmentRoomColumn,
+      doctorColumn(doctorSearchHelp),
+      anesthesiaNoteColumn,
+      skincareSpecialist1Column,
+      skincareSpecialist2Column,
+      nursingStaff1Column,
+      nursingStaff2Column,
+      coordinatorColumn,
+      consultantColumn,
+      commentCautionColumn,
+      { field: LOCKING_USER, headerName: "lock", hide: true },
+    ]);
+  }, [doctorSearchHelp, treatmentSearchHelp]);
+
   // Get records and process unlocked records.
   useEffect(() => {
     if (!socket || !user || !records) return;
@@ -132,7 +165,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
           }
         }
 
-        const promised = mustBeUnlocked.map((record) => unlockRecord(record.id));
+        const promised = mustBeUnlocked.map((record) => unlockRecord(record.id, TEST_TAG));
         await Promise.all(promised);
 
         mustBeUnlocked.forEach((record) => emitUnlockRecord(record.id, tableType, socket, roomId));
@@ -147,31 +180,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     processData();
   }, [user, socket, records]);
-
-  const [colDefs, setColDefs] = useState<ColDef<PRecord, any>[]>([
-    { field: "id", headerName: "id", hide: true },
-    createdAtColumn,
-    chartNumberColumn,
-    patientNameColumn,
-    opReadinessColumn,
-    treatmentColumn(TREATMENT1, TREATMENT1_H, tableType),
-    treatmentColumn(TREATMENT2, TREATMENT2_H, tableType),
-    treatmentColumn(TREATMENT3, TREATMENT3_H, tableType),
-    treatmentColumn(TREATMENT4, TREATMENT4_H, tableType),
-    treatmentColumn(TREATMENT5, TREATMENT5_H, tableType),
-    quantitytreat1Column,
-    treatmentRoomColumn,
-    doctorColumn(gridRef),
-    anesthesiaNoteColumn,
-    skincareSpecialist1Column(gridRef),
-    skincareSpecialist2Column(gridRef),
-    nursingStaff1Column(gridRef),
-    nursingStaff2Column(gridRef),
-    coordinatorColumn(gridRef),
-    consultantColumn(gridRef),
-    commentCautionColumn,
-    { field: LOCKING_USER, headerName: "lock", hide: true },
-  ]);
 
   const defaultColDef = useMemo<ColDef>(() => {
     return {
@@ -210,7 +218,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     try {
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
-      const updateResult = await updateRecord(record);
+      const updateResult = await updateRecord(record, TEST_TAG);
 
       if (updateResult.status === 200) {
         emitSaveRecord([record], tableType, socket, roomId);
@@ -225,7 +233,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       if (field) {
         copyRecord[field] = oldValue;
         copyRecord["lockingUser"] = null;
-        await updateRecord(copyRecord);
+        await updateRecord(copyRecord, TEST_TAG);
         api.applyTransaction({
           update: [copyRecord],
         });
@@ -263,7 +271,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       }
 
       if (user && event.data && !event.data.lockingUser) {
-        const result = await lockRecord(event.data.id, user.id);
+        const result = await lockRecord(event.data.id, user.id, TEST_TAG);
         if (result.status === 200) {
           emitLockRecord(event.data?.id, tableType, socket, user, roomId);
           event.data.lockingUser = user.id;
