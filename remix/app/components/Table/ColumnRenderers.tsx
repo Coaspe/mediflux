@@ -18,7 +18,7 @@ import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import { GridApi } from "ag-grid-community";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { globalSnackbarState, userState } from "~/recoil_state";
+import { doctorSearchHelpState, globalSnackbarState, treatmentSearchHelpState, userState } from "~/recoil_state";
 import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import ListItemText from "@mui/material/ListItemText";
@@ -73,6 +73,40 @@ export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   return value && <Chip size={size} label={label} color={color} />;
 };
 
+const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api, treatmentNumber, closeTooltip }) => {
+  const user = useRecoilValue(userState);
+  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
+
+  const handleConfirm = async (id: string) => {
+    closeTooltip();
+
+    try {
+      if (!record || !treatmentNumber || !user) return;
+      const time = dayjs().unix();
+      if (record.opReadiness === OP_READINESS_Y) {
+        record[`treatmentStart${treatmentNumber}`] = time;
+        record[`doctor${treatmentNumber}`] = id;
+        record[`doctor`] = id;
+      }
+
+      record.opReadiness = statusTransition(record);
+      editAndStopRecord(api, record);
+    } catch (error) {
+      setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
+    }
+  };
+  const searchHelp = useRecoilValue(doctorSearchHelpState);
+  return (
+    <div className="flex flex-col">
+      {searchHelp.map((option) => (
+        <div onClick={() => handleConfirm(option.id)} className="cursor-pointer">
+          {option.title}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 type TreatmentTooltipProps = {
   record: PRecord;
   api: GridApi<PRecord>;
@@ -86,6 +120,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
   const [confirmItemTitle, setConfirmItemTitle] = useState("");
   const [cancelItemTitle, setCancelItemTitle] = useState("");
   const [confirmIcon, setConfirmIcon] = useState<ReactElement | null>(null);
+
   useEffect(() => {
     setConfirmItemTitle(() => {
       if (record.opReadiness === OP_READINESS_N) {
@@ -113,10 +148,9 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         record[`treatmentReady${treatmentNumber}`] = time;
       } else if (record.opReadiness === OP_READINESS_P) {
         record[`treatmentEnd${treatmentNumber}`] = time;
-        record[`doctor${treatmentNumber}`] = undefined;
-      } else if (record.opReadiness === OP_READINESS_Y) {
-        record[`treatmentStart${treatmentNumber}`] = time;
-        record[`doctor${treatmentNumber}`] = user.id;
+        record[`doctor`] = undefined;
+      } else {
+        return;
       }
 
       record.opReadiness = statusTransition(record);
@@ -153,7 +187,10 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
     }
   };
   return (
-    <Tooltip title="asdf" dir="left">
+    <Tooltip
+      disableHoverListener={record.opReadiness !== OP_READINESS_Y}
+      title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
+      dir="left">
       <Paper sx={{ width: 150, maxWidth: "100%" }}>
         <MenuList>
           <MenuItem onClick={handleConfirm}>
@@ -191,12 +228,12 @@ const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip
   },
 }));
 
-export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererProps, tableType: TableType, searchHelp: SearchHelp[]) => {
+export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererProps, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
   const end = data[`treatmentEnd${number}`];
   const ready = data[`treatmentReady${number}`];
   const start = data[`treatmentStart${number}`];
-
+  const searchHelp = useRecoilValue(treatmentSearchHelpState);
   const canBeAssigned = data.opReadiness === OP_READINESS_Y && ready && !start && !end;
   const isInProgressTreatment = data.opReadiness === OP_READINESS_P && ready && start && !end;
   const canBeReady = data.opReadiness === OP_READINESS_N && !ready && !start && !end;
@@ -211,8 +248,6 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
   const closeTooltip = () => {
     setOpen(false);
   };
-  console.log(searchHelp, value);
-
   return (
     <div className="cursor-pointer" onMouseEnter={onMouseEnter} onMouseLeave={closeTooltip}>
       <CustomToolTip open={open} placement="top" title={<TreatmentTooltip treatmentNumber={number} api={api} record={data} closeTooltip={closeTooltip} />} arrow>
@@ -220,8 +255,7 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}
-          >
+            }`}>
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>
@@ -297,13 +331,9 @@ export const nameChipRendererByFieldname = (fieldname: string | undefined, searc
   } else if (FIELDS_PAITENT.includes(fieldname)) {
     color = "default";
   }
-  let title = "";
-  for (let i = 0; i < searchHelp.length; i++) {
-    const element = searchHelp[i];
-    if (element.id === id) {
-      title = element.title;
-    }
-  }
+  let title = getValueWithId(searchHelp, id).title;
+  console.log(searchHelp, id);
+
   return title ? (
     <div className="w-full h-full flex justify-center items-center">
       <Chip size="small" color={color} label={title} />

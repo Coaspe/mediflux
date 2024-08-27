@@ -40,8 +40,9 @@ import {
 import { SearchHelp, PRecord, TableType } from "~/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { TREATMENTS } from "shared";
 import { findCanCompleteTreatmentNumber } from "../utils";
+import { useRecoilValue } from "recoil";
+import { doctorSearchHelpState } from "~/recoil_state";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);
@@ -89,7 +90,7 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
   return {
     field,
     headerName,
-    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType, searchHelp),
+    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     width: LONG_COLUMN_LENGTH,
     editable: (params) => {
@@ -130,15 +131,17 @@ const personComparator = (searchHelp: SearchHelp[], valueA: string | null | unde
 };
 
 export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
+  const isDoctor = "doctor" === field;
   return {
     field,
     headerName,
     width: LONG_COLUMN_LENGTH,
+    editable: !isDoctor,
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     cellRenderer: ({ value, colDef, data }: CustomCellRendererProps) => {
       let number = -1;
-      if (data && colDef?.field && "doctor" === colDef.field) {
+      if (data && isDoctor) {
         number = findCanCompleteTreatmentNumber(data);
       }
       return nameChipRendererByFieldname(colDef?.headerName, searchHelp, number !== -1 && data ? data[`doctor${number}`] : value);

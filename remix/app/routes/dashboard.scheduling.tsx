@@ -5,8 +5,8 @@ import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
-import { userState } from "~/recoil_state";
-import { CustomAgGridReactProps, PRecord, SearchHelp, User } from "~/type";
+import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
+import { CustomAgGridReactProps, PRecord, User } from "~/type";
 import { getRecords, getUserByID } from "~/utils/request.server";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
@@ -46,8 +46,8 @@ export default function Scheduling() {
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
 
-  const [treatmentSearchHelp, setTreatmentSearchHelp] = useState<SearchHelp[]>([]);
-  const [doctorSearchHelp, setDoctorSearchHelp] = useState<SearchHelp[]>([]);
+  const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
+  const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
 
   useEffect(() => {
     if (exceptReadyRef.current) {

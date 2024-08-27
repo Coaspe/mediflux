@@ -1,12 +1,13 @@
 /** @format */
 
 import { Role, ServerUser, ROLE } from "shared";
-import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG, KEY_OF_CLIENT_TREATMENT } from "~/constant";
+import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG } from "~/constant";
 import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/type";
-import { Dispatch, MutableRefObject, RefObject, SetStateAction } from "react";
+import { MutableRefObject, RefObject } from "react";
 import { GridApi } from "ag-grid-community";
 import CryptoJS from "crypto-js";
 import { getAllRoleEmployees, getAllTreatments } from "./request.client";
+import { SetterOrUpdater } from "recoil";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -35,7 +36,7 @@ export function getRoleName(role: Role): string {
 export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHelp => {
   for (let i = 0; i < searchHelp.length; i++) {
     const element = searchHelp[i];
-    if (element.id === id) {
+    if (element.id == id) {
       return searchHelp[i];
     }
   }
@@ -322,7 +323,7 @@ export const convertServerTreatmentToClient = (serverTreatment: Object): Treatme
   }
   return retVal;
 };
-export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: Dispatch<SetStateAction<SearchHelp[]>>) => {
+export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpdater<Treatment[]>) => {
   try {
     const rows = await getAllTreatments(TEST_TAG);
     const treatment = rows.data
@@ -336,14 +337,16 @@ export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: Dispatch<Se
   }
 };
 
-export const getDoctorSearchHelp = async (setDoctorSearchHelp: Dispatch<SetStateAction<SearchHelp[]>>) => {
+export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<SearchHelp[]>) => {
   try {
     const rows = await getAllRoleEmployees("doctor", TEST_TAG);
+
     const doctors = rows.data
       .map((user: any) => convertServerUserToClientUser(user))
       .map((user: User) => {
         return { id: user.id, title: user.name, group: "" } as SearchHelp;
       });
+
     setDoctorSearchHelp(doctors);
   } catch (error) {}
 };

@@ -1,5 +1,7 @@
+/** @format */
+
 import { atom } from "recoil";
-import { GlobalSnackBark, User } from "./type";
+import { GlobalSnackBark, SearchHelp, Treatment, User } from "./type";
 
 export const userState = atom<User | undefined>({
   key: "userState", // unique ID (with respect to other atoms/selectors)
@@ -14,4 +16,14 @@ export const sessionExpireModalOpenState = atom<boolean>({
 export const globalSnackbarState = atom<GlobalSnackBark>({
   key: "glbaoSnackbarState",
   default: { open: false, msg: "", severity: "success" },
+});
+
+export const treatmentSearchHelpState = atom<Treatment[]>({
+  key: "treatmentSearchHelp",
+  default: [],
+});
+
+export const doctorSearchHelpState = atom<SearchHelp[]>({
+  key: "doctorSearchHelp",
+  default: [],
 });

@@ -194,6 +194,8 @@ app.put("/api/updateRecord", async (req, res) => {
 
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
+    console.log(result);
+
     res.status(200).json(result);
   } catch (error) {
     console.error("Error updating records:", error);

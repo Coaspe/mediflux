@@ -81,8 +81,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   // Add custom tracnsaction event listener
   useEffect(() => {
-    console.log(treatmentSearchHelp);
-
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
       if (getEditingCell(gridRef)) {
         onLineChangingdEditingStoppedRef.current = true;

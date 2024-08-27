@@ -178,6 +178,7 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
         const query = updateRecordsQuery(`${tag}.chart_schedule`);
         const values = deconstructRecord(record);
         const result = yield pool.query(query, values);
+        console.log(result);
         res.status(200).json(result);
     }
     catch (error) {
