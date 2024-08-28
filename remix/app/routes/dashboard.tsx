@@ -98,6 +98,7 @@ export default function Dashboard() {
     if (isSideMenu(path[path.length - 1])) {
       setClickedMenu(path[path.length - 1] as SideMenu);
     }
+    console.log(SIDE_MENU);
   }, []);
 
   return user ? (
@@ -120,7 +121,7 @@ export default function Dashboard() {
             </SubMenu>
             <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MEMBERS)} to={"members"} name={"Members"} icon={"groups"} clickedMenu={clickedMenu} />
             <SubMenu icon={<Icon className={"text-gray-500 "} iconName={"settings"} />} label="Settings">
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.TREATMENT)} to={"treatments"} name={"Treatments"} icon={"syringe"} clickedMenu={clickedMenu} isSubMenu={true} />
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.TREATMENTS)} to={"treatments"} name={"Treatments"} icon={"syringe"} clickedMenu={clickedMenu} isSubMenu={true} />
             </SubMenu>
           </Menu>
         </aside>

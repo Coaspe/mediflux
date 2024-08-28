@@ -17,6 +17,8 @@ export function getMenuName(menu: SideMenu | undefined): string {
       return "Archive";
     case SIDE_MENU.MEMBERS:
       return "Members";
+    case SIDE_MENU.TREATMENTS:
+      return "Treatments";
     default:
       return "";
   }
