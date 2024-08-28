@@ -168,6 +168,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
     }
   };
+
   const handleCancel = async () => {
     closeTooltip();
 
@@ -177,16 +178,19 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       const start = record[`treatmentStart${treatmentNumber}`];
       const end = record[`treatmentEnd${treatmentNumber}`];
 
-      if (ready) {
-        if (!start && !end) {
-          record[`treatmentReady${treatmentNumber}`] = undefined;
-        }
-        if (start && !end) {
-          record[`treatmentStart${treatmentNumber}`] = undefined;
-        }
-        if (start && end) {
-          record[`treatmentEnd${treatmentNumber}`] = undefined;
-        }
+      const isInProgress = ready && start && !end;
+      const isCompleted = ready && start && end;
+      const isReady = ready && !start && !end;
+
+      if (isReady) {
+        record[`treatmentReady${treatmentNumber}`] = undefined;
+      } else if (isInProgress) {
+        record[`doctor${treatmentNumber}`] = undefined;
+        record[`treatmentStart${treatmentNumber}`] = undefined;
+        record["doctor"] = undefined;
+      } else if (isCompleted) {
+        record[`doctor`] = record[`doctor${treatmentNumber}`];
+        record[`treatmentEnd${treatmentNumber}`] = undefined;
       }
 
       record.opReadiness = statusTransition(record);
@@ -195,28 +199,29 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
     }
   };
+
   return (
-    <CustomToolTip
-      disableHoverListener={record.opReadiness !== OP_READINESS_Y}
-      title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-      dir="left">
-      <Paper sx={{ width: "auto", maxWidth: "100%" }}>
-        <MenuList>
-          <MenuItem className="cursor-default" onClick={handleConfirm}>
+    <Paper sx={{ width: "auto", maxWidth: "100%" }}>
+      <MenuList>
+        {cancelItemTitle && (
+          <MenuItem onClick={handleCancel}>
+            <ListItemIcon>
+              <ContentCut fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>{cancelItemTitle}</ListItemText>
+          </MenuItem>
+        )}
+        <CustomToolTip
+          disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
+          title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
+          dir="left">
+          <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
             <ListItemIcon>{confirmIcon}</ListItemIcon>
             <ListItemText>{confirmItemTitle}</ListItemText>
           </MenuItem>
-          {cancelItemTitle && (
-            <MenuItem onClick={handleCancel}>
-              <ListItemIcon>
-                <ContentCut fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>{cancelItemTitle}</ListItemText>
-            </MenuItem>
-          )}
-        </MenuList>
-      </Paper>
-    </CustomToolTip>
+        </CustomToolTip>
+      </MenuList>
+    </Paper>
   );
 };
 
@@ -246,10 +251,11 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
   const canBeAssigned = data.opReadiness === OP_READINESS_Y && ready && !start && !end;
   const isInProgressTreatment = data.opReadiness === OP_READINESS_P && ready && start && !end;
   const canBeReady = data.opReadiness === OP_READINESS_N && !ready && !start && !end;
+  const isCompleted = data.opReadiness === OP_READINESS_C;
 
   const [open, setOpen] = useState(false);
 
-  const disableHoverListener = (!canBeAssigned && !isInProgressTreatment && !canBeReady) || !value;
+  const disableHoverListener = (!canBeAssigned && !isInProgressTreatment && !canBeReady && !isCompleted) || !value;
 
   const onMouseEnter = () => {
     setOpen(!disableHoverListener);
