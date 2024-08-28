@@ -35,8 +35,6 @@ export async function login({ userId, password }: LoginForm) {
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {
-    console.log(error);
-
     return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
   }
 }

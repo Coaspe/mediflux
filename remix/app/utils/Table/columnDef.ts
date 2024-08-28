@@ -37,11 +37,11 @@ import {
   MEDIUM_COLUMN_LENGTH,
   LONG_COLUMN_LENGTH,
 } from "~/constant";
-import { SearchHelp, PRecord, TableType } from "~/type";
+import { SearchHelp, PRecord, TableType, GlobalSnackBark } from "~/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { findCanCompleteTreatmentNumber } from "../utils";
-import { useRecoilValue } from "recoil";
+import { SetterOrUpdater, useRecoilValue } from "recoil";
 import { doctorSearchHelpState } from "~/recoil_state";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
@@ -129,14 +129,14 @@ const personComparator = (searchHelp: SearchHelp[], valueA: string | null | unde
     return -1;
   }
 };
-
-export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
+export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[], setGlobalSnackbar?: SetterOrUpdater<GlobalSnackBark>): ColDef<PRecord, string> => {
   const isDoctor = "doctor" === field;
   return {
     field,
     headerName,
     width: LONG_COLUMN_LENGTH,
     editable: !isDoctor,
+    onCellDoubleClicked: () => setGlobalSnackbar?.({ open: true, msg: "시술을 시작하면 자동으로 입력됩니다.", severity: "warning" }),
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     cellRenderer: ({ value, colDef, data }: CustomCellRendererProps) => {
@@ -149,7 +149,8 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
   };
 };
 
-export const doctorColumn = (doctorSearchHelp: SearchHelp[]): ColDef<PRecord, string> => personColumn(DOCTOR, DOCTOR_H, doctorSearchHelp);
+export const doctorColumn = (doctorSearchHelp: SearchHelp[], setGlobalSnackbar?: SetterOrUpdater<GlobalSnackBark>): ColDef<PRecord, string> =>
+  personColumn(DOCTOR, DOCTOR_H, doctorSearchHelp, setGlobalSnackbar);
 export const anesthesiaNoteColumn: ColDef<PRecord, string> = { field: ANESTHESIA_NOTE, headerName: ANESTHESIA_NOTE_H, width: MEDIUM_COLUMN_LENGTH };
 export const skincareSpecialist1Column: ColDef<PRecord, string> = personColumn(SKINCARE_SPECIALIST1, SKINCARE_SPECIALIST1_H, DOCTOR_SEARCH_HELP);
 export const skincareSpecialist2Column: ColDef<PRecord, string> = personColumn(SKINCARE_SPECIALIST2, SKINCARE_SPECIALIST2_H, DOCTOR_SEARCH_HELP);

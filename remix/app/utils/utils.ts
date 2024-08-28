@@ -225,16 +225,30 @@ export const refreshTreatmentCells = (api: GridApi<PRecord> | undefined, recordI
   const row = api.getRowNode(recordId);
 
   if (!row || !row.data) return;
+
   const columns = [];
   for (const i of TREATMENT_NUMBERS) {
     if (row.data[`treatment${i}`]) {
       columns.push(`treatment${i}`);
     }
   }
+
   api.refreshCells({
     force: true,
     rowNodes: [row],
     columns,
+  });
+};
+export const refreshDoctorCell = (api: GridApi<PRecord> | undefined, recordId: string) => {
+  if (!api) return;
+  const row = api.getRowNode(recordId);
+
+  if (!row || !row.data) return;
+
+  api.refreshCells({
+    force: true,
+    rowNodes: [row],
+    columns: ["doctor"],
   });
 };
 export const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
@@ -332,9 +346,7 @@ export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpd
         return { id: treatment.id, title: treatment.title, group: treatment.group };
       });
     setTreatmentSearchHelp(treatment);
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 };
 
 export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<SearchHelp[]>) => {

@@ -161,11 +161,9 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
             queryValues.push(...value);
         });
         const result = yield pool.query(query, queryValues);
-        console.log(result);
         res.status(200).json(result);
     }
     catch (error) {
-        console.log(error);
         res.status(500).send("Error inserting records.");
     }
     finally {
@@ -178,7 +176,6 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
         const query = updateRecordsQuery(`${tag}.chart_schedule`);
         const values = deconstructRecord(record);
         const result = yield pool.query(query, values);
-        console.log(result);
         res.status(200).json(result);
     }
     catch (error) {
@@ -284,7 +281,6 @@ app.get("/api/getAllRoleEmployees", (req, res) => __awaiter(void 0, void 0, void
     }
     try {
         const q = `select * from admin.user where user_role='${role}'`;
-        console.log(q);
         const result = yield pool.query(q);
         res.status(200).json(result.rows);
     }

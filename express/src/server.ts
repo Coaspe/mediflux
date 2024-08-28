@@ -176,12 +176,9 @@ app.post("/api/insertRecords", async (req, res) => {
     });
 
     const result = await pool.query(query, queryValues);
-    console.log(result);
 
     res.status(200).json(result);
   } catch (error) {
-    console.log(error);
-
     res.status(500).send("Error inserting records.");
   } finally {
   }
@@ -194,7 +191,6 @@ app.put("/api/updateRecord", async (req, res) => {
 
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
-    console.log(result);
 
     res.status(200).json(result);
   } catch (error) {
@@ -298,8 +294,6 @@ app.get("/api/getAllRoleEmployees", async (req, res) => {
 
   try {
     const q = `select * from admin.user where user_role='${role}'`;
-    console.log(q);
-
     const result = await pool.query(q);
     res.status(200).json(result.rows);
   } catch (error: any) {

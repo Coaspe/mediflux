@@ -133,7 +133,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       treatmentColumn(TREATMENT5, TREATMENT5_H, tableType, treatmentSearchHelp),
       quantitytreat1Column,
       treatmentRoomColumn,
-      doctorColumn(doctorSearchHelp),
+      doctorColumn(doctorSearchHelp, setGlobalSnackBar),
       anesthesiaNoteColumn,
       skincareSpecialist1Column,
       skincareSpecialist2Column,

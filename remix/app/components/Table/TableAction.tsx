@@ -46,7 +46,6 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
 
       const newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
       const { rows } = await insertRecords([newRecord], TEST_TAG);
-      console.log(rows);
 
       if (rows?.length) {
         const addedRecord = convertServerPRecordtToPRecord(rows[0]);

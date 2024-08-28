@@ -14,7 +14,6 @@ export const insertRecords = async (records: PRecord[], tag: string) => {
         return false;
     }
   } catch (error) {
-    console.log(error);
     return false;
   }
 };

@@ -97,13 +97,15 @@ const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
   };
   const searchHelp = useRecoilValue(doctorSearchHelpState);
   return (
-    <div className="flex flex-col">
-      {searchHelp.map((option) => (
-        <div onClick={() => handleConfirm(option.id)} className="cursor-pointer">
-          {option.title}
-        </div>
-      ))}
-    </div>
+    <Paper sx={{ width: 100, maxWidth: "100%", maxHeight: "500px", overflowY: "auto" }}>
+      <MenuList>
+        {searchHelp.map((option) => (
+          <MenuItem key={option.id} onClick={() => handleConfirm(option.id)} className="cursor-pointer justify-center">
+            <span className="font-bold font-noto">{option.title}</span>
+          </MenuItem>
+        ))}
+      </MenuList>
+    </Paper>
   );
 };
 
@@ -125,13 +127,20 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
     setConfirmItemTitle(() => {
       if (record.opReadiness === OP_READINESS_N) {
         setConfirmIcon(<ChecklistIcon fontSize="small" />);
+        if (record[`treatmentEnd${treatmentNumber}`]) {
+          setCancelItemTitle("시술 완료 취소");
+        }
         return "준비 완료";
       } else if (record.opReadiness === OP_READINESS_P) {
         setConfirmIcon(<CheckCircleIcon fontSize="small" />);
+        setCancelItemTitle("시술 시작 취소");
         return "시술 완료";
       } else if (record.opReadiness === OP_READINESS_Y) {
         setConfirmIcon(<ContentCut fontSize="small" />);
+        setCancelItemTitle("준비 취소");
         return "시술 시작";
+      } else if (record.opReadiness === OP_READINESS_C) {
+        setCancelItemTitle("시술 완료 취소");
       }
       return "";
     });
@@ -187,13 +196,13 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
     }
   };
   return (
-    <Tooltip
+    <CustomToolTip
       disableHoverListener={record.opReadiness !== OP_READINESS_Y}
       title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
       dir="left">
-      <Paper sx={{ width: 150, maxWidth: "100%" }}>
+      <Paper sx={{ width: "auto", maxWidth: "100%" }}>
         <MenuList>
-          <MenuItem onClick={handleConfirm}>
+          <MenuItem className="cursor-default" onClick={handleConfirm}>
             <ListItemIcon>{confirmIcon}</ListItemIcon>
             <ListItemText>{confirmItemTitle}</ListItemText>
           </MenuItem>
@@ -207,7 +216,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
           )}
         </MenuList>
       </Paper>
-    </Tooltip>
+    </CustomToolTip>
   );
 };
 
@@ -268,6 +277,7 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
   const optionRef = useRef<SearchHelp | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isFirstKeyDown = useRef<boolean>(true);
+  const [option, setOption] = useState<SearchHelp | null>(null);
 
   useEffect(() => {
     if (inputRef.current) {
@@ -275,24 +285,20 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
     }
   }, [inputRef.current]);
 
-  let idx = searchHelp.findIndex((t) => t.id === value);
+  useEffect(() => {
+    setOption(searchHelp.find((t) => t.id == value) || null);
+  }, [searchHelp]);
 
-  const onChange = (
-    newValue: {
-      id: string;
-      group: string;
-      title: string;
-    } | null
-  ) => {
+  const onChange = (newValue: SearchHelp | null) => {
     if (newValue) {
-      onValueChange(newValue.id);
-
       if (colDef.field && /^treatment\d+$/.test(colDef.field)) {
         const row = api.getRowNode(data.id);
         if (row?.data.opReadiness === OP_READINESS_C) {
           row.data.opReadiness = OP_READINESS_N;
         }
       }
+      onValueChange(newValue.id.toString());
+      setOption(newValue);
     }
   };
 
@@ -313,7 +319,7 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
       onChange={(_, value) => onChange(value)}
-      value={searchHelp[idx]}
+      value={option}
       onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, optionRef, setModalOpen)}
       renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}
     />
@@ -332,7 +338,6 @@ export const nameChipRendererByFieldname = (fieldname: string | undefined, searc
     color = "default";
   }
   let title = getValueWithId(searchHelp, id).title;
-  console.log(searchHelp, id);
 
   return title ? (
     <div className="w-full h-full flex justify-center items-center">
