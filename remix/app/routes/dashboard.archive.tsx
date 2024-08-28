@@ -10,8 +10,8 @@ import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT } from "shar
 import { Socket, io } from "socket.io-client";
 import { json, redirect, useLoaderData } from "@remix-run/react";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { globalSnackbarState, userState } from "~/recoil_state";
-import { convertServerPRecordtToPRecord } from "~/utils/utils";
+import { doctorSearchHelpState, globalSnackbarState, treatmentSearchHelpState, userState } from "~/recoil_state";
+import { convertServerPRecordtToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
@@ -43,6 +43,8 @@ export default function Archive() {
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const loaderData = useLoaderData<{ user: User; records: PRecord[] }>();
 
+  const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
+  const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
   const [user, setUser] = useRecoilState(userState);
 
   const showErrorSnackbar = useCallback(
@@ -63,6 +65,11 @@ export default function Archive() {
       setBaseDate(value);
     }
   };
+
+  useEffect(() => {
+    getTreatmentSearchHelp(setTreatmentSearchHelp);
+    getDoctorSearchHelp(setDoctorSearchHelp);
+  }, []);
 
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`);
@@ -126,7 +133,15 @@ export default function Archive() {
         numOfInterval={numOfInterval}
       />
       <ArchiveChart numOfInterval={numOfInterval} interval={interval} baseDate={baseDate} data={rowData} />
-      <SchedulingTable tableType="Archive" gridRef={tableRef} socket={socket} roomId={ARCHIVE_ROOM_ID} records={rowData} />
+      <SchedulingTable
+        tableType="Archive"
+        gridRef={tableRef}
+        socket={socket}
+        roomId={ARCHIVE_ROOM_ID}
+        records={rowData}
+        doctorSearchHelp={doctorSearchHelp}
+        treatmentSearchHelp={treatmentSearchHelp}
+      />
     </div>
   );
 }

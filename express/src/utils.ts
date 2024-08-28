@@ -1,23 +1,7 @@
 /** @format */
 
-import pkg from "pg";
 import { KEY_OF_SERVER_PRECORD } from "./contants.js";
 
-export const getUserByLoginID = async (pool: pkg.Pool, loginId: string) => {
-  return await pool.query("select * from admin.user where login_id=$1;", [loginId]);
-};
-
-export const getSchema = async (pool: pkg.Pool) => {
-  return await pool.query("select * FROM information_schema.tables where table_schema ilike '%SS%' or table_schema ilike '%share%' or table_schema like '%admin%' order by table_schema");
-};
-
-export const getChart = async (pool: pkg.Pool) => {
-  return await pool.query("select * from gn_ss_bailor.chart_schedule");
-};
-
-export const deleteAllChart = async (pool: pkg.Pool) => {
-  return await pool.query("delete from gn_ss_bailor.chart_schedule");
-};
 export const convertTime = (time: number | undefined) => {
   return time ? new Date(time * 1000) : undefined;
 };
@@ -130,7 +114,6 @@ export const deconstructRecord = (record: any) => {
 
   return retVal;
 };
-
 export const updateRecordsQuery = (tableName: string) => {
   let baseQuery = `UPDATE ${tableName} SET `;
   for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
@@ -143,11 +126,9 @@ export const updateRecordsQuery = (tableName: string) => {
   baseQuery += ` WHERE record_id=$${KEY_OF_SERVER_PRECORD.length}`;
   return baseQuery;
 };
-
 export const setUserSessionQuery = (tableName: string) => {
   return `UPDATE ${tableName} SET session_id=$1 WHERE contact_id=$2 RETURNING *;`;
 };
-
 export const lockOrUnlockRowsQuery = (tableName: string, length: number) => {
   return `UPDATE ${tableName} SET locking_user=$1
   WHERE record_id IN (${Array.from({ length }, (_, k) => `$${k + 2}`).join(", ")}) RETURNING *;`;

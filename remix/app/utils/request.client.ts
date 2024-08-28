@@ -26,14 +26,6 @@ export const updateRecord = async (record: PRecord, tag: string) => {
   return await axios.put("http://localhost:5000/api/updateRecord", { record, tag });
 };
 
-export const lockRecord = async (recordId: string, lockingUser: string, tag: string) => {
-  return await axios.put("http://localhost:5000/api/lockRecord", { recordId, lockingUser, tag });
-};
-
-export const unlockRecord = async (recordId: string, tag: string) => {
-  return await axios.put("http://localhost:5000/api/unlockRecord", { recordId, tag });
-};
-
 export const getRecords = async (where: string[] = [], tag: string) => {
   return await axios.post("http://localhost:5000/api/getRecords", { where, tag });
 };

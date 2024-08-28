@@ -232,42 +232,20 @@ app.put("/api/hideRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
     finally {
     }
 }));
-app.put("/api/lockRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const recordId = req.body.recordId;
-    const lockingUser = req.body.lockingUser;
-    const tag = req.body.tag;
-    try {
-        const q = `update ${tag}.chart_schedule SET locking_user=$1 where record_id=$2`;
-        const values = [lockingUser, recordId];
-        yield pool.query(q, values);
-        res.status(200).send("Records locking successfully.");
-    }
-    catch (error) {
-        res.status(500).send("Error locking record");
-    }
-}));
-app.put("/api/unlockRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const recordId = req.body.recordId;
-    const tag = req.body.tag;
-    try {
-        const q = `update ${tag}.chart_schedule SET locking_user=NULL where record_id=$1`;
-        const values = [recordId];
-        yield pool.query(q, values);
-        res.status(200).send("Records unlocking successfully.");
-    }
-    catch (error) {
-        res.status(500).send("Error unlocking record");
-    }
-}));
 app.put("/api/lockOrUnlockRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const recordIds = req.body.recordIds;
     const lockingUser = req.body.lockingUser;
     const tag = req.body.tag;
     try {
-        const q = lockOrUnlockRowsQuery(`${tag}.chart_schedule`, recordIds.length);
-        const values = [lockingUser, ...recordIds];
-        const result = yield pool.query(q, values);
-        res.status(200).json(result.rows);
+        if (recordIds.length > 0) {
+            const q = lockOrUnlockRowsQuery(`${tag}.chart_schedule`, recordIds.length);
+            const values = [lockingUser, ...recordIds];
+            const result = yield pool.query(q, values);
+            res.status(200).json(result.rows);
+        }
+        else {
+            res.status(200).send("No records");
+        }
     }
     catch (error) {
         res.status(500).send("Error locking record");

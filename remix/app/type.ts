@@ -6,7 +6,6 @@ import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
 import { ServerUser, Role } from "shared";
 import { CellPosition } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import dayjsKST from "./dayjsConfig";
 
 export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
 export type User = {
@@ -181,5 +180,3 @@ export type ChartData = {
   name: string;
   numOfPRecords: number;
 };
-
-export type DayjsKST = typeof dayjsKST;

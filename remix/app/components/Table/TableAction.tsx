@@ -87,10 +87,12 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         throw new Error("삭제할 레코드가 선택되지 않았습니다.");
       }
 
-      const ids = records.map((record) => record.id);
       setSelectedRows(records);
-
-      const result = await lockOrUnlockRecords(ids, user.id, TEST_TAG);
+      const result = await lockOrUnlockRecords(
+        records.map((record) => record.id),
+        user.id,
+        TEST_TAG
+      );
       if (result.status === 200) {
         emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
         setOpenDeleteModal(true);

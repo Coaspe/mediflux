@@ -32,7 +32,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils";
-import { lockRecord, unlockRecord, updateRecord } from "~/utils/request.client";
+import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
 import {
   LOCKING_USER,
   OP_READINESS_C,
@@ -158,15 +158,13 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
           const record = records[i];
           if (record.lockingUser === user?.id) {
             record.lockingUser = null;
-            mustBeUnlocked.push(record);
+            mustBeUnlocked.push(record.id);
             break;
           }
         }
 
-        const promised = mustBeUnlocked.map((record) => unlockRecord(record.id, TEST_TAG));
-        await Promise.all(promised);
-
-        mustBeUnlocked.forEach((record) => emitUnlockRecord(record.id, tableType, socket, roomId));
+        await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG);
+        mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, roomId));
         records.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
         setRowData(records);
       } catch (error) {
@@ -269,7 +267,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       }
 
       if (user && event.data && !event.data.lockingUser) {
-        const result = await lockRecord(event.data.id, user.id, TEST_TAG);
+        const result = await lockOrUnlockRecords([event.data.id], user.id, TEST_TAG);
         if (result.status === 200) {
           emitLockRecord(event.data?.id, tableType, socket, user, roomId);
           event.data.lockingUser = user.id;

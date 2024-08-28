@@ -43,35 +43,6 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
   return EMPTY_SEARCHHELP;
 };
 
-export const getTableType = (opReadiness?: OpReadiness): TableType => {
-  if (opReadiness === OP_READINESS_Y) {
-    return "Ready";
-  } else {
-    return "ExceptReady";
-  }
-};
-
-export const getBrowserType = () => {
-  const userAgent = navigator.userAgent;
-  if (userAgent.indexOf("Firefox") > -1) {
-    return "Mozilla Firefox";
-  } else if (userAgent.indexOf("SamsungBrowser") > -1) {
-    return "Samsung Internet";
-  } else if (userAgent.indexOf("Opera") > -1 || userAgent.indexOf("OPR") > -1) {
-    return "Opera";
-  } else if (userAgent.indexOf("Trident") > -1) {
-    return "Microsoft Internet Explorer";
-  } else if (userAgent.indexOf("Edg") > -1) {
-    return "Microsoft Edge";
-  } else if (userAgent.indexOf("Chrome") > -1) {
-    return "Google Chrome";
-  } else if (userAgent.indexOf("Safari") > -1) {
-    return "Apple Safari";
-  } else {
-    return "Unknown";
-  }
-};
-
 export const convertServerUserToClientUser = (user: ServerUser) => {
   return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id } as User;
 };
@@ -250,22 +221,6 @@ export const refreshDoctorCell = (api: GridApi<PRecord> | undefined, recordId: s
     rowNodes: [row],
     columns: ["doctor"],
   });
-};
-export const findCanBeAssignedTreatmentNumber = (record: PRecord): number => {
-  for (const i of TREATMENT_NUMBERS) {
-    if (record[`treatmentReady${i}`] && record[`treatment${i}`] && !record[`treatmentStart${i}`]) {
-      return i;
-    }
-  }
-  return -1;
-};
-export const findCanbeReadyTreatmentNumber = (record: PRecord): number => {
-  for (const i of TREATMENT_NUMBERS) {
-    if (!record[`treatmentReady${i}`] && record[`treatment${i}`]) {
-      return i;
-    }
-  }
-  return -1;
 };
 export const findCanCompleteTreatmentNumber = (record: PRecord): number => {
   for (const i of TREATMENT_NUMBERS) {

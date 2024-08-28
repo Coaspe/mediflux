@@ -246,40 +246,20 @@ app.put("/api/hideRecords", async (req, res) => {
   } finally {
   }
 });
-app.put("/api/lockRecord", async (req, res) => {
-  const recordId = req.body.recordId;
-  const lockingUser = req.body.lockingUser;
-  const tag = req.body.tag;
-  try {
-    const q = `update ${tag}.chart_schedule SET locking_user=$1 where record_id=$2`;
-    const values = [lockingUser, recordId];
-    await pool.query(q, values);
-    res.status(200).send("Records locking successfully.");
-  } catch (error) {
-    res.status(500).send("Error locking record");
-  }
-});
-app.put("/api/unlockRecord", async (req, res) => {
-  const recordId = req.body.recordId;
-  const tag = req.body.tag;
-  try {
-    const q = `update ${tag}.chart_schedule SET locking_user=NULL where record_id=$1`;
-    const values = [recordId];
-    await pool.query(q, values);
-    res.status(200).send("Records unlocking successfully.");
-  } catch (error) {
-    res.status(500).send("Error unlocking record");
-  }
-});
 app.put("/api/lockOrUnlockRecords", async (req, res) => {
-  const recordIds = req.body.recordIds;
+  const recordIds: string[] = req.body.recordIds;
   const lockingUser = req.body.lockingUser;
   const tag = req.body.tag;
+
   try {
-    const q = lockOrUnlockRowsQuery(`${tag}.chart_schedule`, recordIds.length);
-    const values = [lockingUser, ...recordIds];
-    const result = await pool.query(q, values);
-    res.status(200).json(result.rows);
+    if (recordIds.length > 0) {
+      const q = lockOrUnlockRowsQuery(`${tag}.chart_schedule`, recordIds.length);
+      const values = [lockingUser, ...recordIds];
+      const result = await pool.query(q, values);
+      res.status(200).json(result.rows);
+    } else {
+      res.status(200).send("No records");
+    }
   } catch (error) {
     res.status(500).send("Error locking record");
   }
