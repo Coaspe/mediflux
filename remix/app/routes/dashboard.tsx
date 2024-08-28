@@ -119,6 +119,9 @@ export default function Dashboard() {
               <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} icon={"home_storage"} clickedMenu={clickedMenu} fontSize="text-sm" isSubMenu={true} />
             </SubMenu>
             <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MEMBERS)} to={"members"} name={"Members"} icon={"groups"} clickedMenu={clickedMenu} />
+            <SubMenu icon={<Icon className={"text-gray-500 "} iconName={"settings"} />} label="Settings">
+              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.TREATMENT)} to={"treatments"} name={"Treatments"} icon={"syringe"} clickedMenu={clickedMenu} isSubMenu={true} />
+            </SubMenu>
           </Menu>
         </aside>
         <Outlet />

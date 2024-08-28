@@ -13,6 +13,7 @@ export const SIDE_MENU = {
   SCHEDULING: "scheduling",
   ARCHIVE: "archive",
   MEMBERS: "members",
+  TREATMENT: "treatments",
 } as const;
 
 export const TABLE_CONTAINER_HEIGHT = "78%";
