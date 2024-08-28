@@ -9,19 +9,12 @@ export const SERVERUSER_CLIENTUSER_MAPPING = {
   contact_id: "id" as keyof User,
 };
 
-export const MENU_CONFIG: { [key: string]: string } = {
-  SCHEDULING: "Scheduling",
-  ARCHIVE: "Archive",
-  MEMBERS: "Members",
-  TREATMENTS: "Treatments",
+export const SIDE_MENU = {
+  SCHEDULING: "scheduling",
+  ARCHIVE: "archive",
+  MEMBERS: "members",
+  TREATMENTS: "treatments",
 } as const;
-
-export type SideMenu = keyof typeof MENU_CONFIG;
-
-export const SIDE_MENU = Object.keys(MENU_CONFIG).reduce((acc, key) => {
-  acc[key as SideMenu] = key.toLowerCase();
-  return acc;
-}, {} as Record<SideMenu, string>);
 
 export const TABLE_CONTAINER_HEIGHT = "78%";
 export const TABLE_HEIGHT = "100%";
