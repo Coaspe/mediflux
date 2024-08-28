@@ -180,3 +180,8 @@ export type ChartData = {
   name: string;
   numOfPRecords: number;
 };
+
+export type TreatmentRoom = {
+  room: string;
+  roomChartNum?: string;
+};

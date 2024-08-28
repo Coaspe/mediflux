@@ -41,3 +41,7 @@ export const getAllRoleEmployees = async (role: Role, tag: string) => {
 export const getAllTreatments = async (tag: string) => {
   return await axios.get(`http://localhost:5000/api/getAllTreatments`, { params: { tag } });
 };
+
+export const getAllVacantRooms = async (tag: string) => {
+  return await axios.get(`http://localhost:5000/api/getAllVacantRooms`, { params: { tag } });
+};

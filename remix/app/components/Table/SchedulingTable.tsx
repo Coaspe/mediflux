@@ -32,7 +32,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils";
-import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
+import { getAllVacantRooms, lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
 import {
   LOCKING_USER,
   OP_READINESS_C,

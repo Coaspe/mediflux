@@ -295,4 +295,17 @@ app.get("/api/getAllTreatments", async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+app.get("/api/getAllVacantRooms", async (req, res) => {
+  const tag = req.query.tag;
+  if (!tag) {
+    res.status(500).send("Invalid params");
+  }
+  try {
+    const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
+    const result = await pool.query(q);
+    res.status(200).json(result.rows);
+  } catch (error: any) {
+    res.status(500).send(error.message);
+  }
+});
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
