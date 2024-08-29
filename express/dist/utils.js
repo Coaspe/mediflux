@@ -1,65 +1,16 @@
 /** @format */
-export const convertTime = (time) => {
-    return time ? new Date(time * 1000) : undefined;
-};
 export const deconstructRecord = (record) => {
-    console.log(convertTime(record.createdAt));
-    const retVal = [
-        convertTime(record.createdAt),
-        record.chartNum,
-        record.patientName,
-        record.opReadiness,
-        record.treatment1,
-        record.treatment2,
-        record.treatment3,
-        record.treatment4,
-        record.treatment5,
-        record.quantityTreat1,
-        record.quantityTreat2,
-        record.quantityTreat3,
-        record.quantityTreat4,
-        record.quantityTreat5,
-        record.treatmentRoom,
-        record.doctor1,
-        record.doctor2,
-        record.doctor3,
-        record.doctor4,
-        record.doctor5,
-        record.anesthesiaNote,
-        record.skincareSpecialist1,
-        record.skincareSpecialist2,
-        record.nursingStaff1,
-        record.nursingStaff2,
-        record.coordinator,
-        record.patientCareRoom,
-        record.consultant,
-        record.commentCaution,
-        record.lockingUser,
-        record.deleteYN,
-        convertTime(record.treatmentReady1),
-        convertTime(record.treatmentReady2),
-        convertTime(record.treatmentReady3),
-        convertTime(record.treatmentReady4),
-        convertTime(record.treatmentReady5),
-        convertTime(record.treatmentEnd1),
-        convertTime(record.treatmentEnd2),
-        convertTime(record.treatmentEnd3),
-        convertTime(record.treatmentEnd4),
-        convertTime(record.treatmentEnd5),
-        convertTime(record.treatmentStart1),
-        convertTime(record.treatmentStart2),
-        convertTime(record.treatmentStart3),
-        convertTime(record.treatmentStart4),
-        convertTime(record.treatmentStart5),
-    ];
-    const { id } = record;
-    if (id) {
-        retVal.push(id);
+    const values = Object.values(record);
+    if (values.length > 0) {
+        const idOrCreatedAt = values.shift();
+        if (record.id) {
+            values.push(idOrCreatedAt);
+        }
+        else {
+            values.shift();
+        }
     }
-    else {
-        retVal.shift();
-    }
-    return retVal;
+    return values;
 };
 export const updateQuery = (tableName, keys, idfieldName) => {
     let baseQuery = `UPDATE ${tableName} SET `;

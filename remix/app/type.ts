@@ -21,7 +21,7 @@ export type User = {
 export type Gender = "M" | "F";
 export type PRecord = {
   id: string; // Unique record id
-  createdAt?: number; // TIMESTAMP (e.g., "14:08")
+  createdAt?: string; // TIMESTAMP (e.g., "14:08")
   chartNum?: string; // VARCHAR (15)
   patientName?: string; // VARCHAR (100)
   opReadiness?: OpReadiness; // BOOLEAN (e.g., "T", "F" interpreted as true/false)
@@ -30,21 +30,21 @@ export type PRecord = {
   treatment3?: string; // VARCHAR (50), optional
   treatment4?: string; // VARCHAR (50), optional
   treatment5?: string; // VARCHAR (50), optional
-  treatmentReady1?: number;
-  treatmentReady2?: number;
-  treatmentReady3?: number;
-  treatmentReady4?: number;
-  treatmentReady5?: number;
-  treatmentStart1?: number;
-  treatmentStart2?: number;
-  treatmentStart3?: number;
-  treatmentStart4?: number;
-  treatmentStart5?: number;
-  treatmentEnd1?: number;
-  treatmentEnd2?: number;
-  treatmentEnd3?: number;
-  treatmentEnd4?: number;
-  treatmentEnd5?: number;
+  treatmentReady1?: string;
+  treatmentReady2?: string;
+  treatmentReady3?: string;
+  treatmentReady4?: string;
+  treatmentReady5?: string;
+  treatmentStart1?: string;
+  treatmentStart2?: string;
+  treatmentStart3?: string;
+  treatmentStart4?: string;
+  treatmentStart5?: string;
+  treatmentEnd1?: string;
+  treatmentEnd2?: string;
+  treatmentEnd3?: string;
+  treatmentEnd4?: string;
+  treatmentEnd5?: string;
   quantityTreat1?: number; // INTEGER
   quantityTreat2?: number; // INTEGER, optional
   quantityTreat3?: number; // INTEGER, optional

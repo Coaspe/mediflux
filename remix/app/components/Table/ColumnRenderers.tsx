@@ -3,7 +3,7 @@
 import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
-import { ROLE, Role, TREATMENTS } from "shared";
+import { ROLE, Role } from "shared";
 import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS_C, OP_READINESS_N, OP_READINESS_P, OP_READINESS_Y } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -29,7 +29,7 @@ import Paper from "@mui/material/Paper";
 import ContentCut from "@mui/icons-material/ContentCut";
 
 export const createdAtCell = (value: number) => {
-  const date = dayjs(value * 1000).add(9, "hour");
+  const date = dayjs(value).add(9, "hour");
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
       <span>
@@ -39,14 +39,14 @@ export const createdAtCell = (value: number) => {
   );
 };
 
-export const createdAtEdit = (value: number, onValueChange: (value: number) => void) => {
+export const createdAtEdit = (value: string, onValueChange: (value: string) => void) => {
   const onChange = (val: Dayjs | null) => {
-    onValueChange(dayjs(val).unix());
+    onValueChange(dayjs(val).toISOString());
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DateTimeField format="YYYY/MM/DD hh:mm A" slotProps={{ textField: { variant: "standard" } }} defaultValue={dayjs(value * 1000)} onChange={onChange} />
+      <DateTimeField format="YYYY/MM/DD hh:mm A" slotProps={{ textField: { variant: "standard" } }} defaultValue={dayjs(value)} onChange={onChange} />
     </LocalizationProvider>
   );
 };
@@ -82,7 +82,7 @@ const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
 
     try {
       if (!record || !treatmentNumber || !user) return;
-      const time = dayjs().unix();
+      const time = dayjs().toISOString();
       if (record.opReadiness === OP_READINESS_Y) {
         record[`treatmentStart${treatmentNumber}`] = time;
         record[`doctor${treatmentNumber}`] = id;
@@ -151,7 +151,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
 
     try {
       if (!record || !treatmentNumber || !user) return;
-      const time = dayjs().unix();
+      const time = dayjs().toISOString();
 
       if (record.opReadiness === OP_READINESS_N) {
         record[`treatmentReady${treatmentNumber}`] = time;

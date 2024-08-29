@@ -56,6 +56,7 @@ export const createdAtColumn: ColDef<PRecord, number> = {
   headerName: CREATED_AT_H,
   cellRenderer: ({ value }: CustomCellRendererProps) => createdAtCell(value),
   cellEditor: ({ value, onValueChange }: CustomCellEditorProps) => createdAtEdit(value, onValueChange),
+  cellStyle: { justifyContent: "left" },
 };
 
 export const chartNumberColumn: ColDef<PRecord, string> = {

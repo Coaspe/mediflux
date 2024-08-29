@@ -108,7 +108,6 @@ export default function Archive() {
     } catch (error) {
       showErrorSnackbar("Internal server error");
     } finally {
-      // setIsLoading(false);
     }
   };
 

@@ -47,9 +47,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
 
     data.forEach((record) => {
       if (record.createdAt !== undefined) {
-        const start = dayjs(record.createdAt * 1000)
-          .startOf(interval)
-          .unix();
+        const start = dayjs(record.createdAt).startOf(interval).unix();
 
         if (start in mapping) {
           mapping[start].numOfPRecords += 1;

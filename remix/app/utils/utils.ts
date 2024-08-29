@@ -50,13 +50,10 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
 export const convertServerUserToClientUser = (user: ServerUser) => {
   return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id } as User;
 };
-const convertServerTimeToClientTime = (time: number | undefined) => {
-  return time ? new Date(time).getTime() / 1000 : undefined;
-};
 export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
   return {
     id: String(serverRecord.record_id),
-    createdAt: convertServerTimeToClientTime(serverRecord.created_at),
+    createdAt: serverRecord.created_at,
     chartNum: serverRecord.chart_num,
     patientName: serverRecord.patient_name,
     opReadiness: serverRecord.op_readiness,
@@ -65,21 +62,21 @@ export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRe
     treatment3: serverRecord.treatment_3,
     treatment4: serverRecord.treatment_4,
     treatment5: serverRecord.treatment_5,
-    treatmentReady1: convertServerTimeToClientTime(serverRecord.treatment_ready_1),
-    treatmentReady2: convertServerTimeToClientTime(serverRecord.treatment_ready_2),
-    treatmentReady3: convertServerTimeToClientTime(serverRecord.treatment_ready_3),
-    treatmentReady4: convertServerTimeToClientTime(serverRecord.treatment_ready_4),
-    treatmentReady5: convertServerTimeToClientTime(serverRecord.treatment_ready_5),
-    treatmentEnd1: convertServerTimeToClientTime(serverRecord.treatment_end_1),
-    treatmentEnd2: convertServerTimeToClientTime(serverRecord.treatment_end_2),
-    treatmentEnd3: convertServerTimeToClientTime(serverRecord.treatment_end_3),
-    treatmentEnd4: convertServerTimeToClientTime(serverRecord.treatment_end_4),
-    treatmentEnd5: convertServerTimeToClientTime(serverRecord.treatment_end_5),
-    treatmentStart1: convertServerTimeToClientTime(serverRecord.treatment_start_1),
-    treatmentStart2: convertServerTimeToClientTime(serverRecord.treatment_start_2),
-    treatmentStart3: convertServerTimeToClientTime(serverRecord.treatment_start_3),
-    treatmentStart4: convertServerTimeToClientTime(serverRecord.treatment_start_4),
-    treatmentStart5: convertServerTimeToClientTime(serverRecord.treatment_start_5),
+    treatmentReady1: serverRecord.treatment_ready_1,
+    treatmentReady2: serverRecord.treatment_ready_2,
+    treatmentReady3: serverRecord.treatment_ready_3,
+    treatmentReady4: serverRecord.treatment_ready_4,
+    treatmentReady5: serverRecord.treatment_ready_5,
+    treatmentEnd1: serverRecord.treatment_end_1,
+    treatmentEnd2: serverRecord.treatment_end_2,
+    treatmentEnd3: serverRecord.treatment_end_3,
+    treatmentEnd4: serverRecord.treatment_end_4,
+    treatmentEnd5: serverRecord.treatment_end_5,
+    treatmentStart1: serverRecord.treatment_start_1,
+    treatmentStart2: serverRecord.treatment_start_2,
+    treatmentStart3: serverRecord.treatment_start_3,
+    treatmentStart4: serverRecord.treatment_start_4,
+    treatmentStart5: serverRecord.treatment_start_5,
     quantityTreat1: serverRecord.quantity_treat_1,
     quantityTreat2: serverRecord.quantity_treat_2,
     quantityTreat3: serverRecord.quantity_treat_3,

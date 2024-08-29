@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
-import { KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT } from "./contants.js";
+import { KEY_OF_CLIENT_PRECORD, KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT } from "./contants.js";
 
 dotenv.config();
 
@@ -170,8 +170,14 @@ app.post("/api/insertRecords", async (req, res) => {
       `;
 
     const queryValues: any[] = [];
-    records.forEach((element: any) => {
-      let value = deconstructRecord(element);
+    records.forEach((record: any) => {
+      const newRecord: any = {};
+      for (const s of KEY_OF_CLIENT_PRECORD) {
+        newRecord[s] = record[s];
+      }
+
+      let value = deconstructRecord(newRecord);
+
       queryValues.push(...value);
     });
 
@@ -179,6 +185,8 @@ app.post("/api/insertRecords", async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
+    console.log(error);
+
     res.status(500).send("Error inserting records.");
   } finally {
   }
@@ -195,8 +203,10 @@ app.put("/api/updateRecord", async (req, res) => {
     const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
 
     const values = deconstructRecord(record);
+    console.log(values);
 
     const result = await pool.query(query, values);
+    console.log(result);
 
     res.status(200).json(result);
   } catch (error) {
