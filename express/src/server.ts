@@ -308,4 +308,5 @@ app.get("/api/getAllVacantRooms", async (req, res) => {
     res.status(500).send(error.message);
   }
 });
+app.get("/api/updateTreatment", async (req, res) => {});
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

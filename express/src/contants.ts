@@ -61,3 +61,4 @@ export const KEY_OF_SERVER_PRECORD = [
   "treatment_start_4",
   "treatment_start_5",
 ];
+export const KEY_OF_SERVER_TREATMENT = ["tr_id", "tr_duration", "tr_point", "tr_title", "tr_group", "tr_price"];

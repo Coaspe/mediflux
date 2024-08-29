@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { Role } from "shared";
-import { PRecord } from "~/type";
+import { PRecord, Treatment } from "~/type";
 
 export const insertRecords = async (records: PRecord[], tag: string) => {
   try {
@@ -44,4 +44,8 @@ export const getAllTreatments = async (tag: string) => {
 
 export const getAllVacantRooms = async (tag: string) => {
   return await axios.get(`http://localhost:5000/api/getAllVacantRooms`, { params: { tag } });
+};
+
+export const updateTreatment = async (treatment: Treatment, tag: string) => {
+  return await axios.put(`http://localhost:5000/api/updateTreatment`, { treatment, tag });
 };

@@ -39,6 +39,8 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
   for (let i = 0; i < searchHelp.length; i++) {
     const element = searchHelp[i];
     if (element.id == id) {
+      console.log(searchHelp[i]);
+
       return searchHelp[i];
     }
   }

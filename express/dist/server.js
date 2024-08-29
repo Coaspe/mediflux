@@ -294,4 +294,5 @@ app.get("/api/getAllVacantRooms", (req, res) => __awaiter(void 0, void 0, void 0
         res.status(500).send(error.message);
     }
 }));
+app.get("/api/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () { }));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

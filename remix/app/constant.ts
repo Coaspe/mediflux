@@ -70,8 +70,10 @@ export const COMMENT_CAUTION = "commentCaution";
 export const COMMENT_CAUTION_H = "비고/주의";
 export const LOCKING_USER = "lockingUser";
 
-export const MEDIUM_COLUMN_LENGTH = 100;
+export const TREATMENT_NAME_COLUMN = 250;
 export const LONG_COLUMN_LENGTH = 150;
+export const MEDIUM_COLUMN_LENGTH = 100;
+export const POINT_COLUMN_LENGTH = 80;
 export const SHORT_COLUMN_LENGTH = 70;
 
 export const FIELDS_STAFF = [SKINCARE_SPECIALIST1_H, SKINCARE_SPECIALIST2_H, COORDINATOR_H, CONSULTANT_H];

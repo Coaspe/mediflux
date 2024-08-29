@@ -36,11 +36,13 @@ import {
   DOCTOR_SEARCH_HELP,
   MEDIUM_COLUMN_LENGTH,
   LONG_COLUMN_LENGTH,
+  TREATMENT_NAME_COLUMN,
+  POINT_COLUMN_LENGTH,
 } from "~/constant";
-import { SearchHelp, PRecord, TableType, GlobalSnackBark } from "~/type";
+import { SearchHelp, PRecord, TableType, GlobalSnackBark, Treatment } from "~/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { findCanCompleteTreatmentNumber } from "../utils";
+import { findCanCompleteTreatmentNumber, getValueWithId } from "../utils";
 import { SetterOrUpdater, useRecoilValue } from "recoil";
 import { doctorSearchHelpState } from "~/recoil_state";
 
@@ -159,3 +161,39 @@ export const nursingStaff2Column: ColDef<PRecord, string> = personColumn(NURSING
 export const coordinatorColumn: ColDef<PRecord, string> = personColumn(COORDINATOR, COORDINATOR_H, DOCTOR_SEARCH_HELP);
 export const consultantColumn: ColDef<PRecord, string> = personColumn(CONSULTANT, CONSULTANT_H, DOCTOR_SEARCH_HELP);
 export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENT_CAUTION, headerName: COMMENT_CAUTION_H };
+
+export const treatmentGroupColumn = (searchHelp: Treatment[]): ColDef<Treatment, string> => {
+  return {
+    field: "group",
+    headerName: "그룹",
+    width: POINT_COLUMN_LENGTH,
+    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
+  };
+};
+
+export const treatmentPointColumn = (): ColDef<Treatment, number> => {
+  return {
+    field: "point",
+    headerName: "포인트",
+    width: POINT_COLUMN_LENGTH,
+    type: "number",
+  };
+};
+
+export const treatmentDurationColumn = (): ColDef<Treatment, number> => {
+  return {
+    field: "duration",
+    headerName: "시술 시간",
+    width: MEDIUM_COLUMN_LENGTH,
+    type: "number",
+  };
+};
+
+export const treatmentPriceColumn = (): ColDef<Treatment, number> => {
+  return {
+    field: "price",
+    headerName: "가격",
+    width: SHORT_COLUMN_LENGTH,
+    type: "number",
+  };
+};
