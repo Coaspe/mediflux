@@ -39,7 +39,6 @@ export default function Scheduling() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [user, setUser] = useRecoilState(userState);
   const loaderData = useLoaderData<{ user: User; records: PRecord[] }>();
-
   const [readyData, setReadyData] = useState<PRecord[]>([]);
   const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
 

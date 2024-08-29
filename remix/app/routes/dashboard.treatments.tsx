@@ -1,3 +1,5 @@
+/** @format */
+
 import React, { useEffect, useState } from "react";
 import { Box, TextField } from "@mui/material";
 import { convertServerTreatmentToClient } from "~/utils/utils";
@@ -18,7 +20,11 @@ const SearchableList: React.FC = () => {
       try {
         const rows = await getAllTreatments(TEST_TAG);
         if (rows.data) {
-          const convertedData = rows.data.map((t: any) => convertServerTreatmentToClient(t));
+          const convertedData = rows.data.map((t: any) => {
+            let ret = convertServerTreatmentToClient(t);
+            ret.searchTitle = ret.title.replace(/\s/g, "");
+            return ret;
+          });
           setTreatements(convertedData);
           setFilteredRows(convertedData);
         }
@@ -30,7 +36,7 @@ const SearchableList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    setFilteredRows(treatments.filter((treatment) => treatment.title.toLowerCase().includes(searchTerm.toLowerCase())));
+    setFilteredRows(treatments.filter((treatment) => treatment.searchTitle?.toLowerCase().includes(searchTerm.replace(/\s/g, "").toLowerCase())));
   }, [searchTerm, treatments]);
 
   return (

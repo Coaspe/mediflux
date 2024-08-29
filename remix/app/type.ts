@@ -125,6 +125,7 @@ export type Treatment = SearchHelp & {
   duration: number | null;
   point: number | null;
   price: number | null;
+  searchTitle?: string;
   [key: string]: any;
 };
 
