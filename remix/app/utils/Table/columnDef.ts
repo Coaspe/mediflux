@@ -36,15 +36,13 @@ import {
   DOCTOR_SEARCH_HELP,
   MEDIUM_COLUMN_LENGTH,
   LONG_COLUMN_LENGTH,
-  TREATMENT_NAME_COLUMN,
   POINT_COLUMN_LENGTH,
 } from "~/constant";
 import { SearchHelp, PRecord, TableType, GlobalSnackBark, Treatment } from "~/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { findCanCompleteTreatmentNumber, getValueWithId } from "../utils";
-import { SetterOrUpdater, useRecoilValue } from "recoil";
-import { doctorSearchHelpState } from "~/recoil_state";
+import { findCanCompleteTreatmentNumber } from "../utils";
+import { SetterOrUpdater } from "recoil";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);

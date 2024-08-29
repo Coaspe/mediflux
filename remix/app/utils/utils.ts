@@ -294,8 +294,10 @@ export const convertServerTreatmentToClient = (serverTreatment: Object): Treatme
       retVal[`${field}`] = value;
     }
   }
+
   return retVal;
 };
+
 export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpdater<Treatment[]>) => {
   try {
     const rows = await getAllTreatments(TEST_TAG);

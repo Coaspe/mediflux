@@ -31,6 +31,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   } catch (error) {
     return redirect("/");
   }
+  return null;
 };
 
 export default function Archive() {

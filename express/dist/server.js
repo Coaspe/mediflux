@@ -17,8 +17,8 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
-import { deconstructRecord, lockOrUnlockRowsQuery, updateRecordsQuery, setUserSessionQuery } from "./utils.js";
-import { KEY_OF_SERVER_PRECORD } from "./contants.js";
+import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
+import { KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT } from "./contants.js";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
@@ -172,8 +172,11 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
 app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const record = req.body.record;
     const tag = req.body.tag;
+    if (!tag || !record) {
+        res.status(500).send("Invalid params");
+    }
     try {
-        const query = updateRecordsQuery(`${tag}.chart_schedule`);
+        const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
         const values = deconstructRecord(record);
         const result = yield pool.query(query, values);
         res.status(200).json(result);
@@ -294,5 +297,20 @@ app.get("/api/getAllVacantRooms", (req, res) => __awaiter(void 0, void 0, void 0
         res.status(500).send(error.message);
     }
 }));
-app.get("/api/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () { }));
+app.put("/api/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const treatment = req.body.treatment;
+    const tag = req.body.tag;
+    if (!tag || !treatment) {
+        res.status(500).send("Invalid params");
+    }
+    try {
+        const q = updateQuery(`${tag}.TREATMENTS`, KEY_OF_SERVER_TREATMENT, "tr_id");
+        const result = yield pool.query(q, deconstructTreatement(treatment));
+        res.status(200).json(result.rows);
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).send(error.message);
+    }
+}));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
