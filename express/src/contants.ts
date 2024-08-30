@@ -76,5 +76,6 @@ export const KEY_OF_CLIENT_PRECORD = ["id"];
 for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
   KEY_OF_CLIENT_PRECORD.push(snakeToCamel(KEY_OF_SERVER_PRECORD[i]));
 }
-export const KEY_OF_SERVER_TREATMENT = ["tr_id", "tr_duration", "tr_point", "tr_title", "tr_group", "tr_price"];
+export const KEY_OF_SERVER_TREATMENT = ["tr_id", "tr_group", "tr_title", "tr_duration", "tr_point", "tr_price"];
 export const KEY_OF_CLIENT_TREATMENT = KEY_OF_SERVER_TREATMENT.map((key) => key.split("_")[1]);
+export const TREATMENTS = "TREATMENTS";

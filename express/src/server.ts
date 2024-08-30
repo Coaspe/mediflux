@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
-import { KEY_OF_CLIENT_PRECORD, KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT } from "./contants.js";
+import { KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT, TREATMENTS } from "./contants.js";
 
 dotenv.config();
 
@@ -309,6 +309,7 @@ app.get("/api/getAllVacantRooms", async (req, res) => {
   const tag = req.query.tag;
   if (!tag) {
     res.status(500).send("Invalid params");
+    return;
   }
   try {
     const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
@@ -334,6 +335,24 @@ app.put("/api/updateTreatment", async (req, res) => {
     console.log(error);
 
     res.status(500).send(error.message);
+  }
+});
+app.delete("/api/deleteTreatment", async (req, res) => {
+  const id = req.query.id;
+  const tag = req.query.tag;
+
+  if (!id || !tag) {
+    res.status(500).send("Invalid params");
+    return;
+  }
+
+  try {
+    const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE tr_id=${id}`;
+    console.log(q);
+    const result = await pool.query(q);
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.log(error);
   }
 });
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

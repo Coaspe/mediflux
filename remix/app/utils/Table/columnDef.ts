@@ -1,6 +1,6 @@
 /** @format */
 
-import { createdAtCell, createdAtEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit } from "~/components/Table/ColumnRenderers";
+import { createdAtCell, createdAtEdit, opReadinessCell, nameChipRendererByFieldname, treatmentCell, autoCompleteEdit, deleteCell } from "~/components/Table/ColumnRenderers";
 import {
   CREATED_AT,
   CREATED_AT_H,
@@ -166,7 +166,6 @@ export const treatmentGroupColumn = (searchHelp: Treatment[]): ColDef<Treatment,
     field: "group",
     headerName: "그룹",
     width: POINT_COLUMN_LENGTH,
-    cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
   };
 };
 
@@ -194,5 +193,20 @@ export const treatmentPriceColumn = (): ColDef<Treatment, number> => {
     headerName: "가격",
     width: SHORT_COLUMN_LENGTH,
     type: "number",
+  };
+};
+export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>): ColDef<Treatment, any> => {
+  return {
+    field: "delete",
+    headerName: "삭제",
+    width: SHORT_COLUMN_LENGTH,
+    cellStyle: () => {
+      return {
+        alignItems: "center",
+        justifyContent: "center",
+        display: "flex",
+      };
+    },
+    cellRenderer: ({ data, api }: CustomCellRendererProps) => deleteCell(data, setGlobalSnackbar, api),
   };
 };

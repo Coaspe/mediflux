@@ -49,3 +49,7 @@ export const getAllVacantRooms = async (tag: string) => {
 export const updateTreatment = async (treatment: Treatment, tag: string) => {
   return await axios.put(`http://localhost:5000/api/updateTreatment`, { treatment, tag });
 };
+
+export const deleteTreatement = async (id: string, tag: string) => {
+  return await axios.delete(`http://localhost:5000/api/deleteTreatment`, { params: { id, tag } });
+};

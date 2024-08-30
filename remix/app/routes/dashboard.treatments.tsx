@@ -3,7 +3,7 @@
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box, TextField } from "@mui/material";
+import { Box } from "@mui/material";
 import { convertServerTreatmentToClient } from "~/utils/utils";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, treatmentSearchHelpState, userState } from "~/recoil_state";
@@ -12,10 +12,10 @@ import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
 import { CustomAgGridReactProps, Treatment } from "~/type";
 import { ColDef, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn } from "~/utils/Table/columnDef";
-
+import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
+import TreatmentsHeader from "~/components/Treatments/Header";
+import "../css/Table.css";
 const SearchableList: React.FC = () => {
-  const user = useRecoilValue(userState);
   const [searchTerm, setSearchTerm] = useState("");
   const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
@@ -55,7 +55,7 @@ const SearchableList: React.FC = () => {
     };
     getTreatments();
   }, []);
-
+  // Columns definition
   useEffect(() => {
     setColDefs([
       { field: "id", headerName: "id", hide: true },
@@ -64,6 +64,7 @@ const SearchableList: React.FC = () => {
       treatmentDurationColumn(),
       treatmentPriceColumn(),
       treatmentPointColumn(),
+      treatementDeleteColumn(setGlobalSnackBar),
     ]);
   }, []);
 
@@ -119,9 +120,9 @@ const SearchableList: React.FC = () => {
   };
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 1000, mx: "auto", mt: 4 }}>
-      <TextField fullWidth label="Search" variant="outlined" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} sx={{ mb: 2 }} />
-      <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ width: "100%", height: "100%", maxWidth: 680, maxHeight: 600, mx: "auto", mt: 4 }}>
+      <TreatmentsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <div className="ag-theme-quartz" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <AgGridReact
           ref={gridRef}
           onCellEditingStopped={onCellEditingStopped}
@@ -129,7 +130,7 @@ const SearchableList: React.FC = () => {
           defaultColDef={defaultColDef}
           rowData={rowData}
           columnDefs={colDefs}
-          getRowId={(params) => params.data.id}
+          getRowId={(params) => params.data.id.toString()}
           pagination={true}
           paginationPageSize={20}
           rowSelection={"multiple"}

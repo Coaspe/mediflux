@@ -1,6 +1,6 @@
 /** @format */
 
-import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "../../type";
+import { CustomAgGridReactProps, PRecord, TableType } from "../../type";
 import { FC, RefObject, useState, useCallback } from "react";
 import { SCHEDULING_ROOM_ID } from "shared";
 import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";

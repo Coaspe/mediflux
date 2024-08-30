@@ -50,6 +50,7 @@ import {
   TREATMENT5_H,
   TEST_TAG,
 } from "~/constant";
+import dayjs from "dayjs";
 
 type SchedulingTableProps = {
   socket: Socket | null;
@@ -165,7 +166,11 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
         await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG);
         mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, roomId));
-        records.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+        records.sort((a, b) => {
+          const dateA = dayjs(a.createdAt ?? 0).valueOf();
+          const dateB = dayjs(b.createdAt ?? 0).valueOf();
+          return dateB - dateA;
+        });
         setRowData(records);
       } catch (error) {
         showErrorSnackbar("Internal server error");

@@ -3,15 +3,15 @@
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
-import { Menu, MenuItem, SubMenu } from "react-pro-sidebar";
+import { Menu, SubMenu } from "react-pro-sidebar";
 import { SideMenu, User } from "~/type";
-import DashboardHeader from "~/components/DashboardHeader";
 import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
 import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from "@remix-run/node";
 import { destoryBrowserSession, destroyUserSession, getUserSession } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
+import DashboardHeader from "~/components/Dashboard/Header";
 
 function MenuItemLi({
   onClick,

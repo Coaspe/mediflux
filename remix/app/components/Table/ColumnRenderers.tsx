@@ -1,10 +1,10 @@
 /** @format */
 
-import { ChipColor, OpReadiness, PRecord, SearchHelp, TableType } from "../../type";
+import { ChipColor, GlobalSnackBark, OpReadiness, PRecord, SearchHelp, TableType, Treatment } from "../../type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS_C, OP_READINESS_N, OP_READINESS_P, OP_READINESS_Y } from "~/constant";
+import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS_C, OP_READINESS_N, OP_READINESS_P, OP_READINESS_Y, TEST_TAG } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -17,7 +17,7 @@ import { autoCompleteKeyDownCapture, editAndStopRecord, getValueWithId, statusTr
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import { GridApi } from "ag-grid-community";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { SetterOrUpdater, useRecoilValue, useSetRecoilState } from "recoil";
 import { doctorSearchHelpState, globalSnackbarState, treatmentSearchHelpState, userState } from "~/recoil_state";
 import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
@@ -27,6 +27,9 @@ import ChecklistIcon from "@mui/icons-material/Checklist";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import Paper from "@mui/material/Paper";
 import ContentCut from "@mui/icons-material/ContentCut";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { deleteTreatement } from "~/utils/request.client";
 
 export const createdAtCell = (value: number) => {
   const date = dayjs(value).add(9, "hour");
@@ -370,4 +373,24 @@ export const nameChipRendererByRole = (role: Role, name?: string) => {
       break;
   }
   return name ? <Chip size="small" color={color} label={name} /> : <></>;
+};
+export const deleteCell = (data: Treatment, setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>, api: GridApi<Treatment>) => {
+  const onClick = async () => {
+    try {
+      const result = await deleteTreatement(data.id, TEST_TAG);
+
+      if (result.status && result.status === 200) {
+        api.applyTransaction({
+          remove: [data],
+        });
+      }
+    } catch (error: any) {
+      setGlobalSnackbar({ open: true, msg: "Internal server error", severity: "error" });
+    }
+  };
+  return (
+    <IconButton onClick={onClick}>
+      <DeleteIcon />
+    </IconButton>
+  );
 };

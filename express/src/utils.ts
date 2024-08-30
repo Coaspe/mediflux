@@ -45,6 +45,7 @@ export const deconstructTreatement = (treatment: any) => {
   for (const s of KEY_OF_CLIENT_TREATMENT) {
     newTreatment[s] = treatment[s];
   }
+  console.log(newTreatment);
 
   const values = Object.values(newTreatment);
   if (values && values.length > 0) {
