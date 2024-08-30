@@ -1,6 +1,11 @@
 /** @format */
+import { KEY_OF_CLIENT_PRECORD, KEY_OF_CLIENT_TREATMENT } from "./contants.js";
 export const deconstructRecord = (record) => {
-    const values = Object.values(record);
+    const newRecord = {};
+    for (const s of KEY_OF_CLIENT_PRECORD) {
+        newRecord[s] = record[s];
+    }
+    const values = Object.values(newRecord);
     if (values.length > 0) {
         const idOrCreatedAt = values.shift();
         if (record.id) {
@@ -32,6 +37,15 @@ export const lockOrUnlockRowsQuery = (tableName, length) => {
   WHERE record_id IN (${Array.from({ length }, (_, k) => `$${k + 2}`).join(", ")}) RETURNING *;`;
 };
 export const deconstructTreatement = (treatment) => {
-    const { id, duration, price, point, group, title } = treatment;
-    return [duration, point, title, group, price, id];
+    const newTreatment = {};
+    for (const s of KEY_OF_CLIENT_TREATMENT) {
+        newTreatment[s] = treatment[s];
+    }
+    const values = Object.values(newTreatment);
+    if (values && values.length > 0) {
+        if (treatment.id) {
+            values.push(values.shift());
+        }
+    }
+    return values;
 };

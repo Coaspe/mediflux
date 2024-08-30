@@ -19,6 +19,7 @@ export type User = {
   sessionId?: string | null;
 };
 export type Gender = "M" | "F";
+// Do not change fields order arbitrarily.
 export type PRecord = {
   id: string; // Unique record id
   createdAt?: string; // TIMESTAMP (e.g., "14:08")
@@ -121,6 +122,7 @@ export type ServerPRecord = {
   [key: string]: any;
 };
 
+// Do not change fields order arbitrarily.
 export type Treatment = SearchHelp & {
   duration: number | null;
   point: number | null;

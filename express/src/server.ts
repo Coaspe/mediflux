@@ -171,13 +171,7 @@ app.post("/api/insertRecords", async (req, res) => {
 
     const queryValues: any[] = [];
     records.forEach((record: any) => {
-      const newRecord: any = {};
-      for (const s of KEY_OF_CLIENT_PRECORD) {
-        newRecord[s] = record[s];
-      }
-
-      let value = deconstructRecord(newRecord);
-
+      let value = deconstructRecord(record);
       queryValues.push(...value);
     });
 

@@ -1,5 +1,16 @@
 /** @format */
 
+const snakeToCamel = (origin: string) => {
+  return origin
+    .split("_")
+    .map((word, index) => {
+      if (index === 0) {
+        return word.toLowerCase();
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join("");
+};
 export const JOIN_ROOM = "join-room";
 export const CONNECTED_USERS = "connected-users";
 export const LOCK_RECORD = "lock-record";
@@ -61,22 +72,9 @@ export const KEY_OF_SERVER_PRECORD = [
   "treatment_start_4",
   "treatment_start_5",
 ];
-
 export const KEY_OF_CLIENT_PRECORD = ["id"];
 for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
-  let element = KEY_OF_SERVER_PRECORD[i];
-  element = element
-    .split("_") // '_'을 기준으로 문자열을 나눕니다.
-    .map((word, index) => {
-      if (index === 0) {
-        // 첫 번째 단어는 첫 글자를 소문자로 유지
-        return word.toLowerCase();
-      }
-      // 나머지 단어는 첫 글자를 대문자로 변환
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join("");
-  KEY_OF_CLIENT_PRECORD.push(element);
+  KEY_OF_CLIENT_PRECORD.push(snakeToCamel(KEY_OF_SERVER_PRECORD[i]));
 }
-
 export const KEY_OF_SERVER_TREATMENT = ["tr_id", "tr_duration", "tr_point", "tr_title", "tr_group", "tr_price"];
+export const KEY_OF_CLIENT_TREATMENT = KEY_OF_SERVER_TREATMENT.map((key) => key.split("_")[1]);
