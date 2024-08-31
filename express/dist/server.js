@@ -334,4 +334,27 @@ app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 
         console.log(error);
     }
 }));
+app.post("/api/insertTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const tag = req.body.tag;
+    if (!tag) {
+        res.status(500).send("Invalid params");
+        return;
+    }
+    try {
+        let fieldnames = "(";
+        let values = "(";
+        for (let i = 1; i < KEY_OF_SERVER_TREATMENT.length; i++) {
+            fieldnames += `${KEY_OF_SERVER_TREATMENT[i]},`;
+            values += `$${i}`;
+        }
+        values += ")";
+        fieldnames += ")";
+        const q = `INSERT INTO ${tag}.${TREATMENTS} ${fieldnames} VALUES ${values} RETURNING *`;
+        const result = yield pool.query(q);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        console.log(error);
+    }
+}));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

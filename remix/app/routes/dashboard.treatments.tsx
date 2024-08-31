@@ -1,12 +1,10 @@
-/** @format */
-
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Box } from "@mui/material";
 import { convertServerTreatmentToClient } from "~/utils/utils";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
-import { globalSnackbarState, treatmentSearchHelpState, userState } from "~/recoil_state";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { globalSnackbarState, treatmentSearchHelpState } from "~/recoil_state";
 import { getAllTreatments, updateTreatment } from "~/utils/request.client";
 import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
 import { CustomAgGridReactProps, Treatment } from "~/type";
@@ -15,6 +13,7 @@ import { AgGridReact } from "ag-grid-react";
 import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
 import TreatmentsHeader from "~/components/Treatments/Header";
 import "../css/Table.css";
+
 const SearchableList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
@@ -121,7 +120,7 @@ const SearchableList: React.FC = () => {
 
   return (
     <Box sx={{ width: "100%", height: "100%", maxWidth: 680, maxHeight: 600, mx: "auto", mt: 4 }}>
-      <TreatmentsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <TreatmentsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} api={gridRef.current?.api} />
       <div className="ag-theme-quartz" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <AgGridReact
           ref={gridRef}
