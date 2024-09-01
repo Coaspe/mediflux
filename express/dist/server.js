@@ -1,4 +1,3 @@
-/** @format */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -16,9 +15,9 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
-import { CONNECTED_USERS, CONNECTION, CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID } from "shared";
+import { CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID, KEY_OF_SERVER_TREATMENT, KEY_OF_SERVER_PRECORD, CONNECTED_USERS, CONNECTION, } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
-import { KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT, TREATMENTS } from "./contants.js";
+import { TREATMENTS } from "./contants.js";
 dotenv.config();
 const { PGUSER, PGPASSWORD, PGHOST, PGPORT, PGDATABASE, PEMPATH } = process.env;
 const { Pool } = pkg;
@@ -326,7 +325,6 @@ app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 
     }
     try {
         const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE tr_id=${id}`;
-        console.log(q);
         const result = yield pool.query(q);
         res.status(200).json(result);
     }
@@ -341,17 +339,17 @@ app.post("/api/insertTreatment", (req, res) => __awaiter(void 0, void 0, void 0,
         return;
     }
     try {
-        let fieldnames = "(";
-        let values = "(";
-        for (let i = 1; i < KEY_OF_SERVER_TREATMENT.length; i++) {
-            fieldnames += `${KEY_OF_SERVER_TREATMENT[i]},`;
-            values += `$${i}`;
-        }
-        values += ")";
-        fieldnames += ")";
-        const q = `INSERT INTO ${tag}.${TREATMENTS} ${fieldnames} VALUES ${values} RETURNING *`;
-        const result = yield pool.query(q);
-        res.status(200).json(result);
+        yield pool.connect();
+        // Step 1: Get the current maximum tr_id from the table
+        const maxIdResult = yield pool.query("SELECT MAX(tr_id) AS max_id FROM gn_ss_bailor.TREATMENTS");
+        let maxId = maxIdResult.rows[0].max_id || 0;
+        maxId += 1;
+        // Step 3: Insert the new row with DEFAULT VALUES and return the result
+        const insertQuery = `
+      INSERT INTO gn_ss_bailor.TREATMENTS (tr_id) VALUES (${maxId}) RETURNING *;
+    `;
+        const insertResult = yield pool.query(insertQuery);
+        res.status(200).json(insertResult);
     }
     catch (error) {
         console.log(error);

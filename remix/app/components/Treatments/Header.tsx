@@ -21,16 +21,21 @@ const TreatmentsHeader: FC<TreatmentHeaderProps> = ({ searchTerm, setSearchTerm,
   const onClick = async () => {
     try {
       const result = await insertTreatment(TEST_TAG);
+      console.log(result);
 
       if (result.status && result.status === 200) {
         const row = result.data.rows[0];
         if (row && api) {
+          console.log(row);
+
           api.applyTransaction({
             add: [convertServerTreatmentToClient(row)],
+            addIndex: 0,
           });
         }
       }
     } catch (error: any) {
+      console.log(error);
       setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
     }
   };

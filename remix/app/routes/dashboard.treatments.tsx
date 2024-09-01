@@ -32,15 +32,23 @@ const SearchableList: React.FC = () => {
         if (rows.data) {
           const convertedData: Treatment[] = rows.data.map((t: any) => {
             let ret = convertServerTreatmentToClient(t);
-            ret.searchTitle = ret.title.replace(/\s/g, "");
+            if (ret.title) {
+              ret.searchTitle = ret.title.replace(/\s/g, "");
+            }
             return ret;
           });
           convertedData.sort((a, b) => {
-            const groupComparison = a.group.localeCompare(b.group, "ko");
-            if (groupComparison !== 0) {
-              return groupComparison; // 1순위: group 기준 정렬
+            if (a.group && b.group) {
+              const groupComparison = a.group.localeCompare(b.group, "ko");
+              if (groupComparison !== 0) {
+                return groupComparison; // 1순위: group 기준 정렬
+              } else {
+                return a.title.localeCompare(b.title, "ko"); // 2순위: title 기준 정렬
+              }
+            } else if (b.group) {
+              return 1;
             } else {
-              return a.title.localeCompare(b.title, "ko"); // 2순위: title 기준 정렬
+              return -1;
             }
           });
           setOriginData(convertedData);

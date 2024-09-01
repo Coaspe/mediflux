@@ -1,5 +1,5 @@
 /** @format */
-import { KEY_OF_CLIENT_PRECORD, KEY_OF_CLIENT_TREATMENT } from "./contants.js";
+import { KEY_OF_CLIENT_PRECORD, KEY_OF_CLIENT_TREATMENT } from "shared";
 export const deconstructRecord = (record) => {
     const newRecord = {};
     for (const s of KEY_OF_CLIENT_PRECORD) {
@@ -41,7 +41,6 @@ export const deconstructTreatement = (treatment) => {
     for (const s of KEY_OF_CLIENT_TREATMENT) {
         newTreatment[s] = treatment[s];
     }
-    console.log(newTreatment);
     const values = Object.values(newTreatment);
     if (values && values.length > 0) {
         if (treatment.id) {

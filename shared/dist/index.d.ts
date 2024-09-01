@@ -31,6 +31,11 @@ declare module "shared" {
     readonly NURSE: "nurse";
     readonly STAFF: "staff";
   };
+
+  export const KEY_OF_SERVER_PRECORD: string[];
+  export const KEY_OF_CLIENT_PRECORD: string[];
+  export const KEY_OF_SERVER_TREATMENT: string[];
+  export const KEY_OF_CLIENT_TREATMENT: string[];
   export const PORT: number;
 
   export type TreatmentCategory = SHURINK | INMODE | OLIGIO | ULTHERA | THERMAGE | LDM | LIFTING | LASER_TONING | TATTOO_LASER | DOT_LASER;

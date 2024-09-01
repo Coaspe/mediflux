@@ -53,3 +53,7 @@ export const updateTreatment = async (treatment: Treatment, tag: string) => {
 export const deleteTreatement = async (id: string, tag: string) => {
   return await axios.delete(`http://localhost:5000/api/deleteTreatment`, { params: { id, tag } });
 };
+
+export const insertTreatment = async (tag: string) => {
+  return await axios.post(`http://localhost:5000/api/insertTreatment`, { tag });
+};
