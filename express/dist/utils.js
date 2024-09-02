@@ -7,11 +7,11 @@ export const deconstructRecord = (record) => {
     }
     const values = Object.values(newRecord);
     if (values.length > 0) {
-        const idOrCreatedAt = values.shift();
-        if (record.id) {
-            values.push(idOrCreatedAt);
+        const id = values.shift();
+        if (newRecord.id) {
+            values.push(id);
         }
-        else {
+        if (!newRecord.createdAt) {
             values.shift();
         }
     }
@@ -26,7 +26,7 @@ export const updateQuery = (tableName, keys, idfieldName) => {
             baseQuery += ", ";
         }
     }
-    baseQuery += ` WHERE ${idfieldName}=$${keys.length}`;
+    baseQuery += ` WHERE ${idfieldName}=$${keys.length} RETURNING *`;
     return baseQuery;
 };
 export const setUserSessionQuery = (tableName) => {

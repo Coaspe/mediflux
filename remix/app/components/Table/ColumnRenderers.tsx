@@ -30,9 +30,11 @@ import ContentCut from "@mui/icons-material/ContentCut";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { deleteTreatement } from "~/utils/request.client";
+import UndoIcon from "@mui/icons-material/Undo";
 
-export const createdAtCell = (value: number) => {
+export const createdAtCell = (value: string) => {
   const date = dayjs(value).add(9, "hour");
+
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
       <span>
@@ -209,7 +211,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         {cancelItemTitle && (
           <MenuItem onClick={handleCancel}>
             <ListItemIcon>
-              <ContentCut fontSize="small" />
+              <UndoIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>{cancelItemTitle}</ListItemText>
           </MenuItem>
@@ -217,8 +219,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         <CustomToolTip
           disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
           title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-          dir="left"
-        >
+          dir="left">
           <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
             <ListItemIcon>{confirmIcon}</ListItemIcon>
             <ListItemText>{confirmItemTitle}</ListItemText>
@@ -274,8 +275,7 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}
-          >
+            }`}>
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>
@@ -326,9 +326,11 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
       onHighlightChange={(_, option) => {
         optionRef.current = option;
       }}
+      key={colDef.field}
       options={searchHelp}
       groupBy={(option) => option.group}
       getOptionLabel={(option) => option.title}
+      getOptionKey={(option) => option.id}
       onChange={(_, value) => onChange(value)}
       value={option}
       onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, optionRef, setModalOpen)}

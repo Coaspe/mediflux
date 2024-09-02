@@ -171,6 +171,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
           const dateB = dayjs(b.createdAt ?? 0).valueOf();
           return dateB - dateA;
         });
+
         setRowData(records);
       } catch (error) {
         showErrorSnackbar("Internal server error");
@@ -210,10 +211,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, api: GridApi<PRecord>) => {
     record.lockingUser = null;
 
-    // Open modal
-    if ((field === OP_READINESS && oldValue !== OP_READINESS_Y && newValue === OP_READINESS_Y) || (oldValue !== OP_READINESS_C && newValue === OP_READINESS_C)) {
-      return;
-    }
+    // // Open modal
+    // if ((field === OP_READINESS && oldValue !== OP_READINESS_Y && newValue === OP_READINESS_Y) || (oldValue !== OP_READINESS_C && newValue === OP_READINESS_C)) {
+    //   return;
+    // }
 
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 

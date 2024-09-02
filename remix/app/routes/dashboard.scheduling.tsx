@@ -23,8 +23,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       const result = await getUserByID(sessionData.id);
       if ("user" in result) {
         const where = [];
-        where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
-        where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
+        // where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
+        // where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
         const { data } = await getRecords(where, TEST_TAG);
         return json({ user: result.user, records: data.rows });
       }
@@ -64,9 +64,12 @@ export default function Scheduling() {
     if (!user || user.id != suser.id) {
       setUser(suser);
     }
+    console.log(records);
 
     if (user) {
       const recordsData: PRecord[] = records.map((record: any) => convertServerPRecordtToPRecord(record));
+      console.log(readyData);
+
       const ready = [];
       const exceptReady = [];
 

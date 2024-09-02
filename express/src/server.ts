@@ -1,3 +1,5 @@
+/** @format */
+
 import express, { Express } from "express";
 import { Server } from "socket.io";
 import http from "http";
@@ -189,6 +191,7 @@ app.post("/api/insertRecords", async (req, res) => {
     });
 
     const result = await pool.query(query, queryValues);
+    console.log(result);
 
     res.status(200).json(result);
   } catch (error) {
@@ -210,7 +213,7 @@ app.put("/api/updateRecord", async (req, res) => {
     const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
 
     const values = deconstructRecord(record);
-    console.log(values);
+    console.log(values, query);
 
     const result = await pool.query(query, values);
     console.log(result);

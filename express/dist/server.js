@@ -1,3 +1,4 @@
+/** @format */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -160,6 +161,7 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
             queryValues.push(...value);
         });
         const result = yield pool.query(query, queryValues);
+        console.log(result);
         res.status(200).json(result);
     }
     catch (error) {
@@ -178,7 +180,7 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
         const values = deconstructRecord(record);
-        console.log(values);
+        console.log(values, query);
         const result = yield pool.query(query, values);
         console.log(result);
         res.status(200).json(result);

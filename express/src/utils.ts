@@ -9,12 +9,12 @@ export const deconstructRecord = (record: any) => {
   }
 
   const values = Object.values(newRecord);
-
   if (values.length > 0) {
-    const idOrCreatedAt = values.shift();
-    if (record.id) {
-      values.push(idOrCreatedAt);
-    } else {
+    const id = values.shift();
+    if (newRecord.id) {
+      values.push(id);
+    }
+    if (!newRecord.createdAt) {
       values.shift();
     }
   }
@@ -29,7 +29,7 @@ export const updateQuery = (tableName: string, keys: string[], idfieldName: stri
       baseQuery += ", ";
     }
   }
-  baseQuery += ` WHERE ${idfieldName}=$${keys.length}`;
+  baseQuery += ` WHERE ${idfieldName}=$${keys.length} RETURNING *`;
   return baseQuery;
 };
 
