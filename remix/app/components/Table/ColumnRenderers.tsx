@@ -130,22 +130,38 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
 
   useEffect(() => {
     setConfirmItemTitle(() => {
+      const start = record[`treatmentStart${treatmentNumber}`];
+      const ready = record[`treatmentReady${treatmentNumber}`];
+      const end = record[`treatmentEnd${treatmentNumber}`];
+
       if (record.opReadiness === OP_READINESS_N) {
-        setConfirmIcon(<ChecklistIcon fontSize="small" />);
-        if (record[`treatmentEnd${treatmentNumber}`]) {
+        if (end) {
           setCancelItemTitle("시술 완료 취소");
         }
-        return "준비 완료";
+        if (!ready) {
+          setConfirmIcon(<ChecklistIcon fontSize="small" />);
+          return "준비 완료";
+        }
+        return "";
       } else if (record.opReadiness === OP_READINESS_P) {
-        setConfirmIcon(<CheckCircleIcon fontSize="small" />);
-        setCancelItemTitle("시술 시작 취소");
-        return "시술 완료";
+        if (start) {
+          setConfirmIcon(<CheckCircleIcon fontSize="small" />);
+          setCancelItemTitle("시술 시작 취소");
+          return "시술 완료";
+        }
+        return "";
       } else if (record.opReadiness === OP_READINESS_Y) {
-        setConfirmIcon(<ContentCut fontSize="small" />);
-        setCancelItemTitle("준비 취소");
-        return "시술 시작";
+        if (ready) {
+          setConfirmIcon(<ContentCut fontSize="small" />);
+          setCancelItemTitle("준비 취소");
+          return "시술 시작";
+        }
+        return "";
       } else if (record.opReadiness === OP_READINESS_C) {
-        setCancelItemTitle("시술 완료 취소");
+        if (end) {
+          setCancelItemTitle("시술 완료 취소");
+        }
+        return "";
       }
       return "";
     });
@@ -166,8 +182,6 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       } else {
         return;
       }
-      console.log(record);
-
       record.opReadiness = statusTransition(record);
       editAndStopRecord(api, record);
     } catch (error) {
@@ -217,16 +231,18 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
             <ListItemText>{cancelItemTitle}</ListItemText>
           </MenuItem>
         )}
-        <CustomToolTip
-          disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
-          title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-          dir="left"
-        >
-          <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
-            <ListItemIcon>{confirmIcon}</ListItemIcon>
-            <ListItemText>{confirmItemTitle}</ListItemText>
-          </MenuItem>
-        </CustomToolTip>
+        {confirmItemTitle && (
+          <CustomToolTip
+            disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
+            title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
+            dir="left"
+          >
+            <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
+              <ListItemIcon>{confirmIcon}</ListItemIcon>
+              <ListItemText>{confirmItemTitle}</ListItemText>
+            </MenuItem>
+          </CustomToolTip>
+        )}
       </MenuList>
     </Paper>
   );
@@ -255,14 +271,14 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
   const ready = data[`treatmentReady${number}`];
   const start = data[`treatmentStart${number}`];
   const searchHelp = useRecoilValue(treatmentSearchHelpState);
+
   const canBeAssigned = data.opReadiness === OP_READINESS_Y && ready && !start && !end;
   const isInProgressTreatment = data.opReadiness === OP_READINESS_P && ready && start && !end;
   const canBeReady = data.opReadiness === OP_READINESS_N && !ready && !start && !end;
-  const isCompleted = data.opReadiness === OP_READINESS_C;
-
+  const canBeCanceled = (data.opReadiness === OP_READINESS_N || data.opReadiness === OP_READINESS_C) && ready && start && end;
   const [open, setOpen] = useState(false);
 
-  const disableHoverListener = (!canBeAssigned && !isInProgressTreatment && !canBeReady && !isCompleted) || !value;
+  const disableHoverListener = (!canBeAssigned && !isInProgressTreatment && !canBeReady && !canBeCanceled) || !value;
 
   const onMouseEnter = () => {
     setOpen(!disableHoverListener);
