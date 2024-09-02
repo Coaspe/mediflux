@@ -13,6 +13,7 @@ export type User = {
   userid: string;
   name: string;
   resignFlag: boolean;
+  clinic: string;
   image?: string;
   role?: Role;
   point?: number;

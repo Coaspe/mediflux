@@ -74,15 +74,16 @@ io.on(CONNECTION, (socket) => {
     });
 });
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId, role, password, firstName, lastName } = req.body;
+    const { userId, role, password, firstName, lastName, clinic } = req.body;
     try {
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const regisgerResult = yield pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5) RETURNING *;`, [
+        const regisgerResult = yield pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw, clinic ) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`, [
             role,
             firstName,
             lastName,
             userId,
             hashedPassword,
+            clinic,
         ]);
         if (regisgerResult.rowCount === 1) {
             return res.status(200).json({ user: regisgerResult.rows[0] });
@@ -161,11 +162,9 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
             queryValues.push(...value);
         });
         const result = yield pool.query(query, queryValues);
-        console.log(result);
         res.status(200).json(result);
     }
     catch (error) {
-        console.log(error);
         res.status(500).send("Error inserting records.");
     }
     finally {
@@ -180,9 +179,7 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
         const values = deconstructRecord(record);
-        console.log(values, query);
         const result = yield pool.query(query, values);
-        console.log(result);
         res.status(200).json(result);
     }
     catch (error) {

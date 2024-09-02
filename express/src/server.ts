@@ -96,16 +96,17 @@ io.on(CONNECTION, (socket) => {
 });
 
 app.post("/api/register", async (req, res) => {
-  const { userId, role, password, firstName, lastName } = req.body;
+  const { userId, role, password, firstName, lastName, clinic } = req.body;
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const regisgerResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw ) VALUES($1, $2, $3, $4, $5) RETURNING *;`, [
+    const regisgerResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw, clinic ) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`, [
       role,
       firstName,
       lastName,
       userId,
       hashedPassword,
+      clinic,
     ]);
     if (regisgerResult.rowCount === 1) {
       return res.status(200).json({ user: regisgerResult.rows[0] });
@@ -191,12 +192,9 @@ app.post("/api/insertRecords", async (req, res) => {
     });
 
     const result = await pool.query(query, queryValues);
-    console.log(result);
 
     res.status(200).json(result);
   } catch (error) {
-    console.log(error);
-
     res.status(500).send("Error inserting records.");
   } finally {
   }
@@ -213,10 +211,7 @@ app.put("/api/updateRecord", async (req, res) => {
     const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
 
     const values = deconstructRecord(record);
-    console.log(values, query);
-
     const result = await pool.query(query, values);
-    console.log(result);
 
     res.status(200).json(result);
   } catch (error) {

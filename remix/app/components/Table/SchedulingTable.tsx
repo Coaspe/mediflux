@@ -33,23 +33,7 @@ import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
 import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils";
 import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
-import {
-  LOCKING_USER,
-  OP_READINESS_C,
-  OP_READINESS_Y,
-  OP_READINESS,
-  TREATMENT1,
-  TREATMENT1_H,
-  TREATMENT2,
-  TREATMENT2_H,
-  TREATMENT3,
-  TREATMENT3_H,
-  TREATMENT4,
-  TREATMENT4_H,
-  TREATMENT5,
-  TREATMENT5_H,
-  TEST_TAG,
-} from "~/constant";
+import { LOCKING_USER, TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H, TEST_TAG } from "~/constant";
 import dayjs from "dayjs";
 
 type SchedulingTableProps = {
@@ -220,6 +204,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     try {
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
+      console.log(record);
+
       const updateResult = await updateRecord(record, TEST_TAG);
 
       if (updateResult.status === 200) {
@@ -227,6 +213,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         gridRef.current?.api.applyTransaction({
           update: [record],
         });
+        console.log(rowData);
+
         if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
           moveRecord(gridRef, theOtherGridRef, record);
         }
@@ -255,9 +243,12 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       onLineChangingdEditingStoppedRef.current = false;
       return;
     }
+    console.log(event.data);
 
     if (event.data && event.colDef.field && gridRef.current) {
       const data: PRecord = JSON.parse(JSON.stringify(event.data));
+      console.log(data);
+
       saveRecord(data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
     }
   };

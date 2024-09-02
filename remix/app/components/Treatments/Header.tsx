@@ -26,8 +26,6 @@ const TreatmentsHeader: FC<TreatmentHeaderProps> = ({ searchTerm, setSearchTerm,
       if (result.status && result.status === 200) {
         const row = result.data.rows[0];
         if (row && api) {
-          console.log(row);
-
           api.applyTransaction({
             add: [convertServerTreatmentToClient(row)],
             addIndex: 0,

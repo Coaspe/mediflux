@@ -6,6 +6,7 @@ import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
+import { TEST_TAG } from "~/constant";
 
 // const sessionSecret = process.env.SESSION_SECRET;
 const sessionSecret = "remxe12i2mfdmx";
@@ -65,7 +66,7 @@ export async function createUserSession(user: User, redirectTo: string, request:
 
 export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
   try {
-    let result = await axios.post("http://localhost:5000/api/register", { userId, password, role, firstName, lastName });
+    let result = await axios.post("http://localhost:5000/api/register", { userId, password, role, firstName, lastName, clinic: TEST_TAG });
     return result;
   } catch (error: any) {
     return error;

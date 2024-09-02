@@ -39,8 +39,6 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
   for (let i = 0; i < searchHelp.length; i++) {
     const element = searchHelp[i];
     if (element.id == id) {
-      console.log(searchHelp[i]);
-
       return searchHelp[i];
     }
   }
@@ -48,7 +46,7 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
 };
 
 export const convertServerUserToClientUser = (user: ServerUser) => {
-  return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id } as User;
+  return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id, clinic: user.clinic } as User;
 };
 export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
   return {

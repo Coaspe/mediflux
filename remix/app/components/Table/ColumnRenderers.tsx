@@ -33,7 +33,7 @@ import { deleteTreatement } from "~/utils/request.client";
 import UndoIcon from "@mui/icons-material/Undo";
 
 export const createdAtCell = (value: string) => {
-  const date = dayjs(value).add(9, "hour");
+  const date = dayjs(value);
 
   return (
     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -166,6 +166,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       } else {
         return;
       }
+      console.log(record);
 
       record.opReadiness = statusTransition(record);
       editAndStopRecord(api, record);
@@ -219,7 +220,8 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         <CustomToolTip
           disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
           title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-          dir="left">
+          dir="left"
+        >
           <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
             <ListItemIcon>{confirmIcon}</ListItemIcon>
             <ListItemText>{confirmItemTitle}</ListItemText>
@@ -275,7 +277,8 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}>
+            }`}
+          >
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>
@@ -288,6 +291,7 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
   const optionRef = useRef<SearchHelp | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const isFirstKeyDown = useRef<boolean>(true);
+  const [sortedSearchHelp, setSortedSearchHelp] = useState<SearchHelp[]>(searchHelp);
   const [option, setOption] = useState<SearchHelp | null>(null);
 
   useEffect(() => {
@@ -298,6 +302,17 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
 
   useEffect(() => {
     setOption(searchHelp.find((t) => t.id == value) || null);
+    setSortedSearchHelp(
+      [...searchHelp].sort((a, b) => {
+        const groupA = a.group || "";
+        const groupB = b.group || "";
+
+        if (groupA === "" && groupB === "") return 0;
+        if (groupA === "") return 1;
+        if (groupB === "") return -1;
+        return groupA.localeCompare(groupB, "ko");
+      })
+    );
   }, [searchHelp]);
 
   const onChange = (newValue: SearchHelp | null) => {
@@ -327,8 +342,8 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
         optionRef.current = option;
       }}
       key={colDef.field}
-      options={searchHelp}
-      groupBy={(option) => option.group}
+      options={sortedSearchHelp}
+      groupBy={(option: SearchHelp) => option.group}
       getOptionLabel={(option) => option.title}
       getOptionKey={(option) => option.id}
       onChange={(_, value) => onChange(value)}
