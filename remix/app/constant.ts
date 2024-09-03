@@ -3,11 +3,6 @@
 import { OpReadiness, SearchHelp, Treatment, User } from "./type";
 
 export const TEST_TAG = "gn_ss_bailor";
-export const SERVERUSER_CLIENTUSER_MAPPING = {
-  login_id: "userid" as keyof User,
-  login_pw: "password" as keyof User,
-  contact_id: "id" as keyof User,
-};
 
 export const SIDE_MENU = {
   SCHEDULING: "scheduling",

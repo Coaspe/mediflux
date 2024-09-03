@@ -241,9 +241,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                 )}
               </div>
             </Form>
-            {/* <p className="text-blue-500 hover:underline cursor-pointer font-noto" onClick={changeMode}>
+            <p className="text-blue-500 hover:underline cursor-pointer font-noto" onClick={changeMode}>
               {isLoginMode ? "회원가입" : "로그인"}
-            </p> */}
+            </p>
           </div>
         </div>
       </div>

@@ -43,7 +43,6 @@ export const ROLE = {
   NURSE: "nurse",
   STAFF: "staff",
 } as const;
-
 export const KEY_OF_SERVER_PRECORD = [
   "record_id",
   "created_at",

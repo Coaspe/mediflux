@@ -46,7 +46,7 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
 };
 
 export const convertServerUserToClientUser = (user: ServerUser) => {
-  return { id: user.contact_id, userid: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id, clinic: user.clinic } as User;
+  return { id: user.contact_id, loginId: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id, clinic: user.clinic } as User;
 };
 export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
   return {

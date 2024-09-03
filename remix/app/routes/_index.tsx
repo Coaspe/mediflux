@@ -10,6 +10,7 @@ import { ROLE, ServerUser } from "shared";
 import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";
 import "../css/Animation.scss";
+import { convertServerUserToClientUser } from "~/utils/utils";
 async function validateUserid(userId: string) {
   if (userId.length <= 3) {
     return "아이디는 4글자 이상이어야합니다.";
@@ -90,7 +91,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
       const user = result.user as ServerUser;
 
-      const clientUser = { id: user.contact_id, userid: user.login_id, role: ROLE.DOCTOR } as User;
+      const clientUser = { id: user.contact_id, loginId: user.login_id, role: ROLE.DOCTOR } as User;
 
       return await createUserSession(clientUser, redirectTo, request);
     }
@@ -126,7 +127,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
 
       if (result.status === 200) {
         const user = result.data.user as ServerUser;
-        const clientUser = { id: user.contact_id, name: firstName + lastName, role: user.user_role } as User;
+        const clientUser = convertServerUserToClientUser(user);
 
         return await createUserSession(clientUser, redirectTo, request);
       }

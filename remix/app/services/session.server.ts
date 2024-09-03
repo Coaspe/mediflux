@@ -8,7 +8,7 @@ import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
 import { TEST_TAG } from "~/constant";
 
-const sessionSecret = process.env.SESSION_SECRET;
+const sessionSecret = process.env.SESSION_SECRET || "";
 if (!sessionSecret) {
   throw new Error("SESSION_SECRET must be set");
 }
@@ -35,7 +35,6 @@ export async function login({ userId, password }: LoginForm) {
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {
-    console.log(error);
     return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
   }
 }
@@ -61,7 +60,7 @@ export async function createUserSession(user: User, redirectTo: string, request:
       },
     });
   }
-  return redirect("/");
+  return redirect("/dashboard/scheduling");
 }
 
 export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
@@ -95,7 +94,7 @@ export async function getUserSession(request: Request) {
 
   const sessionId = encryptSessionId(ip, browser, sessionSecret, userId);
 
-  if (userId === process.env.ADMIN) {
+  if (userId === process.env.ADMIN || userId === process.env.ADMIN2) {
     return { status: "active", id: userId, sessionId };
   }
 
@@ -120,9 +119,13 @@ export async function getUserSession(request: Request) {
   return { status: "active", id: userId, sessionId: sessionId };
 }
 
+export async function destoryDBSession(userId: string) {
+  return await setUserSession({ id: userId, sessionId: null } as User);
+}
+
 export async function destroyUserSession(request: Request, userId: string) {
   try {
-    const result = await setUserSession({ id: userId, sessionId: null } as User);
+    const result = await destoryDBSession(userId);
     if (result.statusCode == 200) {
       return destoryBrowserSession("/", request);
     }

@@ -10,13 +10,10 @@ import { AgGridReact } from "ag-grid-react";
 export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
 export type User = {
   id: string;
-  userid: string;
+  loginId: string;
   name: string;
-  resignFlag: boolean;
   clinic: string;
-  image?: string;
   role?: Role;
-  point?: number;
   sessionId?: string | null;
 };
 export type Gender = "M" | "F";
