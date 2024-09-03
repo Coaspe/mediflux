@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const sessionData = await getUserSession(request);
+    console.log(dayjs().startOf("day").toISOString());
 
     if (sessionData.id) {
       const result = await getUserByID(sessionData.id);

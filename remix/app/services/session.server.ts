@@ -33,6 +33,8 @@ export async function login({ userId, password }: LoginForm) {
   try {
     const response = await axios.post("http://localhost:5000/api/login", { userId, password }, { withCredentials: true });
     if (response.status === 200) {
+      console.log(response.data.user);
+
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {

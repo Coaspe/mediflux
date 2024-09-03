@@ -235,8 +235,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
           <CustomToolTip
             disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
             title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-            dir="left"
-          >
+            dir="left">
             <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
               <ListItemIcon>{confirmIcon}</ListItemIcon>
               <ListItemText>{confirmItemTitle}</ListItemText>
@@ -293,8 +292,7 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}
-          >
+            }`}>
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>
@@ -319,15 +317,17 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
   useEffect(() => {
     setOption(searchHelp.find((t) => t.id == value) || null);
     setSortedSearchHelp(
-      [...searchHelp].sort((a, b) => {
-        const groupA = a.group || "";
-        const groupB = b.group || "";
+      [...searchHelp]
+        .sort((a, b) => {
+          const groupA = a.group || "";
+          const groupB = b.group || "";
 
-        if (groupA === "" && groupB === "") return 0;
-        if (groupA === "") return 1;
-        if (groupB === "") return -1;
-        return groupA.localeCompare(groupB, "ko");
-      })
+          if (groupA === "" && groupB === "") return 0;
+          if (groupA === "") return 1;
+          if (groupB === "") return -1;
+          return groupA.localeCompare(groupB, "ko");
+        })
+        .filter((v) => v.title)
     );
   }, [searchHelp]);
 
