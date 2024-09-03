@@ -90,8 +90,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     if (!socket) return;
     socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
-    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, tableType, theOtherGridRef));
-    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType, audioRef));
+    socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, tableType, audioRef, theOtherGridRef));
+    socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType));
     socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType));
 
     return () => {
@@ -194,11 +194,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, api: GridApi<PRecord>) => {
     record.lockingUser = null;
-
-    // // Open modal
-    // if ((field === OP_READINESS && oldValue !== OP_READINESS_Y && newValue === OP_READINESS_Y) || (oldValue !== OP_READINESS_C && newValue === OP_READINESS_C)) {
-    //   return;
-    // }
 
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 

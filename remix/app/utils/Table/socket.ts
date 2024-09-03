@@ -72,6 +72,7 @@ export const onSaveRecord = (
   { records, tableType }: { records: PRecord[]; tableType: TableType; propertyName: string; newValue: any },
   gridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
+  audioRef: RefObject<HTMLAudioElement>,
   theOtherGridRef?: RefObject<CustomAgGridReactProps<any>>
 ) => {
   if (curTableType !== tableType || !records) return;
@@ -82,6 +83,11 @@ export const onSaveRecord = (
         const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
         if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
           moveRecord(gridRef, theOtherGridRef, record);
+          console.log(theOtherGridRef.current?.tableType);
+
+          if (theOtherGridRef.current?.tableType === "Ready") {
+            audioRef.current?.play();
+          }
         } else {
           const row = gridRef.current?.api.getRowNode(record.id);
           if (row) {
@@ -108,12 +114,7 @@ const applyTransactionWithEvent = (gridRef: RefObject<CustomAgGridReactProps<any
   }
 };
 
-export const onCreateRecord = (
-  { records, tableType }: { records: PRecord[]; tableType: TableType },
-  gridRef: RefObject<CustomAgGridReactProps<any>>,
-  curTableType: TableType,
-  audioRef?: RefObject<HTMLAudioElement>
-) => {
+export const onCreateRecord = ({ records, tableType }: { records: PRecord[]; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
     const transaction = {
@@ -123,9 +124,6 @@ export const onCreateRecord = (
 
     applyTransactionWithEvent(gridRef, transaction);
     focusEditingRecord(gridRef);
-    if (audioRef && audioRef.current && tableType === "Ready") {
-      audioRef.current.play();
-    }
   }
 };
 export const onDeleteRecord = ({ recordIds, tableType }: { recordIds: string[]; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
