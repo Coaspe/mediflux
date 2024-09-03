@@ -18,7 +18,6 @@ import dayjs from "dayjs";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const sessionData = await getUserSession(request);
-    console.log(dayjs().startOf("day").toISOString());
 
     if (sessionData.id) {
       const result = await getUserByID(sessionData.id);
@@ -69,8 +68,6 @@ export default function Scheduling() {
 
     if (user) {
       const recordsData: PRecord[] = records.map((record: any) => convertServerPRecordtToPRecord(record));
-      console.log(readyData);
-
       const ready = [];
       const exceptReady = [];
 

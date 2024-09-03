@@ -8,8 +8,7 @@ import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
 import { TEST_TAG } from "~/constant";
 
-// const sessionSecret = process.env.SESSION_SECRET;
-const sessionSecret = "remxe12i2mfdmx";
+const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret) {
   throw new Error("SESSION_SECRET must be set");
 }
@@ -33,11 +32,10 @@ export async function login({ userId, password }: LoginForm) {
   try {
     const response = await axios.post("http://localhost:5000/api/login", { userId, password }, { withCredentials: true });
     if (response.status === 200) {
-      console.log(response.data.user);
-
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {
+    console.log(error);
     return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
   }
 }

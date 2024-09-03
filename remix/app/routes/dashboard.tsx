@@ -98,7 +98,6 @@ export default function Dashboard() {
     if (isSideMenu(path[path.length - 1])) {
       setClickedMenu(path[path.length - 1] as SideMenu);
     }
-    console.log(SIDE_MENU);
   }, []);
 
   return user ? (

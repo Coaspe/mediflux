@@ -204,7 +204,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     try {
       const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
-      console.log(record);
 
       const updateResult = await updateRecord(record, TEST_TAG);
 
@@ -213,7 +212,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         gridRef.current?.api.applyTransaction({
           update: [record],
         });
-        console.log(rowData);
 
         if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
           moveRecord(gridRef, theOtherGridRef, record);
@@ -243,12 +241,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       onLineChangingdEditingStoppedRef.current = false;
       return;
     }
-    console.log(event.data);
 
     if (event.data && event.colDef.field && gridRef.current) {
       const data: PRecord = JSON.parse(JSON.stringify(event.data));
-      console.log(data);
-
       saveRecord(data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
     }
   };

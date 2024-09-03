@@ -1,3 +1,5 @@
+/** @format */
+
 import { Dispatch, FC, SetStateAction } from "react";
 import { TextField } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
@@ -21,7 +23,6 @@ const TreatmentsHeader: FC<TreatmentHeaderProps> = ({ searchTerm, setSearchTerm,
   const onClick = async () => {
     try {
       const result = await insertTreatment(TEST_TAG);
-      console.log(result);
 
       if (result.status && result.status === 200) {
         const row = result.data.rows[0];
