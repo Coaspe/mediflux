@@ -25,14 +25,14 @@ import {
   treatmentRoomColumn,
 } from "~/utils/Table/columnDef";
 import "../../css/Table.css";
-import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD } from "shared";
-import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord } from "~/utils/Table/socket";
+import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, SCHEDULING_ROOM_ID } from "shared";
+import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord, emitCreateRecords } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
-import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils";
-import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
+import { checkIsInvaildRecord, convertServerPRecordtToPRecord, getEditingCell, moveRecord } from "~/utils/utils";
+import { insertRecords, lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
 import { LOCKING_USER, TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H, TEST_TAG } from "~/constant";
 import dayjs from "dayjs";
 
@@ -67,9 +67,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   // Add custom tracnsaction event listener
   useEffect(() => {
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
-      if (getEditingCell(gridRef)) {
-        onLineChangingdEditingStoppedRef.current = true;
-      }
+      onLineChangingdEditingStoppedRef.current = true;
     };
 
     if (gridRef.current && gridRef.current.api) {
@@ -230,6 +228,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       isTabPressed.current = false;
       return;
     }
+
+    console.log("Stop", onLineChangingdEditingStoppedRef.current);
 
     // Prevents edit mode to be stopped when line changed.
     if (onLineChangingdEditingStoppedRef.current) {

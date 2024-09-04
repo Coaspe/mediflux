@@ -83,8 +83,6 @@ export const onSaveRecord = (
         const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
         if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
           moveRecord(gridRef, theOtherGridRef, record);
-          console.log(theOtherGridRef.current?.tableType);
-
           if (theOtherGridRef.current?.tableType === "Ready") {
             audioRef.current?.play();
           }
@@ -106,12 +104,22 @@ const applyTransactionWithEvent = (gridRef: RefObject<CustomAgGridReactProps<any
   if (gridRef.current) {
     const api = gridRef.current.api;
     const editingCells = gridRef.current.api.getEditingCells();
-    if (eventFlag && editingCells && editingCells.length > 0) {
+    const needFocus = eventFlag && editingCells && editingCells.length > 0;
+    let editingRowId = undefined;
+
+    if (needFocus) {
       const event = new CustomEvent("onLineChangingTransactionApplied");
       api.dispatchEvent(event);
+      editingRowId = api.getDisplayedRowAtIndex(editingCells[0].rowIndex)?.id;
     }
+
     api.applyTransaction(transaction);
+
+    if (needFocus) {
+      return { id: editingRowId, columnId: editingCells[0].column.getColId() };
+    }
   }
+  return { id: undefined, columnId: undefined };
 };
 
 export const onCreateRecord = ({ records, tableType }: { records: PRecord[]; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
@@ -121,9 +129,8 @@ export const onCreateRecord = ({ records, tableType }: { records: PRecord[]; tab
       add: records,
       addIndex: 0,
     } as RowDataTransaction<any>;
-
-    applyTransactionWithEvent(gridRef, transaction);
-    focusEditingRecord(gridRef);
+    const { id, columnId } = applyTransactionWithEvent(gridRef, transaction);
+    focusEditingRecord(gridRef, id, columnId);
   }
 };
 export const onDeleteRecord = ({ recordIds, tableType }: { recordIds: string[]; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
@@ -144,7 +151,7 @@ export const onDeleteRecord = ({ recordIds, tableType }: { recordIds: string[]; 
         eventFlag = recordIndice.some((value) => typeof value === "number" && value < editingRecordIndex);
       }
     }
-    applyTransactionWithEvent(gridRef, transaction, eventFlag);
-    focusEditingRecord(gridRef);
+    const { id, columnId } = applyTransactionWithEvent(gridRef, transaction, eventFlag);
+    focusEditingRecord(gridRef, id, columnId);
   }
 };
