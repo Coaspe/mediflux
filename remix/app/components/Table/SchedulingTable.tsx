@@ -229,8 +229,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       return;
     }
 
-    console.log("Stop", onLineChangingdEditingStoppedRef.current);
-
     // Prevents edit mode to be stopped when line changed.
     if (onLineChangingdEditingStoppedRef.current) {
       onLineChangingdEditingStoppedRef.current = false;

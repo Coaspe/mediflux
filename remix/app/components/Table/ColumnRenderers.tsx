@@ -363,6 +363,7 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
       getOptionLabel={(option) => option.title}
       getOptionKey={(option) => option.id}
       onChange={(_, value) => onChange(value)}
+      clearOnBlur={false}
       value={option}
       onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, optionRef, setModalOpen)}
       renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}

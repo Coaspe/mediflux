@@ -1,7 +1,6 @@
 /** @format */
 import { KEY_OF_CLIENT_PRECORD, KEY_OF_CLIENT_TREATMENT } from "shared";
 export const deconstructRecord = (record) => {
-    console.log(record);
     const newRecord = {};
     for (const s of KEY_OF_CLIENT_PRECORD) {
         newRecord[s] = record[s];

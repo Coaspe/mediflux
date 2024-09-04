@@ -11,6 +11,7 @@ import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";
 import "../css/Animation.scss";
 import { convertServerUserToClientUser } from "~/utils/utils";
+
 async function validateUserid(userId: string) {
   if (userId.length <= 3) {
     return "아이디는 4글자 이상이어야합니다.";

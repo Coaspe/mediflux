@@ -1,6 +1,6 @@
 /** @format */
 
-import { OpReadiness, SearchHelp, Treatment, User } from "./type";
+import { OpReadiness, SearchHelp, Treatment } from "./type";
 
 export const TEST_TAG = "gn_ss_bailor";
 
