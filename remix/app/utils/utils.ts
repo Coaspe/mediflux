@@ -4,7 +4,7 @@ import { Role, ServerUser, ROLE } from "shared";
 import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG } from "~/constant";
 import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
-import { GridApi } from "ag-grid-community";
+import { GridApi, RowDataTransaction } from "ag-grid-community";
 import CryptoJS from "crypto-js";
 import { getAllRoleEmployees, getAllTreatments } from "./request.client";
 import { SetterOrUpdater } from "recoil";
@@ -113,61 +113,34 @@ export const focusEditingRecord = (gridRef: RefObject<CustomAgGridReactProps<any
     gridRef.current.api.setFocusedCell(editingRow.rowIndex, columnId);
   }
 };
-
-export const moveRecord = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, theOtherGridRef: RefObject<CustomAgGridReactProps<PRecord>>, data: PRecord) => {
+const move = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, tx: RowDataTransaction<PRecord>, data: PRecord) => {
   let isCurGridNeedFocus = false;
-  let isTheOtherGridNeedFocus = false;
-
   let curGridEditingRowId = undefined;
-  let theOtherGridEditingRowId = undefined;
-
-  let soonRemovedIndex = gridRef.current?.api.getRowNode(data.id)?.rowIndex;
-
   const curGridEditingCell = getEditingCell(gridRef);
 
   if (curGridEditingCell) {
     curGridEditingRowId = gridRef.current?.api.getDisplayedRowAtIndex(curGridEditingCell?.rowIndex)?.id;
-    if (curGridEditingCell && typeof soonRemovedIndex === "number") {
-      isCurGridNeedFocus = curGridEditingCell.rowIndex > soonRemovedIndex;
-      if (isCurGridNeedFocus) {
-        const event = new CustomEvent("onLineChangingTransactionApplied");
-        gridRef.current?.api.dispatchEvent(event);
-      }
+
+    if (tx.remove) {
+      let soonRemovedIndex = gridRef.current?.api.getRowNode(data.id)?.rowIndex;
+      isCurGridNeedFocus = typeof soonRemovedIndex === "number" && curGridEditingCell.rowIndex > soonRemovedIndex;
+    }
+
+    if (tx.add || isCurGridNeedFocus) {
+      const event = new CustomEvent("onLineChangingTransactionApplied");
+      gridRef.current?.api.dispatchEvent(event);
     }
   }
 
-  gridRef.current?.api.applyTransaction({
-    remove: [data],
-  });
+  gridRef.current?.api.applyTransaction(tx);
 
-  if (isCurGridNeedFocus && typeof curGridEditingCell?.rowIndex === "number") {
+  if ((isCurGridNeedFocus || tx.add) && curGridEditingCell) {
     focusEditingRecord(gridRef, curGridEditingRowId, curGridEditingCell.column.getColId());
   }
-
-  const theOtherEditingCell = getEditingCell(theOtherGridRef);
-
-  if (theOtherEditingCell) {
-    theOtherGridEditingRowId = theOtherGridRef.current?.api.getDisplayedRowAtIndex(theOtherEditingCell?.rowIndex)?.id;
-
-    isTheOtherGridNeedFocus = theOtherEditingCell.rowIndex >= 0;
-
-    if (isTheOtherGridNeedFocus) {
-      const event = new CustomEvent("onLineChangingTransactionApplied");
-      theOtherGridRef.current?.api.dispatchEvent(event);
-    }
-  }
-
-  // O(n)
-  // n: Number of rows single page has.
-  theOtherGridRef.current?.api.applyTransaction({
-    add: [data],
-    addIndex: 0,
-  });
-
-  // O(1)
-  if (isTheOtherGridNeedFocus && theOtherGridEditingRowId && theOtherEditingCell) {
-    focusEditingRecord(theOtherGridRef, theOtherGridEditingRowId, theOtherEditingCell.column.getColId());
-  }
+};
+export const moveRecord = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, theOtherGridRef: RefObject<CustomAgGridReactProps<PRecord>>, data: PRecord) => {
+  move(gridRef, { remove: [data] }, data);
+  move(theOtherGridRef, { add: [data], addIndex: 0 }, data);
 };
 
 export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {

@@ -16,9 +16,6 @@ const SESSION_AGE = 60 * 60 * 24 * 30;
 const storage = createCookieSessionStorage({
   cookie: {
     name: "__session",
-    // normally you want this to be `secure: true`
-    // but that doesn't work on localhost for Safari
-    // https://web.dev/when-to-use-local-https/
     secure: process.env.NODE_ENV === "production",
     secrets: [sessionSecret],
     sameSite: "lax",
@@ -95,18 +92,18 @@ export async function getUserSession(request: Request) {
   const ip = getClientIPAddress(request.headers);
   const browser = request.headers.get("User-Agent");
 
-  const sessionId = encryptSessionId(ip, browser, sessionSecret, userId);
-
-  if (userId === process.env.ADMIN || userId === process.env.ADMIN2) {
-    return { status: "active", id: userId, sessionId };
-  }
-
   if (!userId) {
     return { status: "no-session" };
   }
 
   if (Date.now() > expires) {
     return { status: "session-expired" };
+  }
+
+  const sessionId = encryptSessionId(ip, browser, sessionSecret, userId);
+
+  if (userId === process.env.ADMIN || userId === process.env.ADMIN2) {
+    return { status: "active", id: userId, sessionId };
   }
 
   const result = await getUserByID(userId);

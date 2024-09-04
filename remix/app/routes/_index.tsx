@@ -45,7 +45,6 @@ function validateUrl(url: string) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
   let sessionResult = await getUserSession(request);
-
   if (sessionResult.status !== "active") {
     return null;
   }
