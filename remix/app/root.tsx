@@ -5,7 +5,6 @@ import { RecoilRoot } from "recoil";
 import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
 import { StyledEngineProvider } from "@mui/material/styles";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionExpiredModal } from "./components/Modals";
 import { ClientOnly } from "remix-utils/client-only";
 import GlobalSnackbar from "./components/Snackbar";
@@ -45,8 +44,6 @@ export const links: LinksFunction = () => [
 ];
 
 export default function App() {
-  const queryClient = new QueryClient();
-
   return (
     <html lang="en">
       <head>
@@ -57,11 +54,9 @@ export default function App() {
       <body className="">
         <RecoilRoot>
           <StyledEngineProvider injectFirst>
-            <QueryClientProvider client={queryClient}>
-              <Outlet />
-              <SessionExpiredModal />
-              <ClientOnly>{() => <GlobalSnackbar />}</ClientOnly>
-            </QueryClientProvider>
+            <Outlet />
+            <SessionExpiredModal />
+            <ClientOnly>{() => <GlobalSnackbar />}</ClientOnly>
             <ScrollRestoration />
             <Scripts />
           </StyledEngineProvider>

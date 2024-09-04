@@ -35,7 +35,10 @@ export async function login({ userId, password }: LoginForm) {
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {
-    return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
+    if (error.response && error.response.status) {
+      return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
+    }
+    return { status: 500, message: "Internal server error" };
   }
 }
 
