@@ -164,15 +164,6 @@ export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: an
   }
 };
 
-export const checkForUnReadyTreatments = (record: PRecord) => {
-  for (const i of TREATMENT_NUMBERS) {
-    if (record[`treatment${i}`] && !record[`treatmentReady${i}`]) {
-      return true;
-    }
-  }
-  return false;
-};
-
 export const getEditingCell = (gridRef: RefObject<CustomAgGridReactProps<PRecord>> | undefined) => {
   return gridRef?.current?.api.getEditingCells()[0];
 };
@@ -194,18 +185,6 @@ export const refreshTreatmentCells = (api: GridApi<PRecord> | undefined, recordI
     force: true,
     rowNodes: [row],
     columns,
-  });
-};
-export const refreshDoctorCell = (api: GridApi<PRecord> | undefined, recordId: string) => {
-  if (!api) return;
-  const row = api.getRowNode(recordId);
-
-  if (!row || !row.data) return;
-
-  api.refreshCells({
-    force: true,
-    rowNodes: [row],
-    columns: ["doctor"],
   });
 };
 export const findCanCompleteTreatmentNumber = (record: PRecord): number => {

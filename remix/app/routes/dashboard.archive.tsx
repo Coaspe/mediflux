@@ -129,6 +129,7 @@ export default function Archive() {
         handleBaseDateChange={handleBaseDateChange}
         handleIntervalChange={handleIntervalChange}
         handleNumOfIntervalChange={handleNumOfIntervalChange}
+        baseDate={baseDate}
         interval={interval}
         numOfInterval={numOfInterval}
       />

@@ -15,11 +15,12 @@ type HeaderProps = {
   handleIntervalChange: (event: SelectChangeEvent<Interval>) => void;
   handleNumOfIntervalChange: (event: SelectChangeEvent<number>) => void;
   handleBaseDateChange: (value: Dayjs | null) => void;
+  baseDate: Dayjs;
   interval: Interval;
   numOfInterval: number;
 };
 
-const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleIntervalChange, handleNumOfIntervalChange, interval, numOfInterval }) => {
+const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleIntervalChange, handleNumOfIntervalChange, baseDate, interval, numOfInterval }) => {
   const commonStyles = {
     height: 40,
     fontSize: 14,
@@ -28,7 +29,7 @@ const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleInte
   return (
     <header className="flex gap-3 pb-5">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <DatePickerCustom label="기준일" defaultValue={dayjs()} format="YYYY/MM/DD" onChange={handleBaseDateChange} />
+        <DatePickerCustom label="기준일" defaultValue={dayjs()} value={baseDate} format="YYYY/MM/DD" onChange={handleBaseDateChange} />
       </LocalizationProvider>
       <FormControl className="w-30">
         <InputLabel id="interval-select-label">인터벌</InputLabel>
