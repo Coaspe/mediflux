@@ -13,6 +13,7 @@ import { AgGridReact } from "ag-grid-react";
 import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
 import TreatmentsHeader from "~/components/Treatments/Header";
 import "../css/Table.css";
+import LoadingOverlay from "~/components/Loading";
 
 const SearchableList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,6 +38,7 @@ const SearchableList: React.FC = () => {
             }
             return ret;
           });
+
           convertedData.sort((a, b) => {
             if (a.group && b.group) {
               const groupComparison = a.group.localeCompare(b.group, "ko");
@@ -62,6 +64,7 @@ const SearchableList: React.FC = () => {
     };
     getTreatments();
   }, []);
+
   // Columns definition
   useEffect(() => {
     setColDefs([
@@ -143,6 +146,8 @@ const SearchableList: React.FC = () => {
           rowSelection={"multiple"}
           rowStyle={rowStyle}
           loading={isLoading}
+          loadingOverlayComponent={LoadingOverlay}
+          className="animate-fadeIn"
           noRowsOverlayComponent={noRowsOverlayComponent}
         />
       </div>
