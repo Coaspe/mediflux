@@ -94,12 +94,12 @@ export default function Archive() {
   const getData = async () => {
     try {
       let where = [];
-      where.push(`and created_at >= '${dayjs(baseDate).startOf(interval).toISOString()}'`);
+      where.push(`and created_at <= '${dayjs(baseDate).endOf(interval).toISOString()}'`);
       where.push(
-        `and created_at <= '${dayjs(baseDate)
+        `and created_at >= '${dayjs(baseDate)
           .startOf(interval)
-          .add(numOfInterval - 1, interval)
-          .endOf(interval)
+          .subtract(numOfInterval - 1, interval)
+          .startOf(interval)
           .toISOString()}'`
       );
       const { data } = await getRecords(where, TEST_TAG);

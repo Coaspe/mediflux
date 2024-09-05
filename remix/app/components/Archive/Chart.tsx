@@ -41,7 +41,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
         numOfPRecords: 0,
       };
       date = dayjs(date * 1000)
-        .add(1, interval)
+        .subtract(1, interval)
         .unix();
     }
 
