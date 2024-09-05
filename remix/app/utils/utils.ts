@@ -6,8 +6,9 @@ import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord
 import { MutableRefObject, RefObject } from "react";
 import { GridApi, RowDataTransaction } from "ag-grid-community";
 import CryptoJS from "crypto-js";
-import { getAllRoleEmployees, getAllTreatments } from "./request.client";
+import { getAllRoleEmployees, getAllTreatments, getRecords } from "./request.client";
 import { SetterOrUpdater } from "recoil";
+import dayjs, { Dayjs } from "dayjs";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
@@ -283,4 +284,22 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
 
     setDoctorSearchHelp(doctors);
   } catch (error) {}
+};
+
+export const getRevenueForPeriod = async (startDate: Dayjs, endDate: Dayjs, treatments: { [key: string]: Treatment }) => {
+  const where = [];
+  where.push(`and created_at <= '${dayjs(endDate).toISOString()}'`);
+  where.push(`and created_at >= '${dayjs(startDate).toISOString()}'`);
+
+  const { data } = await getRecords(where, TEST_TAG);
+  let revenue = 0;
+
+  data.forEach((chart: any) => {
+    chart = convertServerPRecordtToPRecord(chart);
+    for (const num of TREATMENT_NUMBERS) {
+      const t = chart[`treatment${num}`];
+      if (t === undefined || t === null || !(t in treatments)) continue;
+      revenue += treatments[t].price || 0;
+    }
+  });
 };

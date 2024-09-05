@@ -36,7 +36,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Archive() {
   const [numOfInterval, setNumOfInterval] = useState<number>(7);
-  const [interval, setInterval] = useState<Interval>("week");
+  const [interval, setInterval] = useState<Interval>("day");
   const [baseDate, setBaseDate] = useState<Dayjs>(dayjs());
   const [socket, setSocket] = useState<Socket | null>(null);
   const [rowData, setRowData] = useState<PRecord[]>([]);
@@ -99,7 +99,6 @@ export default function Archive() {
         `and created_at >= '${dayjs(baseDate)
           .startOf(interval)
           .subtract(numOfInterval - 1, interval)
-          .startOf(interval)
           .toISOString()}'`
       );
       const { data } = await getRecords(where, TEST_TAG);
