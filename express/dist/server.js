@@ -41,6 +41,7 @@ const io = new Server(server, {
     cors: {
         origin: "*",
     },
+    path: "/socket",
 });
 const roomUsers = {};
 roomUsers[SCHEDULING_ROOM_ID] = {};

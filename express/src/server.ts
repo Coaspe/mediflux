@@ -52,6 +52,7 @@ const io = new Server(server, {
   cors: {
     origin: "*",
   },
+  path: "/socket",
 });
 const roomUsers: { [key: string]: { [key: string]: string } } = {};
 
