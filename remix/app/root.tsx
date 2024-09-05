@@ -4,7 +4,6 @@ import { Links, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import { RecoilRoot } from "recoil";
 import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
-import { StyledEngineProvider } from "@mui/material/styles";
 import { SessionExpiredModal } from "./components/Modals";
 import { ClientOnly } from "remix-utils/client-only";
 import GlobalSnackbar from "./components/Snackbar";
@@ -53,13 +52,11 @@ export default function App() {
       </head>
       <body className="">
         <RecoilRoot>
-          <StyledEngineProvider injectFirst>
-            <Outlet />
-            <SessionExpiredModal />
-            <ClientOnly>{() => <GlobalSnackbar />}</ClientOnly>
-            <ScrollRestoration />
-            <Scripts />
-          </StyledEngineProvider>
+          <Outlet />
+          <SessionExpiredModal />
+          <ClientOnly>{() => <GlobalSnackbar />}</ClientOnly>
+          <ScrollRestoration />
+          <Scripts />
         </RecoilRoot>
       </body>
     </html>
