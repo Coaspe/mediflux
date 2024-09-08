@@ -69,9 +69,9 @@ const Members = () => {
   useEffect(() => {
     setColDefs([
       { field: "id", headerName: "id", hide: true },
-      { field: "name", headerName: "이름", width: TREATMENT_NAME_COLUMN },
-      { field: "numOfTreatments", headerName: "시술 건수", width: TREATMENT_NAME_COLUMN },
-      { field: "revenue", headerName: "매출", width: TREATMENT_NAME_COLUMN },
+      { field: "name", headerName: "이름", width: 100 },
+      { field: "numOfTreatments", headerName: "시술 건수", width: 100 },
+      { field: "revenue", headerName: "매출", width: 100 },
     ]);
   }, []);
 
