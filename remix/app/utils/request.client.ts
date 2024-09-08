@@ -26,20 +26,8 @@ export const updateRecord = async (record: PRecord, tag: string) => {
   return await axios.put("http://localhost:5000/api/updateRecord", { record, tag });
 };
 
-export const getRecords = async (where: string[] = [], tag: string) => {
-  return await axios.post("http://localhost:5000/api/getRecords", { where, tag });
-};
-
 export const lockOrUnlockRecords = async (recordIds: string[], lockingUser: string | null, tag: string) => {
   return await axios.put("http://localhost:5000/api/lockOrUnlockRecords", { recordIds, lockingUser, tag });
-};
-
-export const getAllRoleEmployees = async (role: Role, tag: string) => {
-  return await axios.get(`http://localhost:5000/api/getAllRoleEmployees`, { params: { role, tag } });
-};
-
-export const getAllTreatments = async (tag: string) => {
-  return await axios.get(`http://localhost:5000/api/getAllTreatments`, { params: { tag } });
 };
 
 export const getAllVacantRooms = async (tag: string) => {

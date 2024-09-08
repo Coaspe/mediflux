@@ -186,3 +186,12 @@ export type TreatmentRoom = {
   room: string;
   roomChartNum?: string;
 };
+
+export type Member = {
+  id: string;
+  name: string;
+  numOfTreatments: number;
+  revenue: number;
+  searchTitle: string;
+  performedTreatments: { [key: string]: number };
+};

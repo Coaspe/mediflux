@@ -1,29 +1,24 @@
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
+import "../css/Table.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box } from "@mui/material";
 import { convertServerTreatmentToClient } from "~/utils/utils";
-import { useRecoilState, useSetRecoilState } from "recoil";
-import { globalSnackbarState, treatmentSearchHelpState } from "~/recoil_state";
-import { getAllTreatments, updateTreatment } from "~/utils/request.client";
+import { useSetRecoilState } from "recoil";
+import { globalSnackbarState } from "~/recoil_state";
+import { updateTreatment } from "~/utils/request.client";
 import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
 import { CustomAgGridReactProps, Treatment } from "~/type";
 import { ColDef, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi } from "ag-grid-community";
-import { AgGridReact } from "ag-grid-react";
+import { AgGridReactProps } from "ag-grid-react";
 import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
-import TreatmentsHeader from "~/components/Treatments/Header";
-import "../css/Table.css";
-import LoadingOverlay from "~/components/Loading";
-
-const SearchableList: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+import { getAllTreatments } from "~/utils/request";
+import SearchableGrid from "~/components/Table/SearchableGrid";
+const Treatments: React.FC = () => {
   const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
-  const [originData, setOriginData] = useState<Treatment[]>([]);
-  const [rowData, setRowData] = useState<Treatment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState<Treatment[]>([]);
   const [colDefs, setColDefs] = useState<ColDef<Treatment, any>[]>([]);
-  const [treatments, setTreatements] = useRecoilState(treatmentSearchHelpState);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const getTreatments = async () => {
@@ -53,7 +48,7 @@ const SearchableList: React.FC = () => {
               return -1;
             }
           });
-          setOriginData(convertedData);
+          setData(convertedData);
         }
       } catch (error) {
         setGlobalSnackBar({ msg: "Internal server error", severity: "error", open: true });
@@ -70,17 +65,13 @@ const SearchableList: React.FC = () => {
     setColDefs([
       { field: "id", headerName: "id", hide: true },
       { field: "title", headerName: "이름", width: TREATMENT_NAME_COLUMN },
-      treatmentGroupColumn(treatments),
+      treatmentGroupColumn(),
       treatmentDurationColumn(),
       treatmentPriceColumn(),
       treatmentPointColumn(),
       treatementDeleteColumn(setGlobalSnackBar),
     ]);
   }, []);
-
-  useEffect(() => {
-    setRowData(originData.filter((treatment: any) => treatment.searchTitle?.toLowerCase().includes(searchTerm.replace(/\s/g, "").toLowerCase())));
-  }, [searchTerm, originData]);
 
   const showErrorSnackbar = useCallback(
     (message: string) => {
@@ -101,7 +92,7 @@ const SearchableList: React.FC = () => {
     try {
       await updateTreatment(treatment, TEST_TAG);
     } catch (error) {
-      if (field) {
+      if (field in copyTreatment) {
         copyTreatment[field] = oldValue;
         api.applyTransaction({
           update: [copyTreatment],
@@ -129,30 +120,19 @@ const SearchableList: React.FC = () => {
     lineheight: "1rem" /* 16px */,
   };
 
-  return (
-    <Box sx={{ width: "100%", height: "100%", maxWidth: 680, maxHeight: 600, mx: "auto", mt: 4 }}>
-      <TreatmentsHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} api={gridRef.current?.api} />
-      <div className="ag-theme-quartz" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-        <AgGridReact
-          ref={gridRef}
-          onCellEditingStopped={onCellEditingStopped}
-          onCellEditingStarted={onCellEditingStarted}
-          defaultColDef={defaultColDef}
-          rowData={rowData}
-          columnDefs={colDefs}
-          getRowId={(params) => params.data.id.toString()}
-          pagination={true}
-          paginationPageSize={20}
-          rowSelection={"multiple"}
-          rowStyle={rowStyle}
-          loading={isLoading}
-          loadingOverlayComponent={LoadingOverlay}
-          className="animate-fadeIn"
-          noRowsOverlayComponent={noRowsOverlayComponent}
-        />
-      </div>
-    </Box>
-  );
+  const agGridProps: AgGridReactProps = {
+    onCellEditingStopped,
+    onCellEditingStarted,
+    defaultColDef,
+    columnDefs: colDefs,
+    pagination: true,
+    paginationPageSize: 20,
+    rowSelection: "multiple",
+    rowStyle,
+    loading: isLoading,
+    noRowsOverlayComponent,
+  };
+  return <SearchableGrid originalData={data} gridProps={agGridProps} addButton={true} />;
 };
 
-export default SearchableList;
+export default Treatments;

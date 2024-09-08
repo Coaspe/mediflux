@@ -2,8 +2,10 @@
 
 import { json } from "@remix-run/node";
 import axios from "axios";
-import { convertServerUserToClientUser } from "./utils";
-import { User } from "~/type";
+import { convertServerPRecordtToPRecord, convertServerUserToClientUser } from "./utils";
+import { Treatment, User } from "~/type";
+import { TREATMENT_NUMBERS } from "~/constant";
+import { ServerUser } from "shared";
 /**
  * This helper function helps us to return the accurate HTTP status,
  * 400 Bad Request, to the client.
@@ -78,4 +80,25 @@ const handleError = (error: any) => {
       error: message,
     },
   };
+};
+export const getRevenueForPeriod = (doctors: ServerUser[], data: any[], treatments: { [key: string]: Treatment }) => {
+  let revenue: { [key: string]: { [key: string]: number | string } } = {};
+  doctors.forEach((doctor) => (revenue[doctor.contact_id] = { name: `${doctor.first_name}${doctor.last_name}` }));
+  data.forEach((chart: any) => {
+    chart = convertServerPRecordtToPRecord(chart);
+    for (const num of TREATMENT_NUMBERS) {
+      const t: string | undefined = chart[`treatment${num}`];
+      const d: string | undefined = chart[`doctor${num}`];
+      if (!t || !(t in treatments) || d === undefined || !(d in revenue)) continue;
+      if (!(t in revenue[d])) {
+        revenue[d][t] = 0;
+      }
+
+      if (typeof revenue[d][t] === "number") {
+        revenue[d][t] += 1;
+      }
+    }
+  });
+
+  return revenue;
 };

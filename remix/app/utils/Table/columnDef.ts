@@ -161,7 +161,7 @@ export const coordinatorColumn: ColDef<PRecord, string> = personColumn(COORDINAT
 export const consultantColumn: ColDef<PRecord, string> = personColumn(CONSULTANT, CONSULTANT_H, DOCTOR_SEARCH_HELP);
 export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENT_CAUTION, headerName: COMMENT_CAUTION_H };
 
-export const treatmentGroupColumn = (searchHelp: Treatment[]): ColDef<Treatment, string> => {
+export const treatmentGroupColumn = (): ColDef<Treatment, string> => {
   return {
     field: "group",
     headerName: "그룹",
