@@ -3,6 +3,7 @@
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
 import { useNavigate } from "@remix-run/react";
+import { DEFAULT_REDIRECT } from "~/constant";
 
 export const SessionExpiredModal = () => {
   const [open, setOpen] = useRecoilState(sessionExpireModalOpenState);
@@ -12,7 +13,7 @@ export const SessionExpiredModal = () => {
   const handleClose = () => {
     setUser(undefined);
     setOpen(false);
-    navigator("/");
+    navigator(DEFAULT_REDIRECT);
   };
 
   return (

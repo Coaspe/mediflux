@@ -11,6 +11,7 @@ import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";
 import "../css/Animation.scss";
 import { convertServerUserToClientUser } from "~/utils/utils";
+import { DEFAULT_REDIRECT } from "~/constant";
 
 async function validateUserid(userId: string) {
   if (userId.length <= 3) {
@@ -62,7 +63,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
   const requestType = form.get("requestType");
   const password = form.get("password");
   const userId = form.get("userId");
-  const redirectTo = validateUrl((form.get("redirectTo") as string) || "/");
+  const redirectTo = validateUrl((form.get("redirectTo") as string) || DEFAULT_REDIRECT);
 
   if (typeof password !== "string" || typeof userId !== "string") {
     return badRequest({

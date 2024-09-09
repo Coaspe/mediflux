@@ -1,7 +1,7 @@
 /** @format */
 
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
-import { SIDE_MENU } from "~/constant";
+import { DEFAULT_REDIRECT, SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
 import { SideMenu, User } from "~/type";
@@ -50,17 +50,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (sessionData.status === "session-expired") {
     return await destroyUserSession(request, sessionData.id);
   } else if (sessionData.status === "invalid-session") {
-    return destoryBrowserSession("/", request);
+    return destoryBrowserSession(DEFAULT_REDIRECT, request);
   } else if (sessionData.status !== "active") {
-    return redirect("/");
+    return redirect(DEFAULT_REDIRECT);
   }
 
-  let result = await getUserByID(sessionData.id);
-  if ("user" in result) {
-    return result.user;
+  const {
+    statusCode,
+    body: { data: user, error },
+  } = await getUserByID(sessionData.id);
+  if (statusCode === 200) {
+    return user;
   }
 
-  return redirect("/");
+  return redirect(DEFAULT_REDIRECT);
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -94,7 +97,7 @@ export default function Dashboard() {
     } else if (typeof loadData === "object") {
       setUser(loadData as User);
     }
-    const path = location.pathname.split("/");
+    const path = location.pathname.split(DEFAULT_REDIRECT);
     if (isSideMenu(path[path.length - 1])) {
       setClickedMenu(path[path.length - 1] as SideMenu);
     }

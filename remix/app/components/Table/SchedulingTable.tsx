@@ -134,20 +134,20 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   useEffect(() => {
     if (!socket || !user || !records) return;
     const processData = async () => {
-      try {
-        setIsLoading(true);
-        const mustBeUnlocked = [];
+      setIsLoading(true);
+      const mustBeUnlocked = [];
 
-        for (let i = 0; i < records.length; i++) {
-          const record = records[i];
-          if (record.lockingUser === user?.id) {
-            record.lockingUser = null;
-            mustBeUnlocked.push(record.id);
-            break;
-          }
+      for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        if (record.lockingUser === user?.id) {
+          record.lockingUser = null;
+          mustBeUnlocked.push(record.id);
+          break;
         }
+      }
 
-        await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG);
+      let result = await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG);
+      if (result.statusCode === 200) {
         mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, roomId));
         records.sort((a, b) => {
           const dateA = dayjs(a.createdAt ?? 0).valueOf();
@@ -156,13 +156,12 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         });
 
         setRowData(records);
-      } catch (error) {
-        showErrorSnackbar("Internal server error");
-      } finally {
-        setIsLoading(false);
+      } else {
+        result.body.error && showErrorSnackbar(result.body.error);
       }
-    };
 
+      setIsLoading(false);
+    };
     processData();
   }, [user, socket, records]);
 
@@ -196,32 +195,28 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 
-    try {
-      const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
+    const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
 
-      const updateResult = await updateRecord(record, TEST_TAG);
+    const result = await updateRecord(record, TEST_TAG);
 
-      if (updateResult.status === 200) {
-        emitSaveRecord([record], tableType, socket, roomId);
-        gridRef.current?.api.applyTransaction({
-          update: [record],
-        });
+    if (result.statusCode === 200) {
+      emitSaveRecord([record], tableType, socket, roomId);
+      gridRef.current?.api.applyTransaction({
+        update: [record],
+      });
 
-        if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
-          moveRecord(gridRef, theOtherGridRef, record);
-        }
+      if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
+        moveRecord(gridRef, theOtherGridRef, record);
       }
-    } catch (error) {
-      if (field) {
-        copyRecord[field] = oldValue;
-        copyRecord["lockingUser"] = null;
-        await updateRecord(copyRecord, TEST_TAG);
-        api.applyTransaction({
-          update: [copyRecord],
-        });
-      }
-      showErrorSnackbar("Internal server error");
+    } else if (field) {
+      copyRecord[field] = oldValue;
+      copyRecord["lockingUser"] = null;
+      await updateRecord(copyRecord, TEST_TAG);
+      api.applyTransaction({
+        update: [copyRecord],
+      });
     }
+    if (result.body.error) showErrorSnackbar(result.body.error);
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
@@ -246,24 +241,22 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     onLineChangingdEditingStoppedRef.current = false;
     isTabPressed.current = false;
 
-    try {
-      const theOtherEditingCell = getEditingCell(theOtherGridRef);
-      if (theOtherGridRef && theOtherEditingCell) {
-        theOtherGridRef.current?.api.stopEditing();
-      }
+    const theOtherEditingCell = getEditingCell(theOtherGridRef);
+    if (theOtherGridRef && theOtherEditingCell) {
+      theOtherGridRef.current?.api.stopEditing();
+    }
 
-      if (user && event.data && !event.data.lockingUser) {
-        const result = await lockOrUnlockRecords([event.data.id], user.id, TEST_TAG);
-        if (result.status === 200) {
-          emitLockRecord(event.data?.id, tableType, socket, user, roomId);
-          event.data.lockingUser = user.id;
-          gridRef.current?.api.applyTransaction({
-            update: [event.data],
-          });
-        }
+    if (user && event.data && !event.data.lockingUser) {
+      const result = await lockOrUnlockRecords([event.data.id], user.id, TEST_TAG);
+      if (result.statusCode === 200) {
+        emitLockRecord(event.data?.id, tableType, socket, user, roomId);
+        event.data.lockingUser = user.id;
+        gridRef.current?.api.applyTransaction({
+          update: [event.data],
+        });
+      } else {
+        result.body.error && showErrorSnackbar(result.body.error);
       }
-    } catch (error) {
-      showErrorSnackbar("Internal server error");
     }
   };
 

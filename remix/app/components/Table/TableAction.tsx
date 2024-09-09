@@ -41,41 +41,41 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   );
 
   const onAddRecord = async () => {
-    try {
-      if (!gridRef.current) return;
+    if (!gridRef.current) return;
 
-      const newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
-      const { rows } = await insertRecords([newRecord], TEST_TAG);
+    const newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
+    const {
+      statusCode,
+      body: {
+        data: { rows },
+        error,
+      },
+    } = await insertRecords([newRecord], TEST_TAG);
 
-      if (rows?.length) {
-        const addedRecord = convertServerPRecordtToPRecord(rows[0]);
-        gridRef.current.api.applyTransaction({ add: [addedRecord], addIndex: 0 });
-        emitCreateRecords([addedRecord], tableType, socket, SCHEDULING_ROOM_ID);
-      }
-    } catch (error) {
-      showErrorSnackbar("레코드 추가 중 오류가 발생했습니다.");
+    if (statusCode === 200) {
+      const addedRecord = convertServerPRecordtToPRecord(rows[0]);
+      gridRef.current.api.applyTransaction({ add: [addedRecord], addIndex: 0 });
+      emitCreateRecords([addedRecord], tableType, socket, SCHEDULING_ROOM_ID);
+    } else {
+      error && showErrorSnackbar(error);
     }
   };
 
   const onDeleteRecord = async () => {
-    try {
-      if (!gridRef.current || !selectedRows.length) throw new Error("삭제할 레코드가 선택되지 않았습니다.");
-      const ids = selectedRows.map((record) => record.id);
-      const result = await hideRecords(ids, TEST_TAG);
+    if (!gridRef.current || !selectedRows.length) throw new Error("삭제할 레코드가 선택되지 않았습니다.");
+    const ids = selectedRows.map((record) => record.id);
+    const result = await hideRecords(ids, TEST_TAG);
 
-      if (result.status === 200) {
-        gridRef.current.api.applyTransaction({
-          remove: selectedRows,
-        });
-        emitDeleteRecords(ids, tableType, socket, user, SCHEDULING_ROOM_ID);
-      } else {
-        throw new Error("서버 오류로 레코드를 삭제할 수 없습니다.");
-      }
-    } catch (error: any) {
-      showErrorSnackbar(error.message || "알 수 없는 오류가 발생했습니다.");
-    } finally {
-      handleCloseDeleteModal();
+    if (result.statusCode === 200) {
+      gridRef.current.api.applyTransaction({
+        remove: selectedRows,
+      });
+      emitDeleteRecords(ids, tableType, socket, user, SCHEDULING_ROOM_ID);
+    } else {
+      result.body.error && showErrorSnackbar(result.body.error);
     }
+
+    handleCloseDeleteModal();
   };
   const handleOpenDeleteModal = async () => {
     if (!gridRef.current || !user) return;
@@ -93,8 +93,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         user.id,
         TEST_TAG
       );
-      if (result.status === 200) {
-        emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+      if (result.statusCode === 200) {
+        emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
         setOpenDeleteModal(true);
       }
     } catch (error: any) {
@@ -102,21 +102,17 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     }
   };
   const handleCloseDeleteModal = useCallback(async () => {
-    try {
-      if (selectedRows.length && user) {
-        const result = await lockOrUnlockRecords(
-          selectedRows.map((record) => record.id),
-          null,
-          TEST_TAG
-        );
-        if (result.status === 200) {
-          emitSaveRecord(result.data.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
-        }
+    if (selectedRows.length && user) {
+      const result = await lockOrUnlockRecords(
+        selectedRows.map((record) => record.id),
+        null,
+        TEST_TAG
+      );
+      if (result.statusCode === 200) {
+        emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
       }
-    } catch (error) {
-    } finally {
-      setOpenDeleteModal(false);
     }
+    setOpenDeleteModal(false);
   }, [selectedRows, user, tableType, socket]);
 
   return (

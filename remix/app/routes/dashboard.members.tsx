@@ -1,28 +1,46 @@
+/** @format */
+
 import { useLoaderData } from "@remix-run/react";
 import { AgGridReactProps } from "ag-grid-react";
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useSetRecoilState } from "recoil";
 import { ROLE } from "shared";
-import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
-import { globalSnackbarState, userState } from "~/recoil_state";
+import { TEST_TAG } from "~/constant";
+import { globalSnackbarState } from "~/recoil_state";
 import { CustomAgGridReactProps, Member, Treatment } from "~/type";
-import { getAllRoleEmployees, getAllTreatments } from "~/utils/request";
-import { getRecords, getRevenueForPeriod } from "~/utils/request.server";
+import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";
-import { convertServerTreatmentToClient } from "~/utils/utils";
+import { convertServerTreatmentToClient, getRevenueForPeriod } from "~/utils/utils";
 import SearchableGrid from "~/components/Table/SearchableGrid";
 
 export async function loader() {
-  const { data: doctors } = await getAllRoleEmployees(ROLE.DOCTOR, TEST_TAG);
   const {
-    data: { rows: records },
+    statusCode: s1,
+    body: {
+      data: { rows: doctors },
+    },
+  } = await getAllRoleEmployees(ROLE.DOCTOR, TEST_TAG);
+  const {
+    statusCode: s2,
+    body: {
+      data: { rows: records },
+    },
   } = await getRecords([], TEST_TAG);
-  const { data: t } = await getAllTreatments(TEST_TAG);
-  const treatments: { [key: string]: Treatment } = {};
-  t.forEach((treatment: any) => {
-    treatments[treatment.tr_id] = convertServerTreatmentToClient(treatment);
-  });
-  return { revenue: getRevenueForPeriod(doctors, records, treatments), treatments };
+  const {
+    statusCode: s3,
+    body: {
+      data: { rows: t },
+    },
+  } = await getAllTreatments(TEST_TAG);
+
+  if (s1 === 200 && s2 === 200 && s3 === 200) {
+    const treatments: { [key: string]: Treatment } = {};
+    t.forEach((treatment: any) => {
+      treatments[treatment.tr_id] = convertServerTreatmentToClient(treatment);
+    });
+    return { revenue: getRevenueForPeriod(doctors, records, treatments), treatments };
+  }
+  return null;
 }
 
 const Members = () => {
@@ -31,38 +49,35 @@ const Members = () => {
   const [rowData, setRowData] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [colDefs, setColDefs] = useState<ColDef<Treatment, any>[]>([]);
+  const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
 
   useEffect(() => {
+    if (!loaderData) return;
     const { revenue, treatments }: { revenue: { [key: string]: { [key: string]: number | string } }; treatments: { [key: string]: Treatment } } = loaderData;
-    const getTreatments = async () => {
-      try {
-        setIsLoading(true);
-        const data = [];
+    const setMembersRevenue = () => {
+      setIsLoading(true);
+      const data = [];
 
-        for (const [id, performedTreatments] of Object.entries(revenue)) {
-          let member = { id, revenue: 0, numOfTreatments: 0, name: performedTreatments["name"], performedTreatments } as Member;
-          Object.entries(performedTreatments || {}).forEach(([tid, v], i) => {
-            if (typeof v === "number") {
-              member.numOfTreatments += v;
-              member.revenue += v * (treatments[tid].price || 0);
-            } else {
-              member.name = v;
-              member.searchTitle = v;
-            }
-          });
-          data.push(member);
-        }
-
-        data.sort((a, b) => b.revenue - a.revenue);
-        setRowData(data);
-      } catch (error) {
-        setGlobalSnackBar({ msg: "Internal server error", severity: "error", open: true });
-        console.error("Error fetching treatments:", error);
-      } finally {
-        setIsLoading(false);
+      for (const [id, performedTreatments] of Object.entries(revenue)) {
+        let member = { id, revenue: 0, numOfTreatments: 0, name: performedTreatments["name"], performedTreatments } as Member;
+        Object.entries(performedTreatments || {}).forEach(([tid, v], i) => {
+          if (typeof v === "number") {
+            member.numOfTreatments += v;
+            member.revenue += v * (treatments[tid].price || 0);
+          } else {
+            member.name = v;
+            member.searchTitle = v;
+          }
+        });
+        data.push(member);
       }
+
+      data.sort((a, b) => b.revenue - a.revenue);
+      setRowData(data);
+
+      setIsLoading(false);
     };
-    getTreatments();
+    setMembersRevenue();
   }, [loaderData]);
 
   // Columns definition
@@ -106,7 +121,7 @@ const Members = () => {
     loading: isLoading,
     noRowsOverlayComponent,
   };
-  return <SearchableGrid originalData={rowData} gridProps={agGridProps} addButton={false} />;
+  return <SearchableGrid gridRef={gridRef} originalData={rowData} gridProps={agGridProps} addButton={false} />;
 };
 
 export default Members;

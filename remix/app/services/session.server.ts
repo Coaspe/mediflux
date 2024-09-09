@@ -6,7 +6,7 @@ import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
-import { TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
 
 const sessionSecret = process.env.SESSION_SECRET || "";
 if (!sessionSecret) {
@@ -19,7 +19,7 @@ const storage = createCookieSessionStorage({
     secure: process.env.NODE_ENV === "production",
     secrets: [sessionSecret],
     sameSite: "lax",
-    path: "/",
+    path: DEFAULT_REDIRECT,
     maxAge: SESSION_AGE,
     httpOnly: true,
   },
@@ -28,6 +28,8 @@ const storage = createCookieSessionStorage({
 export async function login({ userId, password }: LoginForm) {
   try {
     const response = await axios.post(`http://localhost:5000/api/login`, { userId, password }, { withCredentials: true });
+    console.log(response);
+
     if (response.status === 200) {
       return { status: response.status, user: response.data.user };
     }
@@ -106,10 +108,13 @@ export async function getUserSession(request: Request) {
     return { status: "active", id: userId, sessionId };
   }
 
-  const result = await getUserByID(userId);
+  const {
+    statusCode,
+    body: { data, error },
+  } = await getUserByID(userId);
 
-  if ("user" in result) {
-    if (result.user?.sessionId !== sessionId) {
+  if (statusCode === 200) {
+    if (data.sessionId !== sessionId) {
       return { status: "invalid-session", id: userId };
     }
   } else {
@@ -127,10 +132,10 @@ export async function destroyUserSession(request: Request, userId: string) {
   try {
     const result = await destoryDBSession(userId);
     if (result.statusCode == 200) {
-      return destoryBrowserSession("/", request);
+      return destoryBrowserSession(DEFAULT_REDIRECT, request);
     }
   } catch (error) {
-    return redirect("/");
+    return redirect(DEFAULT_REDIRECT);
   }
-  return redirect("/");
+  return redirect(DEFAULT_REDIRECT);
 }

@@ -235,8 +235,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
           <CustomToolTip
             disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
             title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-            dir="left"
-          >
+            dir="left">
             <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
               <ListItemIcon>{confirmIcon}</ListItemIcon>
               <ListItemText>{confirmItemTitle}</ListItemText>
@@ -293,8 +292,7 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}
-          >
+            }`}>
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>
@@ -415,7 +413,7 @@ export const deleteCell = (data: Treatment, setGlobalSnackbar: SetterOrUpdater<G
     try {
       const result = await deleteTreatement(data.id, TEST_TAG);
 
-      if (result.status && result.status === 200) {
+      if (result.statusCode === 200) {
         api.applyTransaction({
           remove: [data],
         });

@@ -1,3 +1,5 @@
+/** @format */
+
 import { AgGridReactProps, AgGridReact } from "ag-grid-react";
 import { useState, useRef, useEffect } from "react";
 import { Treatment, CustomAgGridReactProps } from "~/type";
@@ -17,11 +19,11 @@ import { globalSnackbarState } from "~/recoil_state";
 type SearchableGridProps<T> = {
   originalData: T[];
   gridProps: AgGridReactProps;
+  gridRef: React.RefObject<CustomAgGridReactProps<Treatment>>;
   addButton: boolean;
 };
-const SearchableGrid: React.FC<SearchableGridProps<any>> = ({ originalData, gridProps, addButton }) => {
+const SearchableGrid: React.FC<SearchableGridProps<any>> = ({ originalData, gridProps, addButton, gridRef }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const gridRef = useRef<CustomAgGridReactProps<any>>(null);
   const [rowData, setRowData] = useState<any[]>([]);
 
   useEffect(() => {
@@ -48,21 +50,21 @@ const SearchGridHeader: FC<SearchGridHeaderProps> = ({ searchTerm, setSearchTerm
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
 
   const onClick = async () => {
-    try {
-      const result = await insertTreatment(TEST_TAG);
+    const {
+      statusCode,
+      body: { data: { rows = [] } = {}, error = null },
+    } = await insertTreatment(TEST_TAG);
 
-      if (result.status && result.status === 200) {
-        const row = result.data.rows[0];
-        if (row && api) {
-          api.applyTransaction({
-            add: [convertServerTreatmentToClient(row)],
-            addIndex: 0,
-          });
-        }
+    if (statusCode === 200) {
+      const row = rows[0];
+      if (row && api) {
+        api.applyTransaction({
+          add: [convertServerTreatmentToClient(row)],
+          addIndex: 0,
+        });
       }
-    } catch (error: any) {
-      console.log(error);
-      setGlobalSnackBar({ open: true, msg: "Internal server error", severity: "error" });
+    } else {
+      error && setGlobalSnackBar({ open: true, msg: error, severity: "error" });
     }
   };
 

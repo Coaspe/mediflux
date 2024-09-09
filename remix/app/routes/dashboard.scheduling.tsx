@@ -7,31 +7,37 @@ import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
 import { CustomAgGridReactProps, PRecord, User } from "~/type";
-import { getRecords, getUserByID } from "~/utils/request.server";
+import { getUserByID } from "~/utils/request.server";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
-import { OP_READINESS_Y, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, OP_READINESS_Y, TEST_TAG } from "~/constant";
 import { convertServerPRecordtToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { destoryBrowserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
+import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  try {
-    const sessionData = await getUserSession(request);
+  const sessionData = await getUserSession(request);
 
-    if (sessionData.id) {
-      const result = await getUserByID(sessionData.id);
-      if ("user" in result) {
-        const where = [];
-        where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
-        where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
-        const { data } = await getRecords(where, TEST_TAG);
-
-        return json({ user: result.user, records: data.rows });
+  if (sessionData.id) {
+    const {
+      statusCode,
+      body: { data: user, error },
+    } = await getUserByID(sessionData.id);
+    if (statusCode === 200) {
+      const where = [];
+      where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
+      where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
+      const {
+        statusCode,
+        body: { data },
+      } = await getRecords(where, TEST_TAG);
+      if (statusCode === 200) {
+        return json({ user, records: data.rows });
+      } else {
+        return await destoryBrowserSession(DEFAULT_REDIRECT, request);
       }
     }
-  } catch (error) {
-    return await destoryBrowserSession("/", request);
   }
   return null;
 };

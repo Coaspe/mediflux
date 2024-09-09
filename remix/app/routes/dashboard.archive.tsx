@@ -16,20 +16,21 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
-import { TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
 import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  try {
-    const sessionData = await getUserSession(request);
-    if (sessionData.id) {
-      const result = await getUserByID(sessionData.id);
-      if ("user" in result) {
-        return json({ user: result.user });
-      }
+  const sessionData = await getUserSession(request);
+  if (sessionData.id) {
+    const {
+      statusCode,
+      body: { data: user, error },
+    } = await getUserByID(sessionData.id);
+    if (statusCode === 200) {
+      return json({ user });
+    } else {
+      return redirect(DEFAULT_REDIRECT);
     }
-  } catch (error) {
-    return redirect("/");
   }
   return null;
 };
@@ -92,21 +93,22 @@ export default function Archive() {
   }, []);
 
   const getData = async () => {
-    try {
-      let where = [];
-      where.push(`and created_at <= '${dayjs(baseDate).endOf(interval).toISOString()}'`);
-      where.push(
-        `and created_at >= '${dayjs(baseDate)
-          .startOf(interval)
-          .subtract(numOfInterval - 1, interval)
-          .toISOString()}'`
-      );
-      const { data } = await getRecords(where, TEST_TAG);
-      const recordsData: PRecord[] = data.rows.map((record: any) => convertServerPRecordtToPRecord(record));
-      setRowData(recordsData);
-    } catch (error) {
-      showErrorSnackbar("Internal server error");
-    } finally {
+    let where = [];
+    where.push(`and created_at <= '${dayjs(baseDate).endOf(interval).toISOString()}'`);
+    where.push(
+      `and created_at >= '${dayjs(baseDate)
+        .startOf(interval)
+        .subtract(numOfInterval - 1, interval)
+        .toISOString()}'`
+    );
+    const {
+      statusCode,
+      body: { data, error },
+    } = await getRecords(where, TEST_TAG);
+    if (statusCode === 200) {
+      setRowData(data.rows.map((record: any) => convertServerPRecordtToPRecord(record)));
+    } else {
+      error && showErrorSnackbar(error);
     }
   };
 
