@@ -2,11 +2,12 @@
 
 import axios from "axios";
 import { Role } from "shared";
+import { SERVER_URL } from "~/constant";
 import { CustomResponse } from "~/type";
 
 export const getAllRoleEmployees = async (role: Role, tag: string): Promise<CustomResponse> => {
   try {
-    const result = await axios.get(`http://localhost:5000/api/getAllRoleEmployees`, { params: { role, tag } });
+    const result = await axios.get(`${SERVER_URL}/api/getAllRoleEmployees`, { params: { role, tag } });
     return { statusCode: result.status, body: { data: result.data } };
   } catch (error) {
     return handleError(error);
@@ -14,7 +15,7 @@ export const getAllRoleEmployees = async (role: Role, tag: string): Promise<Cust
 };
 export const getRecords = async (where: string[] = [], tag: string): Promise<CustomResponse> => {
   try {
-    const result = await axios.post(`http://localhost:5000/api/getRecords`, { where, tag });
+    const result = await axios.post(`${SERVER_URL}/api/getRecords`, { where, tag });
     return { statusCode: result.status, body: { data: result.data } };
   } catch (error) {
     return handleError(error);
@@ -22,7 +23,7 @@ export const getRecords = async (where: string[] = [], tag: string): Promise<Cus
 };
 export const getAllTreatments = async (tag: string): Promise<CustomResponse> => {
   try {
-    const result = await axios.get(`http://localhost:5000/api/getAllTreatments`, { params: { tag } });
+    const result = await axios.get(`${SERVER_URL}/api/getAllTreatments`, { params: { tag } });
     return { statusCode: result.status, body: { data: result.data } };
   } catch (error) {
     return handleError(error);

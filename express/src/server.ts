@@ -48,6 +48,7 @@ const app: Express = express();
 app.use(cors());
 app.use(express.json());
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -96,6 +97,147 @@ io.on(CONNECTION, (socket) => {
   });
 });
 
+app.get("/api/getUserByID", async (req, res) => {
+  const id = req.query.id;
+
+  try {
+    const result = await pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.get("/api/checkSameIDExists", async (req, res) => {
+  const userId = req.query.userId;
+
+  try {
+    const result = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.get("/api/getAllRoleEmployees", async (req, res) => {
+  const role = req.query.role;
+  const tag = req.query.tag;
+  if (!role || !tag) {
+    res.status(400).json({ message: "Invalid params" });
+    return;
+  }
+
+  try {
+    const q = `select * from admin.user where user_role='${role}'`;
+    const result = await pool.query(q);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.get("/api/getAllTreatments", async (req, res) => {
+  const tag = req.query.tag;
+  if (!tag) {
+    res.status(400).json({ message: "Invalid params" });
+    return;
+  }
+
+  try {
+    const q = `select * from ${tag}.TREATMENTS`;
+    const result = await pool.query(q);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.get("/api/getAllVacantRooms", async (req, res) => {
+  const tag = req.query.tag;
+  if (!tag) {
+    res.status(400).json({ message: "Invalid params" });
+    return;
+  }
+  try {
+    const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
+    const result = await pool.query(q);
+    res.status(200).json(result.rows);
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+app.post("/api/getRecords", async (req, res) => {
+  const where = req.body.where;
+  const tag = req.body.tag;
+
+  if (!where || !tag) {
+    res.status(400).json({ message: "Invalid params" });
+  }
+  try {
+    const values: any = req.body.values ? req.body.values : [];
+    let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
+
+    where.forEach((w: string) => {
+      query += " ";
+      query += w;
+    });
+
+    const result = await pool.query(query, values);
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.post("/api/insertRecords", async (req, res) => {
+  const records = req.body.records;
+  const tag = req.body.tag;
+
+  try {
+    const valuesTemplate = records
+      .map((_: any, i: number) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
+      .join(", ");
+
+    const query = `
+        INSERT INTO ${tag}.chart_schedule (
+        ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
+        ) VALUES ${valuesTemplate}
+        RETURNING *;
+      `;
+
+    const queryValues: any[] = [];
+    records.forEach((record: any) => {
+      let value = deconstructRecord(record);
+      queryValues.push(...value);
+    });
+
+    const result = await pool.query(query, queryValues);
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: "Error inserting records." });
+  }
+});
+app.post("/api/insertTreatment", async (req, res) => {
+  const tag = req.body.tag;
+
+  if (!tag) {
+    res.status(400).json({ message: "Invalid params" });
+    return;
+  }
+
+  try {
+    await pool.connect();
+
+    const maxIdResult = await pool.query(`SELECT MAX(tr_id) AS max_id FROM ${tag}.TREATMENTS`);
+    let maxId = maxIdResult.rows[0].max_id || 0;
+    maxId += 1;
+    const insertQuery = `
+      INSERT INTO ${tag}.TREATENTS (tr_id) VALUES (${maxId}) RETURNING *;
+    `;
+    const insertResult = await pool.query(insertQuery);
+    res.status(200).json(insertResult);
+  } catch (error: any) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 app.post("/api/register", async (req, res) => {
   const { userId, role, password, firstName, lastName, clinic } = req.body;
 
@@ -139,66 +281,17 @@ app.post("/api/login", async (req, res) => {
     }
     res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({ message: "서버 에러", errorType: 3 });
-  } finally {
+    res.status(500).json({ message: "Internal server error", errorType: 3 });
   }
 });
-app.get("/api/getUserByID", async (req, res) => {
-  const id = req.query.id;
 
-  try {
-    const result = await pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json(error);
-  }
-});
-app.get("/api/checkSameIDExists", async (req, res) => {
-  const userId = req.query.userId;
-
-  try {
-    const result = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
-    res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-app.post("/api/insertRecords", async (req, res) => {
-  const records = req.body.records;
-  const tag = req.body.tag;
-
-  try {
-    const valuesTemplate = records
-      .map((_: any, i: number) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
-      .join(", ");
-
-    const query = `
-        INSERT INTO ${tag}.chart_schedule (
-        ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
-        ) VALUES ${valuesTemplate}
-        RETURNING *;
-      `;
-
-    const queryValues: any[] = [];
-    records.forEach((record: any) => {
-      let value = deconstructRecord(record);
-      queryValues.push(...value);
-    });
-
-    const result = await pool.query(query, queryValues);
-
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ message: "Error inserting records." });
-  } finally {
-  }
-});
 app.put("/api/updateRecord", async (req, res) => {
   const record = req.body.record;
   const tag = req.body.tag;
 
   if (!tag || !record) {
-    res.status(500).json({ message: "Invalid params" });
+    res.status(400).json({ message: "Invalid params" });
+    return;
   }
 
   try {
@@ -213,7 +306,6 @@ app.put("/api/updateRecord", async (req, res) => {
   } finally {
   }
 });
-
 app.put("/api/setUserSession", async (req, res) => {
   const sessionId = req.body.sessionId;
   const id = req.body.id;
@@ -229,27 +321,6 @@ app.put("/api/setUserSession", async (req, res) => {
     res.status(500).json({ message: "Error updating records." });
   }
 });
-
-app.post("/api/getRecords", async (req, res) => {
-  const where = req.body.where;
-  const tag = req.body.tag;
-  try {
-    const values: any = req.body.values ? req.body.values : [];
-    let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
-
-    where.forEach((w: string) => {
-      query += " ";
-      query += w;
-    });
-
-    const result = await pool.query(query, values);
-
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
 app.put("/api/hideRecords", async (req, res) => {
   const ids: any[] = req.body.ids;
   const tag = req.body.tag;
@@ -259,7 +330,6 @@ app.put("/api/hideRecords", async (req, res) => {
     res.status(200).json({ message: "Records deleted successfully." });
   } catch (error) {
     res.status(500).json({ message: "Error deleting records." });
-  } finally {
   }
 });
 app.put("/api/lockOrUnlockRecords", async (req, res) => {
@@ -267,8 +337,9 @@ app.put("/api/lockOrUnlockRecords", async (req, res) => {
   const lockingUser = req.body.lockingUser;
   const tag = req.body.tag;
 
-  if (!lockingUser || !tag || !recordIds) {
-    res.status(500).json({ message: "Invalid params" });
+  if (!tag || !recordIds) {
+    res.status(400).json({ message: "Invalid params" });
+    return;
   }
 
   try {
@@ -284,59 +355,13 @@ app.put("/api/lockOrUnlockRecords", async (req, res) => {
     res.status(500).json({ message: "Error locking record" });
   }
 });
-
-app.get("/api/getAllRoleEmployees", async (req, res) => {
-  const role = req.query.role;
-  const tag = req.query.tag;
-  if (!role || !tag) {
-    res.status(500).json({ message: "Invalid params" });
-  }
-
-  try {
-    const q = `select * from admin.user where user_role='${role}'`;
-    const result = await pool.query(q);
-    res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-app.get("/api/getAllTreatments", async (req, res) => {
-  const tag = req.query.tag;
-  if (!tag) {
-    res.status(500).json({ message: "Invalid params" });
-  }
-
-  try {
-    const q = `select * from ${tag}.TREATMENTS`;
-    const result = await pool.query(q);
-    res.status(200).json(result);
-  } catch (error: any) {
-    console.log(error);
-
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
-app.get("/api/getAllVacantRooms", async (req, res) => {
-  const tag = req.query.tag;
-  if (!tag) {
-    res.status(500).json({ message: "Invalid params" });
-    return;
-  }
-  try {
-    const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
-    const result = await pool.query(q);
-    res.status(200).json(result.rows);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 app.put("/api/updateTreatment", async (req, res) => {
   const treatment = req.body.treatment;
   const tag = req.body.tag;
 
   if (!tag || !treatment) {
-    res.status(500).json({ message: "Invalid params" });
+    res.status(400).json({ message: "Invalid params" });
+    return;
   }
 
   try {
@@ -348,12 +373,13 @@ app.put("/api/updateTreatment", async (req, res) => {
     res.status(error.code).json({ message: "Internal server error" });
   }
 });
+
 app.delete("/api/deleteTreatment", async (req, res) => {
   const id = req.query.id;
   const tag = req.query.tag;
 
   if (!id || !tag) {
-    res.status(500).json({ message: "Invalid params" });
+    res.status(400).json({ message: "Invalid params" });
     return;
   }
 
@@ -366,27 +392,4 @@ app.delete("/api/deleteTreatment", async (req, res) => {
   }
 });
 
-app.post("/api/insertTreatment", async (req, res) => {
-  const tag = req.body.tag;
-
-  if (!tag) {
-    res.status(500).json({ message: "Invalid params" });
-    return;
-  }
-
-  try {
-    await pool.connect();
-
-    const maxIdResult = await pool.query(`SELECT MAX(tr_id) AS max_id FROM ${tag}.TREATMENTS`);
-    let maxId = maxIdResult.rows[0].max_id || 0;
-    maxId += 1;
-    const insertQuery = `
-      INSERT INTO ${tag}.TREATENTS (tr_id) VALUES (${maxId}) RETURNING *;
-    `;
-    const insertResult = await pool.query(insertQuery);
-    res.status(200).json(insertResult);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

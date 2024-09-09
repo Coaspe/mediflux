@@ -74,6 +74,138 @@ io.on(CONNECTION, (socket) => {
         socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType });
     });
 });
+app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.id;
+    try {
+        const result = yield pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.query.userId;
+    try {
+        const result = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.get("/api/getAllRoleEmployees", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const role = req.query.role;
+    const tag = req.query.tag;
+    if (!role || !tag) {
+        res.status(400).json({ message: "Invalid params" });
+        return;
+    }
+    try {
+        const q = `select * from admin.user where user_role='${role}'`;
+        const result = yield pool.query(q);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.get("/api/getAllTreatments", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const tag = req.query.tag;
+    if (!tag) {
+        res.status(400).json({ message: "Invalid params" });
+        return;
+    }
+    try {
+        const q = `select * from ${tag}.TREATMENTS`;
+        const result = yield pool.query(q);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.get("/api/getAllVacantRooms", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const tag = req.query.tag;
+    if (!tag) {
+        res.status(400).json({ message: "Invalid params" });
+        return;
+    }
+    try {
+        const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
+        const result = yield pool.query(q);
+        res.status(200).json(result.rows);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const where = req.body.where;
+    const tag = req.body.tag;
+    if (!where || !tag) {
+        res.status(400).json({ message: "Invalid params" });
+    }
+    try {
+        const values = req.body.values ? req.body.values : [];
+        let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
+        where.forEach((w) => {
+            query += " ";
+            query += w;
+        });
+        const result = yield pool.query(query, values);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
+app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const records = req.body.records;
+    const tag = req.body.tag;
+    try {
+        const valuesTemplate = records
+            .map((_, i) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
+            .join(", ");
+        const query = `
+        INSERT INTO ${tag}.chart_schedule (
+        ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
+        ) VALUES ${valuesTemplate}
+        RETURNING *;
+      `;
+        const queryValues = [];
+        records.forEach((record) => {
+            let value = deconstructRecord(record);
+            queryValues.push(...value);
+        });
+        const result = yield pool.query(query, queryValues);
+        res.status(200).json(result);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error inserting records." });
+    }
+}));
+app.post("/api/insertTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const tag = req.body.tag;
+    if (!tag) {
+        res.status(400).json({ message: "Invalid params" });
+        return;
+    }
+    try {
+        yield pool.connect();
+        const maxIdResult = yield pool.query(`SELECT MAX(tr_id) AS max_id FROM ${tag}.TREATMENTS`);
+        let maxId = maxIdResult.rows[0].max_id || 0;
+        maxId += 1;
+        const insertQuery = `
+      INSERT INTO ${tag}.TREATENTS (tr_id) VALUES (${maxId}) RETURNING *;
+    `;
+        const insertResult = yield pool.query(insertQuery);
+        res.status(200).json(insertResult);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}));
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId, role, password, firstName, lastName, clinic } = req.body;
     try {
@@ -114,63 +246,15 @@ app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(200).json({ user });
     }
     catch (error) {
-        res.status(500).json({ message: "서버 에러", errorType: 3 });
-    }
-    finally {
-    }
-}));
-app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.query.id;
-    try {
-        const result = yield pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
-        res.status(200).json(result);
-    }
-    catch (error) {
-        res.status(500).json(error);
-    }
-}));
-app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.query.userId;
-    try {
-        const result = yield pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
-        res.status(200).json(result);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Internal server error" });
-    }
-}));
-app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const records = req.body.records;
-    const tag = req.body.tag;
-    try {
-        const valuesTemplate = records
-            .map((_, i) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
-            .join(", ");
-        const query = `
-        INSERT INTO ${tag}.chart_schedule (
-        ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
-        ) VALUES ${valuesTemplate}
-        RETURNING *;
-      `;
-        const queryValues = [];
-        records.forEach((record) => {
-            let value = deconstructRecord(record);
-            queryValues.push(...value);
-        });
-        const result = yield pool.query(query, queryValues);
-        res.status(200).json(result);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Error inserting records." });
-    }
-    finally {
+        res.status(500).json({ message: "Internal server error", errorType: 3 });
     }
 }));
 app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const record = req.body.record;
     const tag = req.body.tag;
     if (!tag || !record) {
-        res.status(500).json({ message: "Invalid params" });
+        res.status(400).json({ message: "Invalid params" });
+        return;
     }
     try {
         const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
@@ -200,23 +284,6 @@ app.put("/api/setUserSession", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ message: "Error updating records." });
     }
 }));
-app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const where = req.body.where;
-    const tag = req.body.tag;
-    try {
-        const values = req.body.values ? req.body.values : [];
-        let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
-        where.forEach((w) => {
-            query += " ";
-            query += w;
-        });
-        const result = yield pool.query(query, values);
-        res.status(200).json(result);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Internal server error" });
-    }
-}));
 app.put("/api/hideRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const ids = req.body.ids;
     const tag = req.body.tag;
@@ -228,15 +295,14 @@ app.put("/api/hideRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
     catch (error) {
         res.status(500).json({ message: "Error deleting records." });
     }
-    finally {
-    }
 }));
 app.put("/api/lockOrUnlockRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const recordIds = req.body.recordIds;
     const lockingUser = req.body.lockingUser;
     const tag = req.body.tag;
-    if (!lockingUser || !tag || !recordIds) {
-        res.status(500).json({ message: "Invalid params" });
+    if (!tag || !recordIds) {
+        res.status(400).json({ message: "Invalid params" });
+        return;
     }
     try {
         if (recordIds.length > 0) {
@@ -253,56 +319,12 @@ app.put("/api/lockOrUnlockRecords", (req, res) => __awaiter(void 0, void 0, void
         res.status(500).json({ message: "Error locking record" });
     }
 }));
-app.get("/api/getAllRoleEmployees", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const role = req.query.role;
-    const tag = req.query.tag;
-    if (!role || !tag) {
-        res.status(500).json({ message: "Invalid params" });
-    }
-    try {
-        const q = `select * from admin.user where user_role='${role}'`;
-        const result = yield pool.query(q);
-        res.status(200).json(result);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Internal server error" });
-    }
-}));
-app.get("/api/getAllTreatments", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const tag = req.query.tag;
-    if (!tag) {
-        res.status(500).json({ message: "Invalid params" });
-    }
-    try {
-        const q = `select * from ${tag}.TREATMENTS`;
-        const result = yield pool.query(q);
-        res.status(200).json(result);
-    }
-    catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "Internal server error" });
-    }
-}));
-app.get("/api/getAllVacantRooms", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const tag = req.query.tag;
-    if (!tag) {
-        res.status(500).json({ message: "Invalid params" });
-        return;
-    }
-    try {
-        const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
-        const result = yield pool.query(q);
-        res.status(200).json(result.rows);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Internal server error" });
-    }
-}));
 app.put("/api/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const treatment = req.body.treatment;
     const tag = req.body.tag;
     if (!tag || !treatment) {
-        res.status(500).json({ message: "Invalid params" });
+        res.status(400).json({ message: "Invalid params" });
+        return;
     }
     try {
         const q = updateQuery(`${tag}.TREATMENTS`, KEY_OF_SERVER_TREATMENT, "tr_id");
@@ -317,7 +339,7 @@ app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 
     const id = req.query.id;
     const tag = req.query.tag;
     if (!id || !tag) {
-        res.status(500).json({ message: "Invalid params" });
+        res.status(400).json({ message: "Invalid params" });
         return;
     }
     try {
@@ -327,27 +349,6 @@ app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 
     }
     catch (error) {
         res.status(error.code).json({ message: "Internal server error" });
-    }
-}));
-app.post("/api/insertTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const tag = req.body.tag;
-    if (!tag) {
-        res.status(500).json({ message: "Invalid params" });
-        return;
-    }
-    try {
-        yield pool.connect();
-        const maxIdResult = yield pool.query(`SELECT MAX(tr_id) AS max_id FROM ${tag}.TREATMENTS`);
-        let maxId = maxIdResult.rows[0].max_id || 0;
-        maxId += 1;
-        const insertQuery = `
-      INSERT INTO ${tag}.TREATENTS (tr_id) VALUES (${maxId}) RETURNING *;
-    `;
-        const insertResult = yield pool.query(insertQuery);
-        res.status(200).json(insertResult);
-    }
-    catch (error) {
-        res.status(500).json({ message: "Internal server error" });
     }
 }));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

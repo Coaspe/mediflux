@@ -1,9 +1,11 @@
 /** @format */
 
+import { PORT } from "shared";
 import { OpReadiness, SearchHelp, Treatment } from "./type";
 
 export const TEST_TAG = "gn_ss_bailor";
 export const DEFAULT_REDIRECT = "/";
+export const SERVER_URL = `http://localhost:${PORT}`;
 export const SIDE_MENU = {
   SCHEDULING: "scheduling",
   ARCHIVE: "archive",

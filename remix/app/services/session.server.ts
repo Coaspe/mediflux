@@ -6,7 +6,7 @@ import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, SERVER_URL, TEST_TAG } from "~/constant";
 
 const sessionSecret = process.env.SESSION_SECRET || "";
 if (!sessionSecret) {
@@ -27,15 +27,14 @@ const storage = createCookieSessionStorage({
 
 export async function login({ userId, password }: LoginForm) {
   try {
-    const response = await axios.post(`http://localhost:5000/api/login`, { userId, password }, { withCredentials: true });
-    console.log(response);
-
+    const response = await axios.post(`${SERVER_URL}/api/login`, { userId, password }, { withCredentials: true });
     if (response.status === 200) {
       return { status: response.status, user: response.data.user };
     }
   } catch (error: any) {
-    if (error.response && error.response.status) {
-      return { status: error.response.status, message: error.response.data.message, errorType: error.response.data.errorType };
+    const res = error.response;
+    if (res) {
+      return { status: res.status, message: res.data.message, errorType: res.data.errorType };
     }
     return { status: 500, message: "Internal server error" };
   }
@@ -67,7 +66,7 @@ export async function createUserSession(user: User, redirectTo: string, request:
 
 export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
   try {
-    let result = await axios.post("http://localhost:5000/api/register", { userId, password, role, firstName, lastName, clinic: TEST_TAG });
+    let result = await axios.post("${SERVER_URL}/api/register", { userId, password, role, firstName, lastName, clinic: TEST_TAG });
     return result;
   } catch (error: any) {
     return error;
@@ -108,10 +107,7 @@ export async function getUserSession(request: Request) {
     return { status: "active", id: userId, sessionId };
   }
 
-  const {
-    statusCode,
-    body: { data, error },
-  } = await getUserByID(userId);
+  const { statusCode, body: { data = {}, error = null } = {} } = await getUserByID(userId);
 
   if (statusCode === 200) {
     if (data.sessionId !== sessionId) {

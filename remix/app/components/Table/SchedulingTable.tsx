@@ -215,11 +215,13 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       api.applyTransaction({
         update: [copyRecord],
       });
+      result.body.error && showErrorSnackbar(result.body.error);
     }
-    if (result.body.error) showErrorSnackbar(result.body.error);
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
+    console.log("stop");
+
     if (isTabPressed.current) {
       isTabPressed.current = false;
       return;
@@ -260,10 +262,18 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
   };
 
-  const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
-    isTabPressed.current = true;
-
-    return params.nextCellPosition;
+  // const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
+  //   isTabPressed.current = true;
+  //   return params.nextCellPosition;
+  // };
+  const handleKeyDown = (e: any) => {
+    const event = e.event;
+    if (event.key === "Tab") {
+      if (!event.isComposing) {
+        event.preventDefault(); // 기본 Tab 동작을 막고
+        gridRef.current?.api.tabToNextCell(); // 다음 셀로 이동
+      }
+    }
   };
 
   const noRowsOverlayComponent = () => {
@@ -274,6 +284,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     fontSize: "0.75rem" /* 12px */,
     lineheight: "1rem" /* 16px */,
   };
+
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
@@ -291,7 +302,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         getRowStyle={getRowStyle}
         rowSelection={"multiple"}
         rowStyle={rowStyle}
-        tabToNextCell={tabToNextCell}
+        tabToNextCell={() => {
+          return null;
+        }}
+        onCellKeyDown={handleKeyDown}
         loading={isLoading}
         loadingOverlayComponent={LoadingOverlay}
         noRowsOverlayComponent={noRowsOverlayComponent}

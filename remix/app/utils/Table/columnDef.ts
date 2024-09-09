@@ -61,6 +61,8 @@ export const createdAtColumn: ColDef<PRecord, number> = {
 
 export const chartNumberColumn: ColDef<PRecord, string> = {
   field: CHART_NUMBER,
+  filter: true,
+
   width: MEDIUM_COLUMN_LENGTH,
   comparator: (valueA, valueB) => parseInt(valueA ? valueA : "0") - parseInt(valueB ? valueB : "0"),
   headerName: CHART_NUMBER_H,
@@ -68,8 +70,9 @@ export const chartNumberColumn: ColDef<PRecord, string> = {
 
 export const patientNameColumn: ColDef<PRecord, string> = {
   field: PATIENT_NAME,
+  filter: true,
   headerName: PATIENT_NAME_H,
-  width: SHORT_COLUMN_LENGTH,
+  width: MEDIUM_COLUMN_LENGTH,
 };
 
 export const opReadinessColumn = {
@@ -134,6 +137,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
   const isDoctor = "doctor" === field;
   return {
     field,
+    filter: true,
     headerName,
     width: LONG_COLUMN_LENGTH,
     editable: !isDoctor,

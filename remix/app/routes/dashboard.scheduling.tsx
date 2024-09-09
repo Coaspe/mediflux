@@ -20,10 +20,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const sessionData = await getUserSession(request);
 
   if (sessionData.id) {
-    const {
-      statusCode,
-      body: { data: user, error },
-    } = await getUserByID(sessionData.id);
+    const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
     if (statusCode === 200) {
       const where = [];
       where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);

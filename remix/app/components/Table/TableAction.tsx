@@ -80,25 +80,23 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   const handleOpenDeleteModal = async () => {
     if (!gridRef.current || !user) return;
 
-    try {
-      const records = gridRef.current.api.getSelectedRows();
+    const records = gridRef.current.api.getSelectedRows();
 
-      if (records.length === 0) {
-        throw new Error("삭제할 레코드가 선택되지 않았습니다.");
-      }
+    if (records.length === 0) {
+      throw new Error("삭제할 레코드가 선택되지 않았습니다.");
+    }
 
-      setSelectedRows(records);
-      const result = await lockOrUnlockRecords(
-        records.map((record) => record.id),
-        user.id,
-        TEST_TAG
-      );
-      if (result.statusCode === 200) {
-        emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
-        setOpenDeleteModal(true);
-      }
-    } catch (error: any) {
-      showErrorSnackbar(error.message || "알 수 없는 오류가 발생했습니다.");
+    setSelectedRows(records);
+    const result = await lockOrUnlockRecords(
+      records.map((record) => record.id),
+      user.id,
+      TEST_TAG
+    );
+    if (result.statusCode === 200) {
+      emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+      setOpenDeleteModal(true);
+    } else {
+      result.body.error && showErrorSnackbar(result.body.error);
     }
   };
   const handleCloseDeleteModal = useCallback(async () => {
@@ -110,6 +108,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       );
       if (result.statusCode === 200) {
         emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+      } else {
+        result.body.error && showErrorSnackbar(result.body.error);
       }
     }
     setOpenDeleteModal(false);

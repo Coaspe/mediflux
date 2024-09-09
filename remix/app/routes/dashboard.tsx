@@ -55,10 +55,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     return redirect(DEFAULT_REDIRECT);
   }
 
-  const {
-    statusCode,
-    body: { data: user, error },
-  } = await getUserByID(sessionData.id);
+  const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
   if (statusCode === 200) {
     return user;
   }
