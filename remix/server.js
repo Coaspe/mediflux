@@ -4,6 +4,9 @@ import { createRequestHandler } from "@remix-run/express";
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const viteDevServer =
   process.env.NODE_ENV === "production"
