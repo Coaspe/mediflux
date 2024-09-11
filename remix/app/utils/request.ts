@@ -2,9 +2,9 @@
 
 import axios from "axios";
 import { Role } from "shared";
-import { CustomResponse } from "~/type";
+import { CustomResponse } from "~/types/type";
 
-export const getAllRoleEmployees = async (role: Role, tag: string, baseURL: string): Promise<CustomResponse> => {
+export const getAllRoleEmployees = async (role: Role, tag: string, baseURL: string | undefined): Promise<CustomResponse> => {
   try {
     const result = await axios.get(`${baseURL}/api/getAllRoleEmployees`, { params: { role, tag } });
     return { statusCode: result.status, body: { data: result.data } };
@@ -12,7 +12,7 @@ export const getAllRoleEmployees = async (role: Role, tag: string, baseURL: stri
     return handleError(error);
   }
 };
-export const getRecords = async (where: string[] = [], tag: string, baseURL: string): Promise<CustomResponse> => {
+export const getRecords = async (where: string[] = [], tag: string, baseURL: string | undefined): Promise<CustomResponse> => {
   try {
     const result = await axios.post(`${baseURL}/api/getRecords`, { where, tag });
     return { statusCode: result.status, body: { data: result.data } };
@@ -20,7 +20,7 @@ export const getRecords = async (where: string[] = [], tag: string, baseURL: str
     return handleError(error);
   }
 };
-export const getAllTreatments = async (tag: string, baseURL: string): Promise<CustomResponse> => {
+export const getAllTreatments = async (tag: string, baseURL: string | undefined): Promise<CustomResponse> => {
   try {
     const result = await axios.get(`${baseURL}/api/getAllTreatments`, { params: { tag } });
     return { statusCode: result.status, body: { data: result.data } };

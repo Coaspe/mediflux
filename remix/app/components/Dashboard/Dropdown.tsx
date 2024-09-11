@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import jp from "assets/svgs/jp.svg";
-import kr from "assets/svgs/kr.svg";
-import us from "assets/svgs/us.svg";
+import jp from "/assets/svgs/jp.svg";
+import kr from "/assets/svgs/kr.svg";
+import us from "/assets/svgs/us.svg";
 
 interface FlagOption {
   label: string;

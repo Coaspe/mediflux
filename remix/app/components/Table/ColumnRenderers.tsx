@@ -1,6 +1,6 @@
 /** @format */
 
-import { ChipColor, GlobalSnackBark, OpReadiness, PRecord, SearchHelp, TableType, Treatment } from "../../type";
+import { ChipColor, GlobalSnackBark, OpReadiness, PRecord, SearchHelp, TableType, Treatment } from "../../types/type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { ROLE, Role } from "shared";
@@ -235,7 +235,8 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
           <CustomToolTip
             disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
             title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-            dir="left">
+            dir="left"
+          >
             <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
               <ListItemIcon>{confirmIcon}</ListItemIcon>
               <ListItemText>{confirmItemTitle}</ListItemText>
@@ -292,7 +293,8 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}>
+            }`}
+          >
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>
@@ -355,6 +357,7 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
     <Autocomplete
       sx={{ width: "100%" }}
       onHighlightChange={(_, option) => {
+        console.log(option);
         optionRef.current = option;
       }}
       key={colDef.field}
@@ -365,7 +368,7 @@ export const autoCompleteEdit = ({ value, onValueChange, api, data, colDef }: Cu
       onChange={(_, value) => onChange(value)}
       clearOnBlur={false}
       value={option}
-      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, optionRef, setModalOpen)}
+      onKeyDownCapture={(event) => autoCompleteKeyDownCapture(event, onValueChange, optionRef)}
       renderInput={(params) => <TextField onKeyDown={handleKeyDown} inputRef={inputRef} {...params} variant="standard" />}
     />
   );
@@ -411,7 +414,7 @@ export const nameChipRendererByRole = (role: Role, name?: string) => {
 export const deleteCell = (data: Treatment, setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>, api: GridApi<Treatment>) => {
   const onClick = async () => {
     try {
-      const result = await deleteTreatement(data.id, TEST_TAG);
+      const result = await deleteTreatement(data.id, TEST_TAG, window.ENV.FRONT_BASE_URL);
 
       if (result.statusCode === 200) {
         api.applyTransaction({

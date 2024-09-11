@@ -1,6 +1,6 @@
 /** @format */
 
-import { SideMenu } from "~/type";
+import { SideMenu } from "~/types/type";
 import { getMenuName, getRoleName } from "~/utils/utils";
 import DropdownMenu from "./Dropdown";
 import { useState } from "react";
@@ -25,10 +25,10 @@ function DashboardUser() {
 
   return (
     <div className="flex items-center gap-3 font-work">
-      <div className="flex items-center justify-center w-8 h-8 rounded-md bg-alarmButtonBg relative cursor-pointer">
+      {/* <div className="flex items-center justify-center w-8 h-8 rounded-md bg-alarmButtonBg relative cursor-pointer">
         {doesAlarmExist && <div className="absolute w-1 h-1 rounded-full bg-red-600 right-1 top-1"> </div>}
         <span className="material-symbols-outlined text-alarmButtonLine">notifications</span>
-      </div>
+      </div> */}
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center border-2 border-black w-8 h-8 rounded-md">
           <span className="material-symbols-rounded text-4xl">person</span>
@@ -49,11 +49,11 @@ export default function DashboardHeader({ selectedMenu }: { selectedMenu: SideMe
   return (
     <header className="min-h-24 font-playfair flex items-center justify-between pl-12 pr-12 w-full">
       <div className="flex items-center">
-        <h1 className="w-[250px] font-extrabold text-4xl cursor-pointer select-none">MediFlux</h1>
+        <h1 className="w-[250px] font-extrabold text-4xl cursor-pointer select-none text-button">MediFlux</h1>
         <h2 className="font-work text-xl font-bold drag select-none">{getMenuName(selectedMenu)}</h2>
       </div>
       <div className="flex gap-10">
-        <DropdownMenu />
+        {/* <DropdownMenu /> */}
         <DashboardUser />
       </div>
     </header>

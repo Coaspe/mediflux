@@ -4,7 +4,7 @@ import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 import { DEFAULT_REDIRECT, SIDE_MENU } from "~/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
-import { SideMenu, User } from "~/type";
+import { SideMenu, User } from "~/types/type";
 import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";

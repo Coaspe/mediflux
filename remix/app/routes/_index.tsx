@@ -5,7 +5,7 @@ import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
 import { badRequest, checkSameIdExists } from "~/utils/request.server";
 import { createUserSession, getUserSession, login, register } from "~/services/session.server";
-import { LoginResponse, User } from "~/type";
+import { LoginResponse, User } from "~/types/type";
 import { ROLE, ServerUser } from "shared";
 import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";

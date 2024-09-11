@@ -1,8 +1,8 @@
 /** @format */
 
 import { Role, ServerUser, ROLE } from "shared";
-import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG, procee.env.FRONT_URL } from "~/constant";
-import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/type";
+import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG } from "~/constant";
+import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/types/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi, RowDataTransaction } from "ag-grid-community";
 import CryptoJS from "crypto-js";
@@ -159,7 +159,9 @@ export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: an
     }
   } else if (event.key === "Tab") {
     if (optionRef.current) {
-      onValueChange(optionRef.current.id);
+      console.log(optionRef.current);
+
+      onValueChange(optionRef.current.id.toString());
     }
   }
 };
@@ -259,11 +261,11 @@ export const convertServerTreatmentToClient = (serverTreatment: Object): Treatme
   return retVal;
 };
 
-export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpdater<Treatment[]>) => {
+export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpdater<Treatment[]>, baseURL: string) => {
   const {
     statusCode,
     body: { data },
-  } = await getAllTreatments(TEST_TAG, procee.env.FRONT_URL);
+  } = await getAllTreatments(TEST_TAG, baseURL);
   if (statusCode === 200) {
     const treatment = data.rows
       .map((treatment: any) => convertServerTreatmentToClient(treatment))
@@ -274,11 +276,11 @@ export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpd
   }
 };
 
-export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<SearchHelp[]>) => {
+export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<SearchHelp[]>, baseURL: string) => {
   const {
     statusCode,
     body: { data },
-  } = await getAllRoleEmployees("doctor", TEST_TAG, procee.env.FRONT_URL);
+  } = await getAllRoleEmployees("doctor", TEST_TAG, baseURL);
 
   if (statusCode === 200) {
     const doctors = data.rows

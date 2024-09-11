@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import React from "react";
-import { ChartData, Interval, PRecord } from "~/type";
+import { ChartData, Interval, PRecord } from "~/types/type";
 import dayjs, { Dayjs } from "dayjs";
 
 type ArchiveChartProps = {

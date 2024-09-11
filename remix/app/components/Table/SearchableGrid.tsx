@@ -1,8 +1,9 @@
 /** @format */
-
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReactProps, AgGridReact } from "ag-grid-react";
-import { useState, useRef, useEffect } from "react";
-import { Treatment, CustomAgGridReactProps } from "~/type";
+import { useState, useEffect } from "react";
+import { Treatment, CustomAgGridReactProps } from "~/types/type";
 import LoadingOverlay from "../Loading";
 import { Box } from "@mui/material";
 import { Dispatch, FC, SetStateAction } from "react";
@@ -53,7 +54,7 @@ const SearchGridHeader: FC<SearchGridHeaderProps> = ({ searchTerm, setSearchTerm
     const {
       statusCode,
       body: { data: { rows = [] } = {}, error = null },
-    } = await insertTreatment(TEST_TAG);
+    } = await insertTreatment(TEST_TAG, window.ENV.FRONT_BASE_URL);
 
     if (statusCode === 200) {
       const row = rows[0];

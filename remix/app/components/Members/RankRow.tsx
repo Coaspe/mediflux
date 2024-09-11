@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import React from "react";
-import { User } from "~/type";
+import { User } from "~/types/type";
 
 type RankRowProps = {
   rank: number;

@@ -5,9 +5,9 @@ import { AgGridReactProps } from "ag-grid-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSetRecoilState } from "recoil";
 import { ROLE } from "shared";
-import { SERVER_URL, TEST_TAG } from "~/constant";
+import { TEST_TAG } from "~/constant";
 import { globalSnackbarState } from "~/recoil_state";
-import { CustomAgGridReactProps, Member, Treatment } from "~/type";
+import { CustomAgGridReactProps, Member, Treatment } from "~/types/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";
 import { convertServerTreatmentToClient, getRevenueForPeriod } from "~/utils/utils";
@@ -19,19 +19,19 @@ export async function loader() {
     body: {
       data: { rows: doctors },
     },
-  } = await getAllRoleEmployees(ROLE.DOCTOR, TEST_TAG, SERVER_URL);
+  } = await getAllRoleEmployees(ROLE.DOCTOR, TEST_TAG, process.env.SERVER_BASE_URL);
   const {
     statusCode: s2,
     body: {
       data: { rows: records },
     },
-  } = await getRecords([], TEST_TAG, SERVER_URL);
+  } = await getRecords([], TEST_TAG, process.env.SERVER_BASE_URL);
   const {
     statusCode: s3,
     body: {
       data: { rows: t },
     },
-  } = await getAllTreatments(TEST_TAG, SERVER_URL);
+  } = await getAllTreatments(TEST_TAG, process.env.SERVER_BASE_URL);
 
   if (s1 === 200 && s2 === 200 && s3 === 200) {
     const treatments: { [key: string]: Treatment } = {};

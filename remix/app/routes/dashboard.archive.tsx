@@ -3,7 +3,7 @@
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ArchiveChart from "~/components/Archive/Chart";
-import { CustomAgGridReactProps, Interval, PRecord, User } from "~/type";
+import { CustomAgGridReactProps, Interval, PRecord, User } from "~/types/type";
 import { SelectChangeEvent } from "@mui/material/Select";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT } from "shared";
@@ -16,7 +16,7 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
-import { DEFAULT_REDIRECT, procee.env.FRONT_URL, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
 import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -41,7 +41,6 @@ export default function Archive() {
   const tableRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const loaderData = useLoaderData<{ user: User; records: PRecord[] }>();
-
   const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
   const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
   const [user, setUser] = useRecoilState(userState);
@@ -66,9 +65,9 @@ export default function Archive() {
   };
 
   useEffect(() => {
-    getTreatmentSearchHelp(setTreatmentSearchHelp);
-    getDoctorSearchHelp(setDoctorSearchHelp);
-  }, []);
+    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL);
+    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL);
+  }, [window.ENV.FRONT_BASE_URL]);
 
   useEffect(() => {
     const socketInstance = io(`http://localhost:${PORT}`, { path: "/socket" });
@@ -101,7 +100,7 @@ export default function Archive() {
     const {
       statusCode,
       body: { data, error },
-    } = await getRecords(where, TEST_TAG, procee.env.FRONT_URL);
+    } = await getRecords(where, TEST_TAG, window.ENV.FRONT_BASE_URL);
     if (statusCode === 200) {
       setRowData(data.rows.map((record: any) => convertServerPRecordtToPRecord(record)));
     } else {
@@ -116,10 +115,10 @@ export default function Archive() {
       setUser(suser);
     }
 
-    if (suser) {
+    if (suser && window.ENV.FRONT_BASE_URL) {
       getData();
     }
-  }, [socket, baseDate, interval, numOfInterval, loaderData]);
+  }, [socket, baseDate, interval, numOfInterval, loaderData, window.ENV.FRONT_BASE_URL]);
 
   return (
     <div className="w-full h-full">

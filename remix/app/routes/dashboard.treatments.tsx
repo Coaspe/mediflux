@@ -1,5 +1,3 @@
-/** @format */
-
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import "../css/Table.css";
@@ -8,13 +6,14 @@ import { convertServerTreatmentToClient } from "~/utils/utils";
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
 import { updateTreatment } from "~/utils/request.client";
-import { procee.env.FRONT_URL, TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
-import { CustomAgGridReactProps, Treatment } from "~/type";
+import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
+import { CustomAgGridReactProps, Treatment } from "~/types/type";
 import { ColDef, CellEditingStoppedEvent, GridApi } from "ag-grid-community";
 import { AgGridReactProps } from "ag-grid-react";
 import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
 import { getAllTreatments } from "~/utils/request";
 import SearchableGrid from "~/components/Table/SearchableGrid";
+
 const Treatments: React.FC = () => {
   const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
@@ -28,7 +27,7 @@ const Treatments: React.FC = () => {
       const {
         statusCode,
         body: { data, error },
-      } = await getAllTreatments(TEST_TAG, procee.env.FRONT_URL);
+      } = await getAllTreatments(TEST_TAG, window.ENV.FRONT_BASE_URL);
       if (statusCode === 200) {
         const convertedData: Treatment[] = data.rows.map((t: any) => {
           let ret = convertServerTreatmentToClient(t);
@@ -89,10 +88,7 @@ const Treatments: React.FC = () => {
 
   const saveTreatment = async (treatment: Treatment, oldValue: any, field: string, api: GridApi<Treatment>) => {
     const copyTreatment: Treatment = JSON.parse(JSON.stringify(treatment));
-    console.log(copyTreatment);
-
-    const result = await updateTreatment(treatment, TEST_TAG);
-    console.log(result);
+    const result = await updateTreatment(treatment, TEST_TAG, window.ENV.FRONT_BASE_URL);
 
     if (result.statusCode !== 200) {
       if (field in copyTreatment) {

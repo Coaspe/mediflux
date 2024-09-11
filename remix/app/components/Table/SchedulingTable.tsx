@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
-import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "~/type";
+import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "~/types/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -26,7 +26,7 @@ import {
 } from "~/utils/Table/columnDef";
 import "../../css/Table.css";
 import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD } from "shared";
-import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord, emitCreateRecords } from "~/utils/Table/socket";
+import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
@@ -146,7 +146,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         }
       }
 
-      let result = await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG);
+      let result = await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG, window.ENV.FRONT_BASE_URL);
       if (result.statusCode === 200) {
         mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, roomId));
         records.sort((a, b) => {
@@ -159,7 +159,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       } else {
         result.body.error && showErrorSnackbar(result.body.error);
       }
-
       setIsLoading(false);
     };
     processData();
@@ -197,7 +196,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
 
-    const result = await updateRecord(record, TEST_TAG);
+    const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
 
     if (result.statusCode === 200) {
       emitSaveRecord([record], tableType, socket, roomId);
@@ -211,7 +210,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     } else if (field) {
       copyRecord[field] = oldValue;
       copyRecord["lockingUser"] = null;
-      await updateRecord(copyRecord, TEST_TAG);
+      await updateRecord(copyRecord, TEST_TAG, window.ENV.FRONT_BASE_URL);
       api.applyTransaction({
         update: [copyRecord],
       });
@@ -220,8 +219,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
-    console.log("stop");
-
     if (isTabPressed.current) {
       isTabPressed.current = false;
       return;
@@ -249,7 +246,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
 
     if (user && event.data && !event.data.lockingUser) {
-      const result = await lockOrUnlockRecords([event.data.id], user.id, TEST_TAG);
+      const result = await lockOrUnlockRecords([event.data.id], user.id, TEST_TAG, window.ENV.FRONT_BASE_URL);
       if (result.statusCode === 200) {
         emitLockRecord(event.data?.id, tableType, socket, user, roomId);
         event.data.lockingUser = user.id;
@@ -262,18 +259,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
   };
 
-  // const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
-  //   isTabPressed.current = true;
-  //   return params.nextCellPosition;
-  // };
-  const handleKeyDown = (e: any) => {
-    const event = e.event;
-    if (event.key === "Tab") {
-      if (!event.isComposing) {
-        event.preventDefault(); // 기본 Tab 동작을 막고
-        gridRef.current?.api.tabToNextCell(); // 다음 셀로 이동
-      }
-    }
+  const tabToNextCell = (params: TabToNextCellParams<PRecord, any>) => {
+    isTabPressed.current = true;
+    return params.nextCellPosition;
   };
 
   const noRowsOverlayComponent = () => {
@@ -287,7 +275,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   return (
     <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
-      {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"../../assets/sounds/new_record_ready_noti.mp3"} controls />}
+      {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"/assets/sounds/new_record_ready_noti.mp3"} controls />}
       <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
       <AgGridReact
         ref={gridRef}
@@ -302,10 +290,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         getRowStyle={getRowStyle}
         rowSelection={"multiple"}
         rowStyle={rowStyle}
-        tabToNextCell={() => {
-          return null;
-        }}
-        onCellKeyDown={handleKeyDown}
+        tabToNextCell={tabToNextCell}
         loading={isLoading}
         loadingOverlayComponent={LoadingOverlay}
         noRowsOverlayComponent={noRowsOverlayComponent}

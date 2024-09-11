@@ -1,12 +1,12 @@
-/** @format */
-
-import { Links, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
+import { Links, Outlet, Scripts } from "@remix-run/react";
 import { RecoilRoot } from "recoil";
 import type { LinksFunction } from "@remix-run/node";
 import stylesheet from "~/tailwind.css?url";
 import { SessionExpiredModal } from "./components/Modals";
 import { ClientOnly } from "remix-utils/client-only";
 import GlobalSnackbar from "./components/Snackbar";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
@@ -42,7 +42,14 @@ export const links: LinksFunction = () => [
   },
 ];
 
+export function loader() {
+  const FRONT_BASE_URL = process.env.NODE_ENV === "production" ? process.env.FRONT_BASE_URL : process.env.SERVER_BASE_URL;
+  return json({ ENV: { FRONT_BASE_URL: FRONT_BASE_URL } });
+}
+
 export default function App() {
+  const data = useLoaderData<typeof loader>();
+
   return (
     <html lang="en">
       <head>
@@ -55,7 +62,12 @@ export default function App() {
           <Outlet />
           <SessionExpiredModal />
           <ClientOnly>{() => <GlobalSnackbar />}</ClientOnly>
-          <ScrollRestoration />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+            }}
+          />
+          <script />
           <Scripts />
         </RecoilRoot>
       </body>
