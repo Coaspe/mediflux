@@ -1,7 +1,7 @@
 /** @format */
 
 import { Role, ServerUser, ROLE } from "shared";
-import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG } from "~/constant";
+import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG, procee.env.FRONT_URL } from "~/constant";
 import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi, RowDataTransaction } from "ag-grid-community";
@@ -263,7 +263,7 @@ export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpd
   const {
     statusCode,
     body: { data },
-  } = await getAllTreatments(TEST_TAG);
+  } = await getAllTreatments(TEST_TAG, procee.env.FRONT_URL);
   if (statusCode === 200) {
     const treatment = data.rows
       .map((treatment: any) => convertServerTreatmentToClient(treatment))
@@ -278,7 +278,7 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
   const {
     statusCode,
     body: { data },
-  } = await getAllRoleEmployees("doctor", TEST_TAG);
+  } = await getAllRoleEmployees("doctor", TEST_TAG, procee.env.FRONT_URL);
 
   if (statusCode === 200) {
     const doctors = data.rows

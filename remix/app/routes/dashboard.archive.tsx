@@ -16,7 +16,7 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, procee.env.FRONT_URL, TEST_TAG } from "~/constant";
 import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -101,7 +101,7 @@ export default function Archive() {
     const {
       statusCode,
       body: { data, error },
-    } = await getRecords(where, TEST_TAG);
+    } = await getRecords(where, TEST_TAG, procee.env.FRONT_URL);
     if (statusCode === 200) {
       setRowData(data.rows.map((record: any) => convertServerPRecordtToPRecord(record)));
     } else {

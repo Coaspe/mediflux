@@ -5,7 +5,7 @@ import { AgGridReactProps } from "ag-grid-react";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSetRecoilState } from "recoil";
 import { ROLE } from "shared";
-import { TEST_TAG } from "~/constant";
+import { SERVER_URL, TEST_TAG } from "~/constant";
 import { globalSnackbarState } from "~/recoil_state";
 import { CustomAgGridReactProps, Member, Treatment } from "~/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
@@ -19,19 +19,19 @@ export async function loader() {
     body: {
       data: { rows: doctors },
     },
-  } = await getAllRoleEmployees(ROLE.DOCTOR, TEST_TAG);
+  } = await getAllRoleEmployees(ROLE.DOCTOR, TEST_TAG, SERVER_URL);
   const {
     statusCode: s2,
     body: {
       data: { rows: records },
     },
-  } = await getRecords([], TEST_TAG);
+  } = await getRecords([], TEST_TAG, SERVER_URL);
   const {
     statusCode: s3,
     body: {
       data: { rows: t },
     },
-  } = await getAllTreatments(TEST_TAG);
+  } = await getAllTreatments(TEST_TAG, SERVER_URL);
 
   if (s1 === 200 && s2 === 200 && s3 === 200) {
     const treatments: { [key: string]: Treatment } = {};

@@ -16,7 +16,7 @@ const SESSION_AGE = 60 * 60 * 24 * 30;
 const storage = createCookieSessionStorage({
   cookie: {
     name: "__session",
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     secrets: [sessionSecret],
     sameSite: "lax",
     path: DEFAULT_REDIRECT,
@@ -66,7 +66,7 @@ export async function createUserSession(user: User, redirectTo: string, request:
 
 export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
   try {
-    let result = await axios.post("${SERVER_URL}/api/register", { userId, password, role, firstName, lastName, clinic: TEST_TAG });
+    let result = await axios.post(`${SERVER_URL}/api/register`, { userId, password, role, firstName, lastName, clinic: TEST_TAG });
     return result;
   } catch (error: any) {
     return error;

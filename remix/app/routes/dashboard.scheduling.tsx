@@ -10,7 +10,7 @@ import { CustomAgGridReactProps, PRecord, User } from "~/type";
 import { getUserByID } from "~/utils/request.server";
 import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
 import { Socket, io } from "socket.io-client";
-import { DEFAULT_REDIRECT, OP_READINESS_Y, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, OP_READINESS_Y, SERVER_URL, TEST_TAG } from "~/constant";
 import { convertServerPRecordtToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { destoryBrowserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
@@ -28,7 +28,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       const {
         statusCode,
         body: { data },
-      } = await getRecords(where, TEST_TAG);
+      } = await getRecords(where, TEST_TAG, SERVER_URL);
       if (statusCode === 200) {
         return json({ user, records: data.rows });
       } else {

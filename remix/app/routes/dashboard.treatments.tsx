@@ -8,7 +8,7 @@ import { convertServerTreatmentToClient } from "~/utils/utils";
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
 import { updateTreatment } from "~/utils/request.client";
-import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
+import { procee.env.FRONT_URL, TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
 import { CustomAgGridReactProps, Treatment } from "~/type";
 import { ColDef, CellEditingStoppedEvent, GridApi } from "ag-grid-community";
 import { AgGridReactProps } from "ag-grid-react";
@@ -28,7 +28,7 @@ const Treatments: React.FC = () => {
       const {
         statusCode,
         body: { data, error },
-      } = await getAllTreatments(TEST_TAG);
+      } = await getAllTreatments(TEST_TAG, procee.env.FRONT_URL);
       if (statusCode === 200) {
         const convertedData: Treatment[] = data.rows.map((t: any) => {
           let ret = convertServerTreatmentToClient(t);

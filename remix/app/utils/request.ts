@@ -2,28 +2,27 @@
 
 import axios from "axios";
 import { Role } from "shared";
-import { SERVER_URL } from "~/constant";
 import { CustomResponse } from "~/type";
 
-export const getAllRoleEmployees = async (role: Role, tag: string): Promise<CustomResponse> => {
+export const getAllRoleEmployees = async (role: Role, tag: string, baseURL: string): Promise<CustomResponse> => {
   try {
-    const result = await axios.get(`${SERVER_URL}/api/getAllRoleEmployees`, { params: { role, tag } });
+    const result = await axios.get(`${baseURL}/api/getAllRoleEmployees`, { params: { role, tag } });
     return { statusCode: result.status, body: { data: result.data } };
   } catch (error) {
     return handleError(error);
   }
 };
-export const getRecords = async (where: string[] = [], tag: string): Promise<CustomResponse> => {
+export const getRecords = async (where: string[] = [], tag: string, baseURL: string): Promise<CustomResponse> => {
   try {
-    const result = await axios.post(`${SERVER_URL}/api/getRecords`, { where, tag });
+    const result = await axios.post(`${baseURL}/api/getRecords`, { where, tag });
     return { statusCode: result.status, body: { data: result.data } };
   } catch (error) {
     return handleError(error);
   }
 };
-export const getAllTreatments = async (tag: string): Promise<CustomResponse> => {
+export const getAllTreatments = async (tag: string, baseURL: string): Promise<CustomResponse> => {
   try {
-    const result = await axios.get(`${SERVER_URL}/api/getAllTreatments`, { params: { tag } });
+    const result = await axios.get(`${baseURL}/api/getAllTreatments`, { params: { tag } });
     return { statusCode: result.status, body: { data: result.data } };
   } catch (error) {
     return handleError(error);
