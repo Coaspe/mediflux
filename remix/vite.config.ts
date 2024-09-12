@@ -8,19 +8,24 @@ import path from "path";
 
 installGlobals();
 
-export default defineConfig({
-  plugins: [remix(), tsconfigPaths()],
-  server: {
-    port: 8000,
-  },
-  resolve: {
-    alias: {
-      "@mui/material": path.resolve(__dirname, "node_modules/@mui/material"),
-      "@mui/system": path.resolve(__dirname, "node_modules/@mui/system"),
-      "@mui/x-date-pickers": path.resolve(__dirname, "node_modules/@mui/x-date-pickers"),
-      "@mui/base": path.resolve(__dirname, "node_modules/@mui/base"),
-      "@mui/utils": path.resolve(__dirname, "node_modules/@mui/utils"),
-      "@mui/styled-engine": path.resolve(__dirname, "node_modules/@mui/styled-engine"),
+export default defineConfig(({ command }) => {
+  return {
+    plugins: [remix(), tsconfigPaths()],
+    server: {
+      port: 8000,
     },
-  },
+    resolve:
+      command === "build"
+        ? {
+            alias: {
+              "@mui/material": path.resolve(__dirname, "node_modules/@mui/material"),
+              "@mui/system": path.resolve(__dirname, "node_modules/@mui/system"),
+              "@mui/x-date-pickers": path.resolve(__dirname, "node_modules/@mui/x-date-pickers"),
+              "@mui/base": path.resolve(__dirname, "node_modules/@mui/base"),
+              "@mui/utils": path.resolve(__dirname, "node_modules/@mui/utils"),
+              "@mui/styled-engine": path.resolve(__dirname, "node_modules/@mui/styled-engine"),
+            },
+          }
+        : {},
+  };
 });
