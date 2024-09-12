@@ -29,7 +29,7 @@ function DashboardUser() {
         {doesAlarmExist && <div className="absolute w-1 h-1 rounded-full bg-red-600 right-1 top-1"> </div>}
         <span className="material-symbols-outlined text-alarmButtonLine">notifications</span>
       </div> */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 select-none">
         <div className="flex items-center justify-center border-2 border-black w-8 h-8 rounded-md">
           <span className="material-symbols-rounded text-4xl">person</span>
         </div>

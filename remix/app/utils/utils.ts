@@ -298,15 +298,17 @@ export const getRevenueForPeriod = (doctors: ServerUser[], data: any[], treatmen
   data.forEach((chart: any) => {
     chart = convertServerPRecordtToPRecord(chart);
     for (const num of TREATMENT_NUMBERS) {
-      const t: string | undefined = chart[`treatment${num}`];
-      const d: string | undefined = chart[`doctor${num}`];
-      if (!t || !(t in treatments) || d === undefined || !(d in revenue)) continue;
-      if (!(t in revenue[d])) {
-        revenue[d][t] = 0;
+      const treatment: string | undefined = chart[`treatment${num}`];
+      const doctor: string | undefined = chart[`doctor${num}`];
+      const end: string | undefined = chart[`treatmentEnd${num}`];
+
+      if (!end || !treatment || !(treatment in treatments) || doctor === undefined || !(doctor in revenue)) continue;
+      if (!(treatment in revenue[doctor])) {
+        revenue[doctor][treatment] = 0;
       }
 
-      if (typeof revenue[d][t] === "number") {
-        revenue[d][t] += 1;
+      if (typeof revenue[doctor][treatment] === "number") {
+        revenue[doctor][treatment] += 1;
       }
     }
   });
