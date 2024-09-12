@@ -14,8 +14,7 @@ export const LoginButton = ({ name, onClick }: { name: string; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      className="animated-button bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]"
-    >
+      className="animated-button select-none bg-button font-work text-white font-semibold text-3xl py-4 px-10 rounded-xl shadow-lg transition-all delay-0 duration-200 ease-out [translate:0] hover:[translate:0_-2px]">
       {name}
     </button>
   );
@@ -136,14 +135,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
       enterTo="opacity-100"
       leave="transition-opacity duration-300 ease-in-out"
       leaveFrom="opacity-100"
-      leaveTo="opacity-0 none"
-    >
+      leaveTo="opacity-0 none">
       <div ref={divRef} onTransitionEnd={onTransitionEnd} onClick={closeModal} className={`fixed bg-black bg-opacity-50 inset-0 flex items-center justify-center example-style`}>
         <div
           onClick={(event) => event.stopPropagation()}
           style={{ height: isLoginMode ? "400px" : "500px" }}
-          className={`flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] transition-all`}
-        >
+          className={`flex flex-col items-center relative bg-white p-8 rounded-md w-[400px] transition-all`}>
           <Icon onClick={closeModal} className={"absolute right-0 top-0 pr-3 pt-3 cursor-pointer"} iconName={ICONS.CLOSE} />
           <span className="font-work font-semibold text-2xl">{isLoginMode ? "Login" : "Register"}</span>
           <div className="flex flex-col justify-evenly items-center h-full">
@@ -181,8 +178,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                         onChange={(event) => {
                           setRole(event.target.value as Role);
                         }}
-                        value={role}
-                      >
+                        value={role}>
                         <option value="doctor">의사</option>
                         <option value="nurse">간호사</option>
                         <option value="staff">스태프</option>
@@ -236,8 +232,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                 {!isLoading ? (
                   <button
                     className="bg-button hover:bg-blue-800 text-gray-200 font-noto font-bold py-2.5 px-4 rounded-3xl focus:outline-none focus:shadow-outline w-full transition-colors duration-200"
-                    type="submit"
-                  >
+                    type="submit">
                     확인
                   </button>
                 ) : (
