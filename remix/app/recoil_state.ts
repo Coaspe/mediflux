@@ -12,7 +12,7 @@ export const sessionExpireModalOpenState = atom<boolean>({
 });
 
 export const globalSnackbarState = atom<GlobalSnackBark>({
-  key: "glbaoSnackbarState",
+  key: "globalSnackbarState",
   default: { open: false, msg: "", severity: "success" },
 });
 
@@ -24,9 +24,4 @@ export const treatmentSearchHelpState = atom<Treatment[]>({
 export const doctorSearchHelpState = atom<SearchHelp[]>({
   key: "doctorSearchHelp",
   default: [],
-});
-
-export const frontBaseURLState = atom<string>({
-  key: "frontBaseURL",
-  default: "",
 });
