@@ -1,3 +1,5 @@
+/** @format */
+
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import "../css/Table.css";
@@ -102,8 +104,6 @@ const Treatments: React.FC = () => {
   };
 
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<Treatment, any>) => {
-    console.log("??");
-
     if (event.data && event.colDef.field && gridRef.current) {
       const data: Treatment = JSON.parse(JSON.stringify(event.data));
       saveTreatment(data, event.oldValue, event.colDef.field, gridRef.current.api);
