@@ -153,14 +153,12 @@ export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
 
 export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: any) => void, optionRef: MutableRefObject<SearchHelp | null>, setModalOpen?: () => void) => {
   if (event.key === "Enter") {
-    onValueChange(optionRef.current?.id);
+    onValueChange(optionRef.current?.id.toString());
     if (optionRef.current?.id === OP_READINESS_Y && optionRef.current?.title == OP_READINESS_Y_TITLE) {
       setModalOpen?.();
     }
   } else if (event.key === "Tab") {
     if (optionRef.current) {
-      console.log(optionRef.current);
-
       onValueChange(optionRef.current.id.toString());
     }
   }

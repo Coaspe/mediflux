@@ -70,7 +70,7 @@ export default function Archive() {
   }, [window.ENV.FRONT_BASE_URL]);
 
   useEffect(() => {
-    const socketInstance = io(`http://localhost:${PORT}`, { path: "/socket" });
+    const socketInstance = io(`${window.ENV.FRONT_BASE_URL}`, { path: "/socket" });
     setSocket(socketInstance);
 
     // Default
