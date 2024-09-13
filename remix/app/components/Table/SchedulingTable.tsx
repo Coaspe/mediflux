@@ -204,12 +204,12 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     if (result.statusCode === 200) {
       emitSaveRecord([record], tableType, socket, roomId);
-      gridRef.current?.api.applyTransaction({
-        update: [record],
-      });
-
       if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
         moveRecord(gridRef, theOtherGridRef, record);
+      } else {
+        gridRef.current?.api.applyTransaction({
+          update: [record],
+        });
       }
     } else if (field) {
       copyRecord[field] = oldValue;
