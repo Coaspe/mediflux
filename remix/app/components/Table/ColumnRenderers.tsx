@@ -13,7 +13,7 @@ import React, { ReactElement, ReactNode, useEffect, useRef, useState } from "rea
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { autoCompleteKeyDownCapture, editAndStopRecord, getValueWithId, statusTransition } from "~/utils/utils";
+import { autoCompleteKeyDownCapture, editAndStopRecord, getValueWithId } from "~/utils/utils";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import { GridApi } from "ag-grid-community";
@@ -94,7 +94,6 @@ const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         record[`doctor`] = id;
       }
 
-      record.opReadiness = statusTransition(record);
       editAndStopRecord(api, record);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
@@ -182,7 +181,6 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
       } else {
         return;
       }
-      record.opReadiness = statusTransition(record);
       editAndStopRecord(api, record);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
@@ -213,7 +211,6 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
         record[`treatmentEnd${treatmentNumber}`] = undefined;
       }
 
-      record.opReadiness = statusTransition(record);
       editAndStopRecord(api, record);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
@@ -235,7 +232,8 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, api,
           <CustomToolTip
             disableHoverListener={record.opReadiness !== OP_READINESS_Y || !confirmItemTitle}
             title={<DoctorAssignmentTooltip record={record} api={api} closeTooltip={closeTooltip} treatmentNumber={treatmentNumber} />}
-            dir="left">
+            dir="left"
+          >
             <MenuItem className={`${record.opReadiness === OP_READINESS_Y ? "cursor-default" : "cursor-pointer"}`} onClick={handleConfirm}>
               <ListItemIcon>{confirmIcon}</ListItemIcon>
               <ListItemText>{confirmItemTitle}</ListItemText>
@@ -292,7 +290,8 @@ export const treatmentCell = ({ data, value, colDef, api }: CustomCellRendererPr
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
               tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
-            }`}>
+            }`}
+          >
             {getValueWithId(searchHelp, value).title}
           </span>
         </div>

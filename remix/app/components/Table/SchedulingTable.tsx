@@ -31,7 +31,7 @@ import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
-import { checkIsInvaildRecord, getEditingCell, moveRecord } from "~/utils/utils";
+import { checkIsInvaildRecord, getEditingCell, moveRecord, refreshTreatmentCells, statusTransition } from "~/utils/utils";
 import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
 import { LOCKING_USER, TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H, TEST_TAG } from "~/constant";
 import dayjs from "dayjs";
@@ -198,6 +198,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
 
+    record.opReadiness = statusTransition(record);
     const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
 
     const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
@@ -210,6 +211,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         gridRef.current?.api.applyTransaction({
           update: [record],
         });
+        refreshTreatmentCells(api, record.id);
       }
     } else if (field) {
       copyRecord[field] = oldValue;

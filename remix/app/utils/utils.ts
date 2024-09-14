@@ -201,14 +201,14 @@ export const statusTransition = (record: PRecord): OpReadiness => {
   // 어떤 시술이 Ready가 있고 start가 있고 end가 없다면 P
   // 나머지 N
 
-  let returnFlag = true;
+  let n_flag = true;
   let c_flag = true;
   let y_flag = false;
   let p_flag = false;
 
   for (const number of TREATMENT_NUMBERS) {
     if (record[`treatment${number}`]) {
-      returnFlag = false;
+      n_flag = false;
       if (!record[`treatmentReady${number}`] || !record[`treatmentStart${number}`] || !record[`treatmentEnd${number}`]) {
         c_flag = false;
       }
@@ -223,7 +223,7 @@ export const statusTransition = (record: PRecord): OpReadiness => {
     }
   }
 
-  if (returnFlag) return OP_READINESS_N;
+  if (n_flag) return OP_READINESS_N;
   if (y_flag) return OP_READINESS_Y;
   if (p_flag) return OP_READINESS_P;
   if (c_flag) return OP_READINESS_C;
@@ -236,7 +236,6 @@ export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {
   const editingCell = api.getEditingCells()[0];
   if (row && row.rowIndex !== null) {
     row?.updateData(record);
-    refreshTreatmentCells(api, record.id);
     if (!(editingCell && editingCell.rowIndex === row.rowIndex)) {
       api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
     }
