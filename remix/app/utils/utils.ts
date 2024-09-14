@@ -233,10 +233,13 @@ export const statusTransition = (record: PRecord): OpReadiness => {
 
 export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {
   const row = api.getRowNode(record.id);
+  const editingCell = api.getEditingCells()[0];
   if (row && row.rowIndex !== null) {
     row?.updateData(record);
     refreshTreatmentCells(api, record.id);
-    api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
+    if (!(editingCell && editingCell.rowIndex === row.rowIndex)) {
+      api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
+    }
     api.stopEditing();
   }
 };
