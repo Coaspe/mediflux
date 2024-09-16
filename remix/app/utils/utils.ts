@@ -47,7 +47,7 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
 
 export const convertServerUserToClientUser = (user: ServerUser) => {
   const convertedUser = convertToCamelCaseObject<User>(user);
-  return { ...convertedUser, id: user.contact_id, role: user.user_role, name: user.first_name + user.last_name } as User;
+  return { ...convertedUser, id: user.id, role: user.role, name: user.first_name + user.last_name } as User;
 };
 
 const snakeToCamel = (origin: string): string => origin.replace(/_./g, (s) => s.charAt(1).toUpperCase());
@@ -65,7 +65,7 @@ export function convertServerPRecordToPRecord(serverRecord: ServerPRecord): PRec
   const convertedRecord = convertToCamelCaseObject<PRecord>(serverRecord);
   return {
     ...convertedRecord,
-    id: String(serverRecord.record_id), // 필요시 특정 필드만 직접 수정 가능
+    id: String(serverRecord.id), // 필요시 특정 필드만 직접 수정 가능
     deleteYn: serverRecord.delete_yn,
   };
 }
@@ -267,7 +267,7 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
 };
 export const getRevenueForPeriod = (doctors: ServerUser[], data: ServerPRecord[], treatments: { [key: string]: Treatment }) => {
   let revenue: { [key: string]: { [key: string]: number | string } } = {};
-  doctors.forEach((doctor) => (revenue[doctor.contact_id] = { name: `${doctor.first_name}${doctor.last_name}` }));
+  doctors.forEach((doctor) => (revenue[doctor.id] = { name: `${doctor.first_name}${doctor.last_name}` }));
   data.forEach((chart) => {
     const clientChart = convertServerPRecordToPRecord(chart);
     for (const num of TREATMENT_NUMBERS) {

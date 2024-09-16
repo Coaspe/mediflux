@@ -38,11 +38,12 @@ import {
   LONG_COLUMN_LENGTH,
   POINT_COLUMN_LENGTH,
 } from "~/constant";
-import { SearchHelp, PRecord, TableType, GlobalSnackBark, Treatment } from "~/types/type";
+import { SearchHelp, TableType, GlobalSnackBark, Treatment } from "~/types/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { findCanCompleteTreatmentNumber } from "../utils";
 import { SetterOrUpdater } from "recoil";
+import { PRecord } from "shared";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);

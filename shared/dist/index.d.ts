@@ -40,12 +40,12 @@ declare module "shared" {
 
   export type TreatmentCategory = SHURINK | INMODE | OLIGIO | ULTHERA | THERMAGE | LDM | LIFTING | LASER_TONING | TATTOO_LASER | DOT_LASER;
   export type ServerUser = {
-    contact_id: string;
+    id: string;
     first_name: string;
     last_name: string;
     login_id: string;
     login_pw: string;
-    user_role: Role;
+    role: Role;
     session_id?: string;
     clinic: string;
   };
@@ -103,7 +103,7 @@ declare module "shared" {
     [key: string]: any;
   };
   export type ServerPRecord = {
-    record_id: string; // Unique record id
+    id: string; // Unique record id
     created_at?: number; // TIMESTAMP (e.g., "14:08")
     chart_num?: string; // VARCHAR (15)
     patient_name?: string; // VARCHAR (100)

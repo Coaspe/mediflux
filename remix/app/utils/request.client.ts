@@ -7,8 +7,6 @@ import { PRecord } from "shared";
 
 export const insertRecords = async (records: PRecord[], tag: string, baseURL: string | undefined): Promise<CustomResponse> => {
   try {
-    console.log(records);
-
     const result = await axios.post(`${baseURL}/api/insertRecords`, { records, tag });
     return { statusCode: result.status, body: { data: result.data } } as CustomResponse;
   } catch (error) {

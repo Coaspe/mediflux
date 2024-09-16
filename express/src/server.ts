@@ -102,7 +102,7 @@ app.get("/api/getUserByID", async (req, res) => {
   const id = req.query.id;
 
   try {
-    const result = await pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
+    const result = await pool.query(`SELECT * FROM admin.user where id=$1;`, [id]);
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
@@ -127,7 +127,7 @@ app.get("/api/getAllRoleEmployees", async (req, res) => {
   }
 
   try {
-    const q = `select * from admin.user where user_role='${role}'`;
+    const q = `select * from admin.user where role='${role}'`;
     const result = await pool.query(q);
     res.status(200).json(result);
   } catch (error: any) {
@@ -230,11 +230,11 @@ app.post("/api/insertTreatment", async (req, res) => {
   try {
     await pool.connect();
 
-    const maxIdResult = await pool.query(`SELECT MAX(tr_id) AS max_id FROM ${tag}.TREATMENTS`);
+    const maxIdResult = await pool.query(`SELECT MAX(id) AS max_id FROM ${tag}.TREATMENTS`);
     let maxId = maxIdResult.rows[0].max_id || 0;
     maxId += 1;
     const insertQuery = `
-      INSERT INTO ${tag}.TREATENTS (tr_id) VALUES (${maxId}) RETURNING *;
+      INSERT INTO ${tag}.TREATENTS (id) VALUES (${maxId}) RETURNING *;
     `;
     const insertResult = await pool.query(insertQuery);
     res.status(200).json(insertResult);
@@ -247,7 +247,7 @@ app.post("/api/register", async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const regisgerResult = await pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw, clinic ) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`, [
+    const regisgerResult = await pool.query(`INSERT INTO admin.user ( role, first_name, last_name, login_id, login_pw, clinic ) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`, [
       role,
       firstName,
       lastName,
@@ -299,7 +299,7 @@ app.put("/api/updateRecord", async (req, res) => {
   }
 
   try {
-    const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
+    const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "id");
 
     const values = deconstructRecord(record);
     const result = await pool.query(query, values);
@@ -329,7 +329,7 @@ app.put("/api/hideRecords", async (req, res) => {
   const ids = req.body.ids;
   const tag = req.body.tag;
   try {
-    const q = `update ${tag}.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
+    const q = `update ${tag}.chart_schedule SET delete_yn=true where id IN (${ids.join(", ")})`;
     await pool.query(q);
     res.status(200).json({ message: "Records deleted successfully." });
   } catch (error) {
@@ -369,7 +369,7 @@ app.put("/api/updateTreatment", async (req, res) => {
   }
 
   try {
-    const q = updateQuery(`${tag}.TREATMENTS`, KEY_OF_SERVER_TREATMENT, "tr_id");
+    const q = updateQuery(`${tag}.TREATMENTS`, KEY_OF_SERVER_TREATMENT, "id");
 
     const result = await pool.query(q, deconstructTreatement(treatment));
     res.status(200).json(result);
@@ -388,7 +388,7 @@ app.delete("/api/deleteTreatment", async (req, res) => {
   }
 
   try {
-    const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE tr_id=${id}`;
+    const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE id=${id}`;
     const result = await pool.query(q);
     res.status(200).json(result);
   } catch (error: any) {

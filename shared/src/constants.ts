@@ -44,7 +44,7 @@ export const ROLE = {
   STAFF: "staff",
 } as const;
 export const KEY_OF_SERVER_PRECORD = [
-  "record_id",
+  "id",
   "created_at",
   "chart_num",
   "patient_name",
@@ -109,8 +109,8 @@ for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
   KEY_OF_CLIENT_PRECORD.push(snakeToCamel(KEY_OF_SERVER_PRECORD[i]));
 }
 
-export const KEY_OF_SERVER_TREATMENT = ["tr_id", "tr_group", "tr_title", "tr_duration", "tr_point", "tr_price"];
-export const KEY_OF_CLIENT_TREATMENT = KEY_OF_SERVER_TREATMENT.map((key) => key.split("_")[1]);
+export const KEY_OF_SERVER_TREATMENT = ["id", "group", "title", "duration", "point", "price"];
+export const KEY_OF_CLIENT_TREATMENT = [...KEY_OF_SERVER_TREATMENT];
 export const TREATMENTS: SearchHelp[] = [
   { id: "1", group: SHURINK, title: "슈링크 유니버스 울트라 MP모드 100샷" },
   { id: "2", group: SHURINK, title: "슈링크 유니버스 부스터 모드 100샷" },

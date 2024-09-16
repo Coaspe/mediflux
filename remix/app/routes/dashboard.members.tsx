@@ -36,7 +36,7 @@ export async function loader() {
   if (s1 === 200 && s2 === 200 && s3 === 200) {
     const treatments: { [key: string]: Treatment } = {};
     t.forEach((treatment: ServerTreatment) => {
-      treatments[treatment.tr_id] = convertServerTreatmentToClient(treatment);
+      treatments[treatment.id] = convertServerTreatmentToClient(treatment);
     });
     return { revenue: getRevenueForPeriod(doctors, records, treatments), treatments };
   }

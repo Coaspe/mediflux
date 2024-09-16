@@ -77,7 +77,7 @@ io.on(CONNECTION, (socket) => {
 app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.query.id;
     try {
-        const result = yield pool.query(`SELECT * FROM admin.user where contact_id=$1;`, [id]);
+        const result = yield pool.query(`SELECT * FROM admin.user where id=$1;`, [id]);
         res.status(200).json(result);
     }
     catch (error) {
@@ -102,7 +102,7 @@ app.get("/api/getAllRoleEmployees", (req, res) => __awaiter(void 0, void 0, void
         return;
     }
     try {
-        const q = `select * from admin.user where user_role='${role}'`;
+        const q = `select * from admin.user where role='${role}'`;
         const result = yield pool.query(q);
         res.status(200).json(result);
     }
@@ -195,11 +195,11 @@ app.post("/api/insertTreatment", (req, res) => __awaiter(void 0, void 0, void 0,
     }
     try {
         yield pool.connect();
-        const maxIdResult = yield pool.query(`SELECT MAX(tr_id) AS max_id FROM ${tag}.TREATMENTS`);
+        const maxIdResult = yield pool.query(`SELECT MAX(id) AS max_id FROM ${tag}.TREATMENTS`);
         let maxId = maxIdResult.rows[0].max_id || 0;
         maxId += 1;
         const insertQuery = `
-      INSERT INTO ${tag}.TREATENTS (tr_id) VALUES (${maxId}) RETURNING *;
+      INSERT INTO ${tag}.TREATENTS (id) VALUES (${maxId}) RETURNING *;
     `;
         const insertResult = yield pool.query(insertQuery);
         res.status(200).json(insertResult);
@@ -212,7 +212,7 @@ app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, functi
     const { userId, role, password, firstName, lastName, clinic } = req.body;
     try {
         const hashedPassword = yield bcrypt.hash(password, 10);
-        const regisgerResult = yield pool.query(`INSERT INTO admin.user ( user_role, first_name, last_name, login_id, login_pw, clinic ) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`, [
+        const regisgerResult = yield pool.query(`INSERT INTO admin.user ( role, first_name, last_name, login_id, login_pw, clinic ) VALUES($1, $2, $3, $4, $5, $6) RETURNING *;`, [
             role,
             firstName,
             lastName,
@@ -259,7 +259,7 @@ app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, fun
         return;
     }
     try {
-        const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "record_id");
+        const query = updateQuery(`${tag}.chart_schedule`, KEY_OF_SERVER_PRECORD, "id");
         const values = deconstructRecord(record);
         const result = yield pool.query(query, values);
         res.status(200).json(result);
@@ -290,7 +290,7 @@ app.put("/api/hideRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
     const ids = req.body.ids;
     const tag = req.body.tag;
     try {
-        const q = `update ${tag}.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;
+        const q = `update ${tag}.chart_schedule SET delete_yn=true where id IN (${ids.join(", ")})`;
         yield pool.query(q);
         res.status(200).json({ message: "Records deleted successfully." });
     }
@@ -329,7 +329,7 @@ app.put("/api/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, 
         return;
     }
     try {
-        const q = updateQuery(`${tag}.TREATMENTS`, KEY_OF_SERVER_TREATMENT, "tr_id");
+        const q = updateQuery(`${tag}.TREATMENTS`, KEY_OF_SERVER_TREATMENT, "id");
         const result = yield pool.query(q, deconstructTreatement(treatment));
         res.status(200).json(result);
     }
@@ -345,7 +345,7 @@ app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 
         return;
     }
     try {
-        const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE tr_id=${id}`;
+        const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE id=${id}`;
         const result = yield pool.query(q);
         res.status(200).json(result);
     }

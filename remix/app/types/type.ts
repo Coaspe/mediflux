@@ -35,12 +35,12 @@ export type Treatment = SearchHelp &
     [key: string]: any;
   };
 export type ServerTreatment = {
-  tr_id: string;
-  tr_group?: string;
-  tr_title?: string;
-  tr_duration?: number;
-  tr_point?: number;
-  tr_price?: number;
+  id: string;
+  group?: string;
+  title?: string;
+  duration?: number;
+  point?: number;
+  price?: number;
 };
 export type TableType = "Ready" | "ExceptReady" | "Archive";
 export type ChipColor = OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;

@@ -35,11 +35,11 @@ export const updateQuery = (tableName: string, keys: string[], idfieldName: stri
 };
 
 export const setUserSessionQuery = (tableName: string) => {
-  return `UPDATE ${tableName} SET session_id=$1 WHERE contact_id=$2 RETURNING *;`;
+  return `UPDATE ${tableName} SET session_id=$1 WHERE id=$2 RETURNING *;`;
 };
 export const lockOrUnlockRowsQuery = (tableName: string, length: number) => {
   return `UPDATE ${tableName} SET locking_user=$1
-  WHERE record_id IN (${Array.from({ length }, (_, k) => `$${k + 2}`).join(", ")}) RETURNING *;`;
+  WHERE id IN (${Array.from({ length }, (_, k) => `$${k + 2}`).join(", ")}) RETURNING *;`;
 };
 export const deconstructTreatement = (treatment: any) => {
   const newTreatment: any = {};
