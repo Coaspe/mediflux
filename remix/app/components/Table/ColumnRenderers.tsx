@@ -1,9 +1,9 @@
 /** @format */
 
-import { ChipColor, GlobalSnackBark, OpReadiness, PRecord, SearchHelp, TableType, Treatment } from "../../types/type";
+import { ChipColor, GlobalSnackBark, OpReadiness, SearchHelp, TableType, Treatment } from "../../types/type";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
-import { ROLE, Role } from "shared";
+import { PRecord, ROLE, Role } from "shared";
 import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS_C, OP_READINESS_N, OP_READINESS_P, OP_READINESS_Y, TEST_TAG } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";

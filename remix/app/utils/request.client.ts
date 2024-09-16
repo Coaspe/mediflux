@@ -1,11 +1,14 @@
 /** @format */
 
 import axios from "axios";
-import { CustomResponse, PRecord, Treatment } from "~/types/type";
+import { CustomResponse, Treatment } from "~/types/type";
 import { handleError } from "./request";
+import { PRecord } from "shared";
 
 export const insertRecords = async (records: PRecord[], tag: string, baseURL: string | undefined): Promise<CustomResponse> => {
   try {
+    console.log(records);
+
     const result = await axios.post(`${baseURL}/api/insertRecords`, { records, tag });
     return { statusCode: result.status, body: { data: result.data } } as CustomResponse;
   } catch (error) {

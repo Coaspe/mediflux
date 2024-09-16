@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReact } from "ag-grid-react";
 import { MutableRefObject, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ColDef, RowClassParams, RowStyle, CellEditingStoppedEvent, CellEditingStartedEvent, GridApi, TabToNextCellParams } from "ag-grid-community";
-import { CustomAgGridReactProps, PRecord, SearchHelp, TableType } from "~/types/type";
+import { CustomAgGridReactProps, SearchHelp, TableType } from "~/types/type";
 import {
   anesthesiaNoteColumn,
   chartNumberColumn,
@@ -25,7 +25,7 @@ import {
   treatmentRoomColumn,
 } from "~/utils/Table/columnDef";
 import "../../css/Table.css";
-import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD } from "shared";
+import { LOCK_RECORD, UNLOCK_RECORD, SAVE_RECORD, CREATE_RECORD, DELETE_RECORD, PRecord } from "shared";
 import { onLockRecord, onUnlockRecord, onSaveRecord, onDeleteRecord, emitLockRecord, emitSaveRecord, onCreateRecord, emitUnlockRecord } from "~/utils/Table/socket";
 import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
@@ -183,7 +183,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         transition,
       };
     }
-    if (params.data?.deleteYN) {
+    if (params.data?.deleteYn) {
       return {
         display: "none",
       };
@@ -193,7 +193,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   };
 
-  const saveRecord = async (record: PRecord, oldValue: any, newValue: any, field: string, api: GridApi<PRecord>) => {
+  const saveRecord = async (record: PRecord, oldValue: unknown, field: string, api: GridApi<PRecord>) => {
     record.lockingUser = null;
 
     const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
@@ -238,7 +238,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     if (event.data && event.colDef.field && gridRef.current) {
       const data: PRecord = JSON.parse(JSON.stringify(event.data));
-      saveRecord(data, event.oldValue, event.newValue, event.colDef.field, gridRef.current.api);
+      saveRecord(data, event.oldValue, event.colDef.field, gridRef.current.api);
     }
   };
 

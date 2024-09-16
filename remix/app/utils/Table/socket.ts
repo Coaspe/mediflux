@@ -1,9 +1,9 @@
 /** @format */
 
 import { RefObject } from "react";
-import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD } from "shared";
+import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD, PRecord } from "shared";
 import { Socket } from "socket.io-client";
-import { TableType, PRecord, User, CustomAgGridReactProps } from "~/types/type";
+import { TableType, User, CustomAgGridReactProps } from "~/types/type";
 import { checkIsInvaildRecord, focusEditingRecord, getEditingCell, moveRecord } from "../utils";
 import { RowDataTransaction } from "ag-grid-community";
 import { LOCKING_USER } from "~/constant";
@@ -69,7 +69,7 @@ export const onUnlockRecord = ({ recordId, tableType }: { recordId: string; tabl
 };
 
 export const onSaveRecord = (
-  { records, tableType }: { records: PRecord[]; tableType: TableType; propertyName: string; newValue: any },
+  { records, tableType }: { records: PRecord[]; tableType: TableType },
   gridRef: RefObject<CustomAgGridReactProps<any>>,
   curTableType: TableType,
   audioRef: RefObject<HTMLAudioElement>,

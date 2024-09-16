@@ -6,12 +6,12 @@ import { useEffect, useRef, useState } from "react";
 import { useRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
-import { CustomAgGridReactProps, PRecord, User } from "~/types/type";
+import { CustomAgGridReactProps, User } from "~/types/type";
 import { getUserByID } from "~/utils/request.server";
-import { PORT, CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS } from "shared";
+import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord } from "shared";
 import { Socket, io } from "socket.io-client";
 import { DEFAULT_REDIRECT, OP_READINESS_Y, TEST_TAG } from "~/constant";
-import { convertServerPRecordtToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
+import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { destoryBrowserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
 import { getRecords } from "~/utils/request";
@@ -42,7 +42,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function Scheduling() {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [user, setUser] = useRecoilState(userState);
-  const loaderData = useLoaderData<{ user: User; records: PRecord[] }>();
+  const loaderData = useLoaderData<{ user: User; records: ServerPRecord[] }>();
   const [readyData, setReadyData] = useState<PRecord[]>([]);
   const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
@@ -69,7 +69,7 @@ export default function Scheduling() {
     }
 
     if (user) {
-      const recordsData: PRecord[] = records.map((record: any) => convertServerPRecordtToPRecord(record));
+      const recordsData: PRecord[] = records.map((record) => convertServerPRecordToPRecord(record));
       const ready = [];
       const exceptReady = [];
 

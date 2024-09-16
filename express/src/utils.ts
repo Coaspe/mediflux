@@ -3,12 +3,13 @@
 import { KEY_OF_CLIENT_PRECORD, KEY_OF_CLIENT_TREATMENT } from "shared";
 
 export const deconstructRecord = (record: any) => {
-  const newRecord: any = {};
+  const newRecord = {} as any;
   for (const s of KEY_OF_CLIENT_PRECORD) {
     newRecord[s] = record[s];
   }
 
   const values = Object.values(newRecord);
+
   if (values.length > 0) {
     const id = values.shift();
     if (newRecord.id) {

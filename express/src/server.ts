@@ -23,6 +23,7 @@ import {
   KEY_OF_SERVER_PRECORD,
   CONNECTED_USERS,
   CONNECTION,
+  PRecord,
 } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
 import { TREATMENTS } from "./contants.js";
@@ -171,7 +172,7 @@ app.post("/api/getRecords", async (req, res) => {
     res.status(400).json({ message: "Invalid params" });
   }
   try {
-    const values: any = req.body.values ? req.body.values : [];
+    const values = req.body.values || [];
     let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
 
     where.forEach((w: string) => {
@@ -192,8 +193,9 @@ app.post("/api/insertRecords", async (req, res) => {
 
   try {
     const valuesTemplate = records
-      .map((_: any, i: number) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
+      .map((_: unknown, i: number) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
       .join(", ");
+    console.log(KEY_OF_SERVER_PRECORD.slice(2).join(", "));
 
     const query = `
         INSERT INTO ${tag}.chart_schedule (
@@ -203,7 +205,7 @@ app.post("/api/insertRecords", async (req, res) => {
       `;
 
     const queryValues: any[] = [];
-    records.forEach((record: any) => {
+    records.forEach((record: PRecord) => {
       let value = deconstructRecord(record);
       queryValues.push(...value);
     });
@@ -212,6 +214,8 @@ app.post("/api/insertRecords", async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({ message: "Error inserting records." });
   }
 });
@@ -322,7 +326,7 @@ app.put("/api/setUserSession", async (req, res) => {
   }
 });
 app.put("/api/hideRecords", async (req, res) => {
-  const ids: any[] = req.body.ids;
+  const ids = req.body.ids;
   const tag = req.body.tag;
   try {
     const q = `update ${tag}.chart_schedule SET delete_yn=true where record_id IN (${ids.join(", ")})`;

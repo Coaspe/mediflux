@@ -3,15 +3,15 @@
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ArchiveChart from "~/components/Archive/Chart";
-import { CustomAgGridReactProps, Interval, PRecord, User } from "~/types/type";
+import { CustomAgGridReactProps, Interval, User } from "~/types/type";
 import { SelectChangeEvent } from "@mui/material/Select";
 import SchedulingTable from "~/components/Table/SchedulingTable";
-import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT } from "shared";
+import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT, PRecord, ServerPRecord } from "shared";
 import { Socket, io } from "socket.io-client";
 import { json, redirect, useLoaderData } from "@remix-run/react";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { doctorSearchHelpState, globalSnackbarState, treatmentSearchHelpState, userState } from "~/recoil_state";
-import { convertServerPRecordtToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
+import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
@@ -102,7 +102,7 @@ export default function Archive() {
       body: { data, error },
     } = await getRecords(where, TEST_TAG, window.ENV.FRONT_BASE_URL);
     if (statusCode === 200) {
-      setRowData(data.rows.map((record: any) => convertServerPRecordtToPRecord(record)));
+      setRowData(data.rows.map((record: ServerPRecord) => convertServerPRecordToPRecord(record)));
     } else {
       error && showErrorSnackbar(error);
     }

@@ -1,11 +1,11 @@
 /** @format */
 
-import { CustomAgGridReactProps, PRecord, TableType } from "../../types/type";
+import { CustomAgGridReactProps, TableType } from "../../types/type";
 import { FC, RefObject, useState, useCallback } from "react";
-import { SCHEDULING_ROOM_ID } from "shared";
+import { PRecord, SCHEDULING_ROOM_ID } from "shared";
 import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";
 import { hideRecords, insertRecords, lockOrUnlockRecords } from "~/utils/request.client";
-import { convertServerPRecordtToPRecord } from "~/utils/utils";
+import { convertServerPRecordToPRecord } from "~/utils/utils";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import Button from "@mui/material/Button";
@@ -46,14 +46,12 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     const newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
     const {
       statusCode,
-      body: {
-        data: { rows },
-        error,
-      },
+      body: { data, error },
     } = await insertRecords([newRecord], TEST_TAG, window.ENV.FRONT_BASE_URL);
 
     if (statusCode === 200) {
-      const addedRecord = convertServerPRecordtToPRecord(rows[0]);
+      const row = data.rows[0];
+      const addedRecord = convertServerPRecordToPRecord(row);
       gridRef.current.api.applyTransaction({ add: [addedRecord], addIndex: 0 });
       emitCreateRecords([addedRecord], tableType, socket, SCHEDULING_ROOM_ID);
     } else {
@@ -94,7 +92,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       window.ENV.FRONT_BASE_URL
     );
     if (result.statusCode === 200) {
-      emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+      emitSaveRecord(result.body.data.rows.map(convertServerPRecordToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
       setOpenDeleteModal(true);
     } else {
       result.body.error && showErrorSnackbar(result.body.error);
@@ -109,7 +107,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         window.ENV.FRONT_BASE_URL
       );
       if (result.statusCode === 200) {
-        emitSaveRecord(result.body.data.rows.map(convertServerPRecordtToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+        emitSaveRecord(result.body.data.rows.map(convertServerPRecordToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
       } else {
         result.body.error && showErrorSnackbar(result.body.error);
       }

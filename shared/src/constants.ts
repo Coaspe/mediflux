@@ -74,7 +74,6 @@ export const KEY_OF_SERVER_PRECORD = [
   "consultant",
   "comment_caution",
   "locking_user",
-  "delete_yn",
   "patient_care_room",
   "treatment_ready_1",
   "treatment_ready_2",
@@ -91,6 +90,7 @@ export const KEY_OF_SERVER_PRECORD = [
   "treatment_start_3",
   "treatment_start_4",
   "treatment_start_5",
+  "delete_yn",
 ];
 const snakeToCamel = (origin: string) => {
   return origin

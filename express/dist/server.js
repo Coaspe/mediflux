@@ -147,7 +147,7 @@ app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(400).json({ message: "Invalid params" });
     }
     try {
-        const values = req.body.values ? req.body.values : [];
+        const values = req.body.values || [];
         let query = `select * from ${tag}.chart_schedule where delete_yn=false or delete_yn IS NULL`;
         where.forEach((w) => {
             query += " ";
@@ -167,6 +167,7 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
         const valuesTemplate = records
             .map((_, i) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
             .join(", ");
+        console.log(KEY_OF_SERVER_PRECORD.slice(2).join(", "));
         const query = `
         INSERT INTO ${tag}.chart_schedule (
         ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
@@ -182,6 +183,7 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(200).json(result);
     }
     catch (error) {
+        console.log(error);
         res.status(500).json({ message: "Error inserting records." });
     }
 }));

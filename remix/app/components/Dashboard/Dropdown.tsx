@@ -3,10 +3,10 @@ import jp from "/assets/svgs/jp.svg";
 import kr from "/assets/svgs/kr.svg";
 import us from "/assets/svgs/us.svg";
 
-interface FlagOption {
+type FlagOption = {
   label: string;
   iconUrl: string;
-}
+};
 
 const flagOptions: FlagOption[] = [
   { label: "KR", iconUrl: kr },

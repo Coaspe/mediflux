@@ -1,8 +1,8 @@
 /** @format */
 
-import { Role, ServerUser, ROLE } from "shared";
+import { Role, ServerUser, ROLE, PRecord, ServerPRecord } from "shared";
 import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG } from "~/constant";
-import { CustomAgGridReactProps, OpReadiness, PRecord, SearchHelp, ServerPRecord, SideMenu, TableType, Treatment, User } from "~/types/type";
+import { CustomAgGridReactProps, OpReadiness, SearchHelp, ServerTreatment, SideMenu, TableType, Treatment, User } from "~/types/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi, RowDataTransaction } from "ag-grid-community";
 import CryptoJS from "crypto-js";
@@ -46,61 +46,29 @@ export const getValueWithId = (searchHelp: SearchHelp[], id?: string): SearchHel
 };
 
 export const convertServerUserToClientUser = (user: ServerUser) => {
-  return { id: user.contact_id, loginId: user.login_id, role: user.user_role, name: user.first_name + user.last_name, sessionId: user.session_id, clinic: user.clinic } as User;
+  const convertedUser = convertToCamelCaseObject<User>(user);
+  return { ...convertedUser, id: user.contact_id, role: user.user_role, name: user.first_name + user.last_name } as User;
 };
-export function convertServerPRecordtToPRecord(serverRecord: ServerPRecord): PRecord {
-  return {
-    id: String(serverRecord.record_id),
-    createdAt: serverRecord.created_at,
-    chartNum: serverRecord.chart_num,
-    patientName: serverRecord.patient_name,
-    opReadiness: serverRecord.op_readiness,
-    treatment1: serverRecord.treatment_1,
-    treatment2: serverRecord.treatment_2,
-    treatment3: serverRecord.treatment_3,
-    treatment4: serverRecord.treatment_4,
-    treatment5: serverRecord.treatment_5,
-    treatmentReady1: serverRecord.treatment_ready_1,
-    treatmentReady2: serverRecord.treatment_ready_2,
-    treatmentReady3: serverRecord.treatment_ready_3,
-    treatmentReady4: serverRecord.treatment_ready_4,
-    treatmentReady5: serverRecord.treatment_ready_5,
-    treatmentEnd1: serverRecord.treatment_end_1,
-    treatmentEnd2: serverRecord.treatment_end_2,
-    treatmentEnd3: serverRecord.treatment_end_3,
-    treatmentEnd4: serverRecord.treatment_end_4,
-    treatmentEnd5: serverRecord.treatment_end_5,
-    treatmentStart1: serverRecord.treatment_start_1,
-    treatmentStart2: serverRecord.treatment_start_2,
-    treatmentStart3: serverRecord.treatment_start_3,
-    treatmentStart4: serverRecord.treatment_start_4,
-    treatmentStart5: serverRecord.treatment_start_5,
-    quantityTreat1: serverRecord.quantity_treat_1,
-    quantityTreat2: serverRecord.quantity_treat_2,
-    quantityTreat3: serverRecord.quantity_treat_3,
-    quantityTreat4: serverRecord.quantity_treat_4,
-    quantityTreat5: serverRecord.quantity_treat_5,
-    treatmentRoom: serverRecord.treatment_room,
-    patientCareRoom: serverRecord.patient_care_room,
-    doctor1: serverRecord.doctor_1,
-    doctor2: serverRecord.doctor_2,
-    doctor3: serverRecord.doctor_3,
-    doctor4: serverRecord.doctor_4,
-    doctor5: serverRecord.doctor_5,
-    anesthesiaNote: serverRecord.anesthesia_note,
-    skincareSpecialist1: serverRecord.skincare_specialist_1,
-    skincareSpecialist2: serverRecord.skincare_specialist_2,
-    nursingStaff1: serverRecord.nursing_staff_1,
-    nursingStaff2: serverRecord.nursing_staff_2,
-    coordinator: serverRecord.coordinator,
-    consultant: serverRecord.consultant,
-    commentCaution: serverRecord.comment_caution,
-    lockingUser: serverRecord.locking_user,
-    readyTime: serverRecord.ready_time,
-    deleteYN: serverRecord.delete_yn,
-  } as PRecord;
+
+const snakeToCamel = (origin: string): string => origin.replace(/_./g, (s) => s.charAt(1).toUpperCase());
+
+export function convertToCamelCaseObject<T>(source: { [key: string]: any }): T {
+  const result = {} as T;
+  Object.keys(source).forEach((key) => {
+    const camelKey = snakeToCamel(key);
+    result[camelKey as keyof T] = source[key];
+  });
+  return result;
 }
 
+export function convertServerPRecordToPRecord(serverRecord: ServerPRecord): PRecord {
+  const convertedRecord = convertToCamelCaseObject<PRecord>(serverRecord);
+  return {
+    ...convertedRecord,
+    id: String(serverRecord.record_id), // 필요시 특정 필드만 직접 수정 가능
+    deleteYn: serverRecord.delete_yn,
+  };
+}
 export const focusEditingRecord = (gridRef: RefObject<CustomAgGridReactProps<any>>, id: string | undefined, columnId: string | undefined) => {
   if (id === undefined || columnId === undefined) return;
   const editingRow = gridRef.current?.api.getRowNode(id);
@@ -151,7 +119,12 @@ export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
   return { etrcondition, rtecondition1, rtecondition2 };
 };
 
-export const autoCompleteKeyDownCapture = (event: any, onValueChange: (value: any) => void, optionRef: MutableRefObject<SearchHelp | null>, setModalOpen?: () => void) => {
+export const autoCompleteKeyDownCapture = (
+  event: React.KeyboardEvent<HTMLDivElement>,
+  onValueChange: (value: string | undefined) => void,
+  optionRef: MutableRefObject<SearchHelp | null>,
+  setModalOpen?: () => void
+) => {
   if (event.key === "Enter") {
     onValueChange(optionRef.current?.id.toString());
     if (optionRef.current?.id === OP_READINESS_Y && optionRef.current?.title == OP_READINESS_Y_TITLE) {
@@ -248,7 +221,7 @@ export const encryptSessionId = (ip: string | null, browser: string | null, sess
   return CryptoJS.SHA256(key).toString();
 };
 
-export const convertServerTreatmentToClient = (serverTreatment: Object): Treatment => {
+export const convertServerTreatmentToClient = (serverTreatment: ServerTreatment): Treatment => {
   let retVal = {} as Treatment;
 
   for (const [key, value] of Object.entries(serverTreatment)) {
@@ -268,7 +241,7 @@ export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpd
   } = await getAllTreatments(TEST_TAG, baseURL);
   if (statusCode === 200) {
     const treatment = data.rows
-      .map((treatment: any) => convertServerTreatmentToClient(treatment))
+      .map((treatment: ServerTreatment) => convertServerTreatmentToClient(treatment))
       .map((treatment: Treatment) => {
         return { id: treatment.id, title: treatment.title, group: treatment.group };
       });
@@ -284,7 +257,7 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
 
   if (statusCode === 200) {
     const doctors = data.rows
-      .map((user: any) => convertServerUserToClientUser(user))
+      .map((user: ServerUser) => convertServerUserToClientUser(user))
       .map((user: User) => {
         return { id: user.id, title: user.name, group: "" } as SearchHelp;
       });
@@ -292,15 +265,15 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
     setDoctorSearchHelp(doctors);
   }
 };
-export const getRevenueForPeriod = (doctors: ServerUser[], data: any[], treatments: { [key: string]: Treatment }) => {
+export const getRevenueForPeriod = (doctors: ServerUser[], data: ServerPRecord[], treatments: { [key: string]: Treatment }) => {
   let revenue: { [key: string]: { [key: string]: number | string } } = {};
   doctors.forEach((doctor) => (revenue[doctor.contact_id] = { name: `${doctor.first_name}${doctor.last_name}` }));
-  data.forEach((chart: any) => {
-    chart = convertServerPRecordtToPRecord(chart);
+  data.forEach((chart) => {
+    const clientChart = convertServerPRecordToPRecord(chart);
     for (const num of TREATMENT_NUMBERS) {
-      const treatment: string | undefined = chart[`treatment${num}`];
-      const doctor: string | undefined = chart[`doctor${num}`];
-      const end: string | undefined = chart[`treatmentEnd${num}`];
+      const treatment = clientChart[`treatment${num}`];
+      const doctor = clientChart[`doctor${num}`];
+      const end = clientChart[`treatmentEnd${num}`];
 
       if (!end || !treatment || !(treatment in treatments) || doctor === undefined || !(doctor in revenue)) continue;
       if (!(treatment in revenue[doctor])) {

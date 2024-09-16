@@ -3,7 +3,6 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { AgGridReactProps, AgGridReact } from "ag-grid-react";
 import { useState, useEffect } from "react";
-import { Treatment, CustomAgGridReactProps } from "~/types/type";
 import LoadingOverlay from "../Loading";
 import { Box } from "@mui/material";
 import { Dispatch, FC, SetStateAction } from "react";
@@ -16,19 +15,20 @@ import { TEST_TAG } from "~/constant";
 import { GridApi } from "ag-grid-community";
 import { convertServerTreatmentToClient } from "~/utils/utils";
 import { globalSnackbarState } from "~/recoil_state";
+import { SearchableType } from "~/types/type";
 
-type SearchableGridProps<T> = {
-  originalData: T[];
+type SearchableGridProps = {
+  originalData: SearchableType[];
   gridProps: AgGridReactProps;
-  gridRef: React.RefObject<CustomAgGridReactProps<Treatment>>;
+  gridRef: React.RefObject<AgGridReact>;
   addButton: boolean;
 };
-const SearchableGrid: React.FC<SearchableGridProps<any>> = ({ originalData, gridProps, addButton, gridRef }) => {
+const SearchableGrid: React.FC<SearchableGridProps> = ({ originalData, gridProps, addButton, gridRef }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [rowData, setRowData] = useState<any[]>([]);
 
   useEffect(() => {
-    setRowData(originalData.filter((data: any) => data.searchTitle?.toLowerCase().includes(searchTerm.replace(/\s/g, "").toLowerCase())));
+    setRowData(originalData.filter((data) => data.searchTitle?.toLowerCase().includes(searchTerm.replace(/\s/g, "").toLowerCase())));
   }, [searchTerm, originalData]);
 
   return (

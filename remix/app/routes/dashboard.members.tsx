@@ -7,7 +7,7 @@ import { useSetRecoilState } from "recoil";
 import { ROLE } from "shared";
 import { TEST_TAG } from "~/constant";
 import { globalSnackbarState } from "~/recoil_state";
-import { CustomAgGridReactProps, Member, Treatment } from "~/types/type";
+import { CustomAgGridReactProps, Member, ServerTreatment, Treatment } from "~/types/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";
 import { convertServerTreatmentToClient, getRevenueForPeriod } from "~/utils/utils";
@@ -35,7 +35,7 @@ export async function loader() {
 
   if (s1 === 200 && s2 === 200 && s3 === 200) {
     const treatments: { [key: string]: Treatment } = {};
-    t.forEach((treatment: any) => {
+    t.forEach((treatment: ServerTreatment) => {
       treatments[treatment.tr_id] = convertServerTreatmentToClient(treatment);
     });
     return { revenue: getRevenueForPeriod(doctors, records, treatments), treatments };
