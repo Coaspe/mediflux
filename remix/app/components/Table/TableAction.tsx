@@ -119,7 +119,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     <>
       {tableType === "ExceptReady" && (
         <>
-          <Box className="flex justify-between items-center w-fit gap-2">
+          <Box className="flex gap-2 items-center justify-between w-fit">
             <IconButton onClick={onAddRecord}>
               <AddCircleIcon />
             </IconButton>

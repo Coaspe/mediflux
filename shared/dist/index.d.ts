@@ -14,7 +14,6 @@ declare module "shared" {
   export const ARCHIVE_ROOM_ID: string;
   export const CANCEL_EDITING: string;
   export const UNLOCK_RECORD: string;
-  // export const TREATMENT_CATEGORY: string[];
   export const SHURINK: string;
   export const INMODE: string;
   export const OLIGIO: string;
@@ -25,12 +24,12 @@ declare module "shared" {
   export const LASER_TONING: string;
   export const TATTOO_LASER: string;
   export const DOT_LASER: string;
-  export const TREATMENTS: { id: string; group: TreatmentCategory; title: string }[];
-  export const ROLE: {
-    readonly DOCTOR: "doctor";
-    readonly NURSE: "nurse";
-    readonly STAFF: "staff";
-  };
+
+  export enum Role {
+    DOCTOR = "doctor",
+    NURSE = "nurse",
+    STAFF = "staff",
+  }
 
   export const KEY_OF_SERVER_PRECORD: string[];
   export const KEY_OF_CLIENT_PRECORD: string[];
@@ -38,7 +37,8 @@ declare module "shared" {
   export const KEY_OF_CLIENT_TREATMENT: string[];
   export const PORT: number;
 
-  export type TreatmentCategory = SHURINK | INMODE | OLIGIO | ULTHERA | THERMAGE | LDM | LIFTING | LASER_TONING | TATTOO_LASER | DOT_LASER;
+  export const INTERNAL_SERVER_ERROR: string;
+
   export type ServerUser = {
     id: string;
     first_name: string;
@@ -49,8 +49,6 @@ declare module "shared" {
     session_id?: string;
     clinic: string;
   };
-
-  export type Role = (typeof ROLE)[keyof typeof ROLE];
   // Do not change fields order arbitrarily.
   export type PRecord = {
     id: string; // Unique record id
@@ -153,4 +151,10 @@ declare module "shared" {
     delete_yn?: boolean;
     [key: string]: any;
   };
+  export enum OpReadiness {
+    Y = "Y",
+    N = "N",
+    C = "C",
+    P = "P",
+  }
 }

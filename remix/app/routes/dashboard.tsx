@@ -1,10 +1,10 @@
 /** @format */
 
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
-import { DEFAULT_REDIRECT, SIDE_MENU } from "~/constant";
+import { DEFAULT_REDIRECT, SideMenu } from "~/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
-import { SideMenu, User } from "~/types/type";
+import { User } from "~/types/type";
 import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
@@ -31,9 +31,9 @@ function MenuItemLi({
   fontSize?: string;
 }) {
   return (
-    <li className={`w-full ${clickedMenu == to ? "bg-button text-white" : "hover:bg-gray-100"}`}>
+    <li className={`w-full ${clickedMenu === to ? "bg-button text-white" : "hover:bg-gray-100"}`}>
       <Link onClick={onClick} className={`flex items-center h-[50px] text-current cursor-pointer pr-[20px] ${isSubMenu ? "pl-[40px]" : "pl-[20px]"}`} to={to}>
-        <Icon className={`text-gray-500 mr-[10px] ${fontSize} css-wx7wi4`} iconName={icon} />
+        <Icon className={`text-gray-500 mr-[10px] ${fontSize}`} iconName={icon} />
         <span className={`${fontSize} inline-block flex-grow overflow-hidden overflow-ellipsis whitespace-nowrap`}>{name}</span>
       </Link>
     </li>
@@ -41,7 +41,7 @@ function MenuItemLi({
 }
 
 const isSideMenu = (value: any): value is SideMenu => {
-  return Object.values(SIDE_MENU).includes(value);
+  return Object.values(SideMenu).includes(value);
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -101,26 +101,18 @@ export default function Dashboard() {
   }, []);
 
   return user ? (
-    <div className="flex flex-col pr-5 h-screen w-full">
+    <div className="flex flex-col h-screen w-full pr-5">
       <DashboardHeader selectedMenu={clickedMenu} />
-      <div className="flex max-w-full h-full">
-        <aside className="font-work pr-5 w-[220px]">
+      <div className="flex h-full max-w-full">
+        <aside className="w-[220px] pr-5 font-work">
           <Menu>
-            <SubMenu icon={<Icon className={"text-gray-500 "} iconName={ICONS.EVENT_NOTE} />} label="Schedule">
-              <MenuItemLi
-                onClick={() => setClickedMenu(SIDE_MENU.SCHEDULING)}
-                to={"scheduling"}
-                name={"Scheduling"}
-                icon={"edit_calendar"}
-                clickedMenu={clickedMenu}
-                fontSize="text-sm"
-                isSubMenu={true}
-              />
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.ARCHIVE)} to={"archive"} name={"Archive"} icon={"home_storage"} clickedMenu={clickedMenu} fontSize="text-sm" isSubMenu={true} />
+            <SubMenu icon={<Icon className="text-gray-500" iconName={ICONS.EVENT_NOTE} />} label="Schedule">
+              <MenuItemLi onClick={() => setClickedMenu(SideMenu.SCHEDULING)} to="scheduling" name="Scheduling" icon="edit_calendar" clickedMenu={clickedMenu} fontSize="text-sm" isSubMenu />
+              <MenuItemLi onClick={() => setClickedMenu(SideMenu.ARCHIVE)} to="archive" name="Archive" icon="home_storage" clickedMenu={clickedMenu} fontSize="text-sm" isSubMenu />
             </SubMenu>
-            <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.MEMBERS)} to={"members"} name={"Members"} icon={"groups"} clickedMenu={clickedMenu} />
-            <SubMenu icon={<Icon className={"text-gray-500 "} iconName={"settings"} />} label="Settings">
-              <MenuItemLi onClick={() => setClickedMenu(SIDE_MENU.TREATMENTS)} to={"treatments"} name={"Treatments"} icon={"syringe"} clickedMenu={clickedMenu} isSubMenu={true} />
+            <MenuItemLi onClick={() => setClickedMenu(SideMenu.MEMBERS)} to="members" name="Members" icon="groups" clickedMenu={clickedMenu} />
+            <SubMenu icon={<Icon className="text-gray-500" iconName="settings" />} label="Settings">
+              <MenuItemLi onClick={() => setClickedMenu(SideMenu.TREATMENTS)} to="treatments" name="Treatments" icon="syringe" clickedMenu={clickedMenu} isSubMenu />
             </SubMenu>
           </Menu>
         </aside>

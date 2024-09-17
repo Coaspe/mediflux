@@ -24,13 +24,20 @@ const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleInte
     height: 40,
     fontSize: 14,
   };
-  const DatePickerCustom = styled(DatePicker)({ "& input": { width: 100, height: 7, fontSize: 14 } });
+  const DatePickerCustom = styled(DatePicker)({
+    "& input": {
+      width: 100,
+      height: 7,
+      fontSize: 14,
+    },
+  });
+
   return (
     <header className="flex gap-3 pb-5">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePickerCustom label="기준일" defaultValue={dayjs()} value={baseDate} format="YYYY/MM/DD" onChange={handleBaseDateChange} />
       </LocalizationProvider>
-      <FormControl className="w-30">
+      <FormControl className="w-32">
         <InputLabel id="interval-select-label">인터벌</InputLabel>
         <Select sx={commonStyles} labelId="interval-select-label" id="interval-select" value={interval} label="Interval" onChange={handleIntervalChange}>
           <MenuItem value={"day"}>일(day)</MenuItem>
@@ -39,7 +46,7 @@ const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleInte
           <MenuItem value={"year"}>년(year)</MenuItem>
         </Select>
       </FormControl>
-      <FormControl className="w-20">
+      <FormControl className="w-24">
         <InputLabel id="number-of-interval-select-label">인터벌 수</InputLabel>
         <Select sx={commonStyles} labelId="number-of-interval-select-label" id="number-of-interval-select" value={numOfInterval} label="Number of Interval" onChange={handleNumOfIntervalChange}>
           <MenuItem value={2}>2</MenuItem>

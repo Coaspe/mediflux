@@ -36,7 +36,7 @@ export async function login({ userId, password }: LoginForm) {
     if (res) {
       return { status: res.status, message: res.data.message, errorType: res.data.errorType };
     }
-    return { status: 500, message: "Internal server error" };
+    return { status: 500, message: INTERNAL_SERVER_ERROR };
   }
 }
 

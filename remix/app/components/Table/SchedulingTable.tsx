@@ -65,6 +65,40 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     [setGlobalSnackBar]
   );
 
+  // Set saveRecord method
+  useEffect(() => {
+    if (socket && gridRef.current) {
+      const saveRecord = async (record: PRecord, originRecord: PRecord, api: GridApi<PRecord>) => {
+        record.lockingUser = null;
+        record.opReadiness = statusTransition(record);
+
+        const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
+
+        const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
+
+        if (result.statusCode === 200) {
+          emitSaveRecord([record], tableType, socket, roomId);
+          if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
+            moveRecord(gridRef, theOtherGridRef, record);
+          } else {
+            gridRef.current?.api.applyTransaction({
+              update: [record],
+            });
+            refreshTreatmentCells(api, record.id);
+          }
+        } else {
+          originRecord["lockingUser"] = null;
+          await updateRecord(originRecord, TEST_TAG, window.ENV.FRONT_BASE_URL);
+          api.applyTransaction({
+            update: [originRecord],
+          });
+          result.body.error && showErrorSnackbar(result.body.error);
+        }
+      };
+      gridRef.current.saveRecord = saveRecord;
+    }
+  }, [socket, gridRef.current]);
+
   // Add custom tracnsaction event listener
   useEffect(() => {
     const handleLineChangingTransactionApplied = (onLineChangingdEditingStoppedRef: MutableRefObject<boolean>) => {
@@ -91,8 +125,8 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   // Socket setting
   useEffect(() => {
     if (!socket) return;
-    socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(UNLOCK_RECORD, (arg) => onUnlockRecord(arg, gridRef, tableType));
+    socket.on(LOCK_RECORD, (arg) => onLockRecord(arg, gridRef, tableType));
     socket.on(SAVE_RECORD, (arg) => onSaveRecord(arg, gridRef, tableType, audioRef, theOtherGridRef));
     socket.on(CREATE_RECORD, (arg) => onCreateRecord(arg, gridRef, tableType));
     socket.on(DELETE_RECORD, (arg) => onDeleteRecord(arg, gridRef, tableType));
@@ -114,11 +148,11 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       chartNumberColumn,
       patientNameColumn,
       opReadinessColumn,
-      treatmentColumn(TREATMENT1, TREATMENT1_H, tableType, treatmentSearchHelp),
-      treatmentColumn(TREATMENT2, TREATMENT2_H, tableType, treatmentSearchHelp),
-      treatmentColumn(TREATMENT3, TREATMENT3_H, tableType, treatmentSearchHelp),
-      treatmentColumn(TREATMENT4, TREATMENT4_H, tableType, treatmentSearchHelp),
-      treatmentColumn(TREATMENT5, TREATMENT5_H, tableType, treatmentSearchHelp),
+      treatmentColumn(TREATMENT1, TREATMENT1_H, tableType, treatmentSearchHelp, gridRef),
+      treatmentColumn(TREATMENT2, TREATMENT2_H, tableType, treatmentSearchHelp, gridRef),
+      treatmentColumn(TREATMENT3, TREATMENT3_H, tableType, treatmentSearchHelp, gridRef),
+      treatmentColumn(TREATMENT4, TREATMENT4_H, tableType, treatmentSearchHelp, gridRef),
+      treatmentColumn(TREATMENT5, TREATMENT5_H, tableType, treatmentSearchHelp, gridRef),
       quantitytreat1Column,
       treatmentRoomColumn,
       doctorColumn(doctorSearchHelp, setGlobalSnackBar),
@@ -133,7 +167,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       { field: LOCKING_USER, headerName: "lock", hide: true },
     ]);
   }, [doctorSearchHelp, treatmentSearchHelp]);
-
   // Get records and process unlocked records.
   useEffect(() => {
     if (!socket || !user || !records) return;
@@ -193,37 +226,6 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     };
   };
 
-  const saveRecord = async (record: PRecord, oldValue: unknown, field: string, api: GridApi<PRecord>) => {
-    record.lockingUser = null;
-
-    const copyRecord: PRecord = JSON.parse(JSON.stringify(record));
-
-    record.opReadiness = statusTransition(record);
-    const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
-
-    const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
-
-    if (result.statusCode === 200) {
-      emitSaveRecord([record], tableType, socket, roomId);
-      if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
-        moveRecord(gridRef, theOtherGridRef, record);
-      } else {
-        gridRef.current?.api.applyTransaction({
-          update: [record],
-        });
-        refreshTreatmentCells(api, record.id);
-      }
-    } else if (field) {
-      copyRecord[field] = oldValue;
-      copyRecord["lockingUser"] = null;
-      await updateRecord(copyRecord, TEST_TAG, window.ENV.FRONT_BASE_URL);
-      api.applyTransaction({
-        update: [copyRecord],
-      });
-      result.body.error && showErrorSnackbar(result.body.error);
-    }
-  };
-
   const onCellEditingStopped = async (event: CellEditingStoppedEvent<PRecord, any>) => {
     if (isTabPressed.current) {
       isTabPressed.current = false;
@@ -238,7 +240,9 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     if (event.data && event.colDef.field && gridRef.current) {
       const data: PRecord = JSON.parse(JSON.stringify(event.data));
-      saveRecord(data, event.oldValue, event.colDef.field, gridRef.current.api);
+      const originData: PRecord = JSON.parse(JSON.stringify(event.data));
+      originData[event.colDef.field] = event.oldValue;
+      gridRef.current.saveRecord?.(data, originData, gridRef.current.api);
     }
   };
 

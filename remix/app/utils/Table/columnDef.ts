@@ -38,12 +38,13 @@ import {
   LONG_COLUMN_LENGTH,
   POINT_COLUMN_LENGTH,
 } from "~/constant";
-import { SearchHelp, TableType, GlobalSnackBark, Treatment } from "~/types/type";
+import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps } from "~/types/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { findCanCompleteTreatmentNumber } from "../utils";
 import { SetterOrUpdater } from "recoil";
 import { PRecord } from "shared";
+import { RefObject } from "react";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id === id);
@@ -91,11 +92,11 @@ export const opReadinessColumn = {
   },
 };
 
-export const treatmentColumn = (field: string, headerName: string, tableType: TableType, searchHelp: SearchHelp[]): ColDef<PRecord, string> => {
+export const treatmentColumn = (field: string, headerName: string, tableType: TableType, searchHelp: SearchHelp[], gridRef: RefObject<CustomAgGridReactProps<PRecord>>): ColDef<PRecord, string> => {
   return {
     field,
     headerName,
-    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, tableType),
+    cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, gridRef, tableType),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     width: LONG_COLUMN_LENGTH,
     editable: (params) => {

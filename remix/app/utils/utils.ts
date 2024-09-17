@@ -1,8 +1,8 @@
 /** @format */
 
-import { Role, ServerUser, ROLE, PRecord, ServerPRecord } from "shared";
-import { EMPTY_SEARCHHELP, OP_READINESS_Y_TITLE, OP_READINESS_Y, SIDE_MENU, OP_READINESS_N, TREATMENT_NUMBERS, OP_READINESS_C, OP_READINESS_P, TEST_TAG } from "~/constant";
-import { CustomAgGridReactProps, OpReadiness, SearchHelp, ServerTreatment, SideMenu, TableType, Treatment, User } from "~/types/type";
+import { Role, ServerUser, PRecord, ServerPRecord, OpReadiness } from "shared";
+import { EMPTY_SEARCHHELP, SideMenu, TREATMENT_NUMBERS, TEST_TAG } from "~/constant";
+import { CustomAgGridReactProps, SearchHelp, ServerTreatment, TableType, Treatment, User } from "~/types/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi, RowDataTransaction } from "ag-grid-community";
 import CryptoJS from "crypto-js";
@@ -11,13 +11,13 @@ import { getAllTreatments, getAllRoleEmployees } from "./request";
 
 export function getMenuName(menu: SideMenu | undefined): string {
   switch (menu) {
-    case SIDE_MENU.SCHEDULING:
+    case SideMenu.SCHEDULING:
       return "Scheduling";
-    case SIDE_MENU.ARCHIVE:
+    case SideMenu.ARCHIVE:
       return "Archive";
-    case SIDE_MENU.MEMBERS:
+    case SideMenu.MEMBERS:
       return "Members";
-    case SIDE_MENU.TREATMENTS:
+    case SideMenu.TREATMENTS:
       return "Treatments";
     default:
       return "";
@@ -26,9 +26,9 @@ export function getMenuName(menu: SideMenu | undefined): string {
 
 export function getRoleName(role: Role): string {
   switch (role) {
-    case ROLE.DOCTOR:
+    case Role.DOCTOR:
       return "Doctor";
-    case ROLE.NURSE:
+    case Role.NURSE:
       return "Nurse";
     default:
       return "Staff";
@@ -119,17 +119,9 @@ export const checkIsInvaildRecord = (tableType: TableType, record: PRecord) => {
   return { etrcondition, rtecondition1, rtecondition2 };
 };
 
-export const autoCompleteKeyDownCapture = (
-  event: React.KeyboardEvent<HTMLDivElement>,
-  onValueChange: (value: string | undefined) => void,
-  optionRef: MutableRefObject<SearchHelp | null>,
-  setModalOpen?: () => void
-) => {
+export const autoCompleteKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>, onValueChange: (value: string | undefined) => void, optionRef: MutableRefObject<SearchHelp | null>) => {
   if (event.key === "Enter") {
     onValueChange(optionRef.current?.id.toString());
-    if (optionRef.current?.id === OP_READINESS_Y && optionRef.current?.title == OP_READINESS_Y_TITLE) {
-      setModalOpen?.();
-    }
   } else if (event.key === "Tab") {
     if (optionRef.current) {
       onValueChange(optionRef.current.id.toString());
@@ -147,7 +139,7 @@ export const refreshTreatmentCells = (api: GridApi<PRecord> | undefined, recordI
 
   if (!row || !row.data) return;
 
-  const columns = [];
+  const columns = ["opReadiness", "doctor"];
   for (const i of TREATMENT_NUMBERS) {
     if (row.data[`treatment${i}`]) {
       columns.push(`treatment${i}`);
@@ -174,14 +166,12 @@ export const statusTransition = (record: PRecord): OpReadiness => {
   // 어떤 시술이 Ready가 있고 start가 있고 end가 없다면 P
   // 나머지 N
 
-  let n_flag = true;
   let c_flag = true;
   let y_flag = false;
   let p_flag = false;
 
   for (const number of TREATMENT_NUMBERS) {
     if (record[`treatment${number}`]) {
-      n_flag = false;
       if (!record[`treatmentReady${number}`] || !record[`treatmentStart${number}`] || !record[`treatmentEnd${number}`]) {
         c_flag = false;
       }
@@ -196,23 +186,19 @@ export const statusTransition = (record: PRecord): OpReadiness => {
     }
   }
 
-  if (n_flag) return OP_READINESS_N;
-  if (y_flag) return OP_READINESS_Y;
-  if (p_flag) return OP_READINESS_P;
-  if (c_flag) return OP_READINESS_C;
+  if (y_flag) return OpReadiness.Y;
+  if (p_flag) return OpReadiness.P;
+  if (c_flag) return OpReadiness.C;
 
-  return OP_READINESS_N;
+  return OpReadiness.N;
 };
 
-export const editAndStopRecord = (api: GridApi<PRecord>, record: PRecord) => {
+export const editAndStopRecord = (grid: RefObject<CustomAgGridReactProps<PRecord>>, record: PRecord, originalRecord: PRecord) => {
+  if (!grid.current) return;
+  const api = grid.current.api;
   const row = api.getRowNode(record.id);
-  const editingCell = api.getEditingCells()[0];
   if (row && row.rowIndex !== null) {
-    row?.updateData(record);
-    if (!(editingCell && editingCell.rowIndex === row.rowIndex)) {
-      api.startEditingCell({ rowIndex: row.rowIndex, colKey: "chartNum" });
-    }
-    api.stopEditing();
+    grid.current.saveRecord?.(record, originalRecord, api);
   }
 };
 
@@ -240,11 +226,11 @@ export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpd
     body: { data },
   } = await getAllTreatments(TEST_TAG, baseURL);
   if (statusCode === 200) {
-    const treatment = data.rows
-      .map((treatment: ServerTreatment) => convertServerTreatmentToClient(treatment))
-      .map((treatment: Treatment) => {
-        return { id: treatment.id, title: treatment.title, group: treatment.group };
-      });
+    console.log(data.rows);
+
+    const treatment = data.rows.map((treatment: Treatment) => {
+      return treatment as SearchHelp;
+    });
     setTreatmentSearchHelp(treatment);
   }
 };
@@ -253,7 +239,7 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
   const {
     statusCode,
     body: { data },
-  } = await getAllRoleEmployees("doctor", TEST_TAG, baseURL);
+  } = await getAllRoleEmployees(Role.DOCTOR, TEST_TAG, baseURL);
 
   if (statusCode === 200) {
     const doctors = data.rows
@@ -261,7 +247,6 @@ export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<S
       .map((user: User) => {
         return { id: user.id, title: user.name, group: "" } as SearchHelp;
       });
-
     setDoctorSearchHelp(doctors);
   }
 };

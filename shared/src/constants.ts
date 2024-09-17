@@ -36,13 +36,6 @@ export const POTENZA = "포텐자";
 export const ERBIUM = "어븀";
 export const ETC = "기타";
 
-// Treatment
-export const TREATMENT_CATEGORY = [SHURINK, INMODE, ULTHERA, TITANIUM, JUVEDERM, EXCELV, PICOSURE, BOOSTER, FILLER, BOTOX, IV_THERAPY, OLIGIO, POTENZA, ERBIUM, ETC];
-export const ROLE = {
-  DOCTOR: "doctor",
-  NURSE: "nurse",
-  STAFF: "staff",
-} as const;
 export const KEY_OF_SERVER_PRECORD = [
   "id",
   "created_at",
@@ -103,12 +96,7 @@ const snakeToCamel = (origin: string) => {
     })
     .join("");
 };
-
-export const KEY_OF_CLIENT_PRECORD = ["id"];
-for (let i = 1; i < KEY_OF_SERVER_PRECORD.length; i++) {
-  KEY_OF_CLIENT_PRECORD.push(snakeToCamel(KEY_OF_SERVER_PRECORD[i]));
-}
-
+export const KEY_OF_CLIENT_PRECORD = KEY_OF_SERVER_PRECORD.map((key) => snakeToCamel(key));
 export const KEY_OF_SERVER_TREATMENT = ["id", "group", "title", "duration", "point", "price"];
 export const KEY_OF_CLIENT_TREATMENT = [...KEY_OF_SERVER_TREATMENT];
 export const TREATMENTS: SearchHelp[] = [
@@ -225,3 +213,5 @@ export type SearchHelp = {
   group: string;
   title: string;
 };
+
+export const INTERNAL_SERVER_ERROR = "Internal server error";

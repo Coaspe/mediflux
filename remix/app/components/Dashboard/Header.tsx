@@ -1,16 +1,16 @@
 /** @format */
 
-import { SideMenu } from "~/types/type";
 import { getMenuName, getRoleName } from "~/utils/utils";
 import DropdownMenu from "./Dropdown";
 import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
-import { ROLE } from "shared";
+import { Role } from "shared";
 import { useSubmit } from "@remix-run/react";
+import { SideMenu } from "~/constant";
 
 function DashboardUser() {
-  let [doesAlarmExist, setDoesAlarmExist] = useState(true);
+  const [doesAlarmExist, setDoesAlarmExist] = useState(true);
   const user = useRecoilValue(userState);
   const submit = useSubmit();
 
@@ -25,19 +25,15 @@ function DashboardUser() {
 
   return (
     <div className="flex items-center gap-3 font-work">
-      {/* <div className="flex items-center justify-center w-8 h-8 rounded-md bg-alarmButtonBg relative cursor-pointer">
-        {doesAlarmExist && <div className="absolute w-1 h-1 rounded-full bg-red-600 right-1 top-1"> </div>}
-        <span className="material-symbols-outlined text-alarmButtonLine">notifications</span>
-      </div> */}
       <div className="flex items-center gap-3 select-none">
-        <div className="flex items-center justify-center border-2 border-black w-8 h-8 rounded-md">
-          <span className="material-symbols-rounded text-4xl">person</span>
+        <div className="flex items-center justify-center w-8 h-8 border-2 border-black rounded-md">
+          <span className="text-4xl material-symbols-rounded">person</span>
         </div>
         <div className="flex flex-col justify-between">
           <span className="text-sm">{user && user.name}</span>
-          <span className="text-xs text-gray-500">{getRoleName(ROLE.DOCTOR)}</span>
+          <span className="text-xs text-gray-500">{getRoleName(Role.DOCTOR)}</span>
         </div>
-        <span onClick={logout} className="material-symbols-outlined text-4xl cursor-pointer block">
+        <span onClick={logout} className="text-4xl cursor-pointer material-symbols-outlined">
           logout
         </span>
       </div>
@@ -47,13 +43,12 @@ function DashboardUser() {
 
 export default function DashboardHeader({ selectedMenu }: { selectedMenu: SideMenu | undefined }) {
   return (
-    <header className="min-h-24 font-playfair flex items-center justify-between pl-12 pr-12 w-full">
+    <header className="flex items-center justify-between w-full min-h-24 pl-12 pr-12 font-playfair">
       <div className="flex items-center">
-        <h1 className="w-[250px] font-extrabold text-4xl cursor-pointer select-none text-button">MediFlux</h1>
-        <h2 className="font-work text-xl font-bold drag select-none">{getMenuName(selectedMenu)}</h2>
+        <h1 className="w-[250px] text-4xl font-extrabold text-button cursor-pointer select-none">MediFlux</h1>
+        <h2 className="text-xl font-bold select-none font-work">{getMenuName(selectedMenu)}</h2>
       </div>
       <div className="flex gap-10">
-        {/* <DropdownMenu /> */}
         <DashboardUser />
       </div>
     </header>

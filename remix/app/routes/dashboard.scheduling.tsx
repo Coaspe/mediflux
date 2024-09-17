@@ -8,9 +8,9 @@ import SchedulingTable from "~/components/Table/SchedulingTable";
 import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
 import { CustomAgGridReactProps, User } from "~/types/type";
 import { getUserByID } from "~/utils/request.server";
-import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord } from "shared";
+import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord, OpReadiness } from "shared";
 import { Socket, io } from "socket.io-client";
-import { DEFAULT_REDIRECT, OP_READINESS_Y, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
 import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { destoryBrowserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";
@@ -76,7 +76,7 @@ export default function Scheduling() {
       while (recordsData.length > 0) {
         const record = recordsData.pop();
         if (!record) continue;
-        if (record?.opReadiness === OP_READINESS_Y) {
+        if (record?.opReadiness === OpReadiness.Y) {
           ready.push(record);
         } else {
           exceptReady.push(record);
@@ -108,7 +108,7 @@ export default function Scheduling() {
   }, [user]);
 
   return (
-    <div className="flex w-full h-full flex-col gap-5 pb-5">
+    <div className="flex flex-col w-full h-full gap-5 pb-5">
       <SchedulingTable
         tableType="Ready"
         gridRef={readyRef}

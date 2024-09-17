@@ -24,6 +24,7 @@ import {
   CONNECTED_USERS,
   CONNECTION,
   PRecord,
+  INTERNAL_SERVER_ERROR,
 } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
 import { TREATMENTS } from "./contants.js";
@@ -85,7 +86,7 @@ io.on(CONNECTION, (socket) => {
     socket.broadcast.to(roomId).emit(DELETE_RECORD, { recordIds, tableType });
   });
 
-  socket.on(SAVE_RECORD, ({ records, tableType, roomId, propertyName, newValue }: { records: string[]; tableType: string; roomId: string; propertyName: string; newValue: any }) => {
+  socket.on(SAVE_RECORD, ({ records, tableType, roomId, propertyName, newValue }: { records: string[]; tableType: string; roomId: string; propertyName: string; newValue: unknown }) => {
     socket.broadcast.to(roomId).emit(SAVE_RECORD, { records, tableType, propertyName, newValue });
   });
 
@@ -105,7 +106,7 @@ app.get("/api/getUserByID", async (req, res) => {
     const result = await pool.query(`SELECT * FROM admin.user where id=$1;`, [id]);
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 app.get("/api/checkSameIDExists", async (req, res) => {
@@ -114,8 +115,8 @@ app.get("/api/checkSameIDExists", async (req, res) => {
   try {
     const result = await pool.query(`SELECT * FROM admin.user where login_id=$1;`, [userId]);
     res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 app.get("/api/getAllRoleEmployees", async (req, res) => {
@@ -130,8 +131,8 @@ app.get("/api/getAllRoleEmployees", async (req, res) => {
     const q = `select * from admin.user where role='${role}'`;
     const result = await pool.query(q);
     res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 app.get("/api/getAllTreatments", async (req, res) => {
@@ -145,8 +146,8 @@ app.get("/api/getAllTreatments", async (req, res) => {
     const q = `select * from ${tag}.TREATMENTS`;
     const result = await pool.query(q);
     res.status(200).json(result);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 app.get("/api/getAllVacantRooms", async (req, res) => {
@@ -159,8 +160,8 @@ app.get("/api/getAllVacantRooms", async (req, res) => {
     const q = `select * from ${tag}.TREATMENT_ROOM_INFO where tr_room_chartnum IS NULL`;
     const result = await pool.query(q);
     res.status(200).json(result.rows);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 
@@ -184,7 +185,7 @@ app.post("/api/getRecords", async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 app.post("/api/insertRecords", async (req, res) => {
@@ -195,8 +196,6 @@ app.post("/api/insertRecords", async (req, res) => {
     const valuesTemplate = records
       .map((_: unknown, i: number) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
       .join(", ");
-    console.log(KEY_OF_SERVER_PRECORD.slice(2).join(", "));
-
     const query = `
         INSERT INTO ${tag}.chart_schedule (
         ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
@@ -204,7 +203,7 @@ app.post("/api/insertRecords", async (req, res) => {
         RETURNING *;
       `;
 
-    const queryValues: any[] = [];
+    const queryValues: unknown[] = [];
     records.forEach((record: PRecord) => {
       let value = deconstructRecord(record);
       queryValues.push(...value);
@@ -238,8 +237,8 @@ app.post("/api/insertTreatment", async (req, res) => {
     `;
     const insertResult = await pool.query(insertQuery);
     res.status(200).json(insertResult);
-  } catch (error: any) {
-    res.status(500).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 app.post("/api/register", async (req, res) => {
@@ -285,7 +284,7 @@ app.post("/api/login", async (req, res) => {
     }
     res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", errorType: 3 });
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR, errorType: 3 });
   }
 });
 
@@ -373,8 +372,8 @@ app.put("/api/updateTreatment", async (req, res) => {
 
     const result = await pool.query(q, deconstructTreatement(treatment));
     res.status(200).json(result);
-  } catch (error: any) {
-    res.status(error.code).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 
@@ -391,8 +390,8 @@ app.delete("/api/deleteTreatment", async (req, res) => {
     const q = `DELETE FROM ${tag}.${TREATMENTS} WHERE id=${id}`;
     const result = await pool.query(q);
     res.status(200).json(result);
-  } catch (error: any) {
-    res.status(error.code).json({ message: "Internal server error" });
+  } catch (error: unknown) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
   }
 });
 

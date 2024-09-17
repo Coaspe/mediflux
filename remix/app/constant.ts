@@ -1,13 +1,13 @@
-import { OpReadiness, SearchHelp, Treatment } from "./types/type";
+import { SearchHelp } from "./types/type";
 
 export const TEST_TAG = "gn_ss_bailor";
 export const DEFAULT_REDIRECT = "/";
-export const SIDE_MENU = {
-  SCHEDULING: "scheduling",
-  ARCHIVE: "archive",
-  MEMBERS: "members",
-  TREATMENTS: "treatments",
-} as const;
+export enum SideMenu {
+  SCHEDULING = "scheduling",
+  ARCHIVE = "archive",
+  MEMBERS = "members",
+  TREATMENTS = "treatments",
+}
 export const TABLE_CONTAINER_HEIGHT = "78%";
 export const TABLE_HEIGHT = "100%";
 export const TABLE_PAPER_HEIGHT = "50%";
@@ -68,20 +68,9 @@ export const MEDIUM_COLUMN_LENGTH = 100;
 export const POINT_COLUMN_LENGTH = 80;
 export const SHORT_COLUMN_LENGTH = 70;
 
-export const FIELDS_STAFF = [SKINCARE_SPECIALIST1_H, SKINCARE_SPECIALIST2_H, COORDINATOR_H, CONSULTANT_H];
 export const FIELDS_NURSE = [NURSING_STAFF1_H, NURSING_STAFF2_H];
 export const FIELDS_DOCTOR = [DOCTOR_H];
 export const FIELDS_PAITENT = [PATIENT_NAME_H];
-
-export const OP_READINESS_Y: OpReadiness = "Y";
-export const OP_READINESS_N: OpReadiness = "N";
-export const OP_READINESS_C: OpReadiness = "C";
-export const OP_READINESS_P: OpReadiness = "P";
-export const OP_READINESS_ENTRIES: OpReadiness[] = [OP_READINESS_Y, OP_READINESS_N, OP_READINESS_C, OP_READINESS_P];
-export const OP_READINESS_Y_TITLE = "준비 완료 (Y)";
-export const OP_READINESS_N_TITLE = "준비 미완료 (N)";
-export const OP_READINESS_C_TITLE = "시술 완료 (C)";
-export const OP_READINESS_P_TITLE = "시술 중 (P)";
 
 export const DOCTOR_SEARCH_HELP: SearchHelp[] = [
   { id: "1", group: "", title: "이우람" },
@@ -99,5 +88,3 @@ export const EMPTY_SEARCHHELP: SearchHelp = {
 };
 
 export const TREATMENT_NUMBERS = Array.from({ length: 5 }, (_, k) => k + 1);
-
-export const KEY_OF_CLIENT_TREATMENT: (keyof Treatment)[] = ["id", "group", "title", "duration", "price", "point"];

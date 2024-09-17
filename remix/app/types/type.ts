@@ -1,11 +1,9 @@
-/** @format */
-
-import { SIDE_MENU } from "~/constant";
 import { OverridableStringUnion } from "@mui/types";
 import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
 import { ServerUser, Role, PRecord } from "shared";
 import { CellPosition } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
+import { GridApi } from "ag-grid-community";
 
 export type CustomResponse = {
   statusCode: number;
@@ -14,7 +12,6 @@ export type CustomResponse = {
     error?: string;
   };
 };
-export type SideMenu = (typeof SIDE_MENU)[keyof typeof SIDE_MENU];
 export type User = {
   id: string;
   loginId: string;
@@ -44,7 +41,6 @@ export type ServerTreatment = {
 };
 export type TableType = "Ready" | "ExceptReady" | "Archive";
 export type ChipColor = OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;
-export type OpReadiness = "Y" | "N" | "C" | "P";
 export type SearchHelp = {
   id: string;
   group: string;
@@ -85,6 +81,7 @@ export type PRecordWithFocusedRow = FocusedRow & PRecord;
 
 export interface CustomAgGridReactProps<TData> extends AgGridReact<TData> {
   tableType: TableType;
+  saveRecord?: (record: PRecord, originRecord: PRecord, api: GridApi<PRecord>) => void;
 }
 
 export type GlobalSnackBark = { open: boolean; msg: string; severity: "error" | "info" | "success" | "warning" };

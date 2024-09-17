@@ -29,6 +29,8 @@ export const emitDeleteRecords = (recordIds: string[], tableType: TableType, soc
 };
 
 export const emitSaveRecord = async (records: PRecord[] | undefined, tableType: TableType, socket: Socket | null, roomId: string) => {
+  console.log("reecords");
+
   if (records && records?.length > 0) {
     socket?.emit(SAVE_RECORD, {
       records,

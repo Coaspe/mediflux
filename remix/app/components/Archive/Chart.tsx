@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import React from "react";
-import { ChartData, Interval, PRecord } from "~/types/type";
+import { ChartData, Interval } from "~/types/type";
 import dayjs, { Dayjs } from "dayjs";
+import { PRecord } from "shared";
 
 type ArchiveChartProps = {
   numOfInterval: number;
@@ -68,7 +69,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
   }, [interval, numOfInterval, baseDate, data]);
 
   return (
-    <div className="w-full h-1/2">
+    <div className="h-1/2 w-full">
       {chartData && (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart

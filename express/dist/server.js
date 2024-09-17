@@ -16,7 +16,7 @@ import pkg from "pg";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import * as fs from "fs";
-import { CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID, KEY_OF_SERVER_TREATMENT, KEY_OF_SERVER_PRECORD, CONNECTED_USERS, CONNECTION, } from "shared";
+import { CREATE_RECORD, DELETE_RECORD, JOIN_ROOM, LOCK_RECORD, SAVE_RECORD, USER_JOINED, UNLOCK_RECORD, SCHEDULING_ROOM_ID, PORT, ARCHIVE_ROOM_ID, KEY_OF_SERVER_TREATMENT, KEY_OF_SERVER_PRECORD, CONNECTED_USERS, CONNECTION, INTERNAL_SERVER_ERROR, } from "shared";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "./utils.js";
 import { TREATMENTS } from "./contants.js";
 dotenv.config();
@@ -81,7 +81,7 @@ app.get("/api/getUserByID", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -91,7 +91,7 @@ app.get("/api/checkSameIDExists", (req, res) => __awaiter(void 0, void 0, void 0
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.get("/api/getAllRoleEmployees", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -107,7 +107,7 @@ app.get("/api/getAllRoleEmployees", (req, res) => __awaiter(void 0, void 0, void
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.get("/api/getAllTreatments", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -122,7 +122,7 @@ app.get("/api/getAllTreatments", (req, res) => __awaiter(void 0, void 0, void 0,
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.get("/api/getAllVacantRooms", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -137,7 +137,7 @@ app.get("/api/getAllVacantRooms", (req, res) => __awaiter(void 0, void 0, void 0
         res.status(200).json(result.rows);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -157,7 +157,7 @@ app.post("/api/getRecords", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -167,7 +167,6 @@ app.post("/api/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, f
         const valuesTemplate = records
             .map((_, i) => `(${Array.from({ length: KEY_OF_SERVER_PRECORD.length - 2 }, (_, j) => `$${i * KEY_OF_SERVER_PRECORD.length + j + 1}`).join(", ")})`)
             .join(", ");
-        console.log(KEY_OF_SERVER_PRECORD.slice(2).join(", "));
         const query = `
         INSERT INTO ${tag}.chart_schedule (
         ${KEY_OF_SERVER_PRECORD.slice(2).join(", ")}
@@ -205,7 +204,7 @@ app.post("/api/insertTreatment", (req, res) => __awaiter(void 0, void 0, void 0,
         res.status(200).json(insertResult);
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.post("/api/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -248,7 +247,7 @@ app.post("/api/login", (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(200).json({ user });
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error", errorType: 3 });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR, errorType: 3 });
     }
 }));
 app.put("/api/updateRecord", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -334,7 +333,7 @@ app.put("/api/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, 
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(error.code).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -350,7 +349,7 @@ app.delete("/api/deleteTreatment", (req, res) => __awaiter(void 0, void 0, void 
         res.status(200).json(result);
     }
     catch (error) {
-        res.status(error.code).json({ message: "Internal server error" });
+        res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));
 server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
