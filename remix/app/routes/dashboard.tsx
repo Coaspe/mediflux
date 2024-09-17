@@ -33,7 +33,7 @@ function MenuItemLi({
   return (
     <li className={`w-full ${clickedMenu === to ? "bg-button text-white" : "hover:bg-gray-100"}`}>
       <Link onClick={onClick} className={`flex items-center h-[50px] text-current cursor-pointer pr-[20px] ${isSubMenu ? "pl-[40px]" : "pl-[20px]"}`} to={to}>
-        <Icon className={`text-gray-500 mr-[10px] ${fontSize}`} iconName={icon} />
+        <Icon className={`text-gray-500 mr-[10px] ${fontSize} css-wx7wi4`} iconName={icon} />
         <span className={`${fontSize} inline-block flex-grow overflow-hidden overflow-ellipsis whitespace-nowrap`}>{name}</span>
       </Link>
     </li>

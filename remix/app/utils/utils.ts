@@ -198,6 +198,7 @@ export const editAndStopRecord = (grid: RefObject<CustomAgGridReactProps<PRecord
   const api = grid.current.api;
   const row = api.getRowNode(record.id);
   if (row && row.rowIndex !== null) {
+    // row?.updateData(record);
     grid.current.saveRecord?.(record, originalRecord, api);
   }
 };
