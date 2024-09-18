@@ -4,9 +4,9 @@ import { RefObject } from "react";
 import { LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, CREATE_RECORD, UNLOCK_RECORD, PRecord } from "shared";
 import { Socket } from "socket.io-client";
 import { TableType, User, CustomAgGridReactProps } from "~/types/type";
-import { checkIsInvaildRecord, focusEditingRecord, getEditingCell, moveRecord } from "../utils";
+import { checkIsInvalidRecord, focusEditingRecord, getEditingCell, moveRecord } from "../utils";
 import { RowDataTransaction } from "ag-grid-community";
-import { LOCKING_USER } from "~/constant";
+import { LOCKING_USER, ON_LINE_CHANGING_TRANSACTION_APPLIED } from "~/constant";
 
 export const emitLockRecord = async (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {
@@ -29,8 +29,6 @@ export const emitDeleteRecords = (recordIds: string[], tableType: TableType, soc
 };
 
 export const emitSaveRecord = async (records: PRecord[] | undefined, tableType: TableType, socket: Socket | null, roomId: string) => {
-  console.log("reecords");
-
   if (records && records?.length > 0) {
     socket?.emit(SAVE_RECORD, {
       records,
@@ -82,8 +80,8 @@ export const onSaveRecord = (
   try {
     if (records.length > 0) {
       records.forEach((record) => {
-        const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(curTableType, record);
-        if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
+        const { etrCondition, rteCondition1, rteCondition2 } = checkIsInvalidRecord(curTableType, record);
+        if (theOtherGridRef && (etrCondition || rteCondition1 || rteCondition2)) {
           moveRecord(gridRef, theOtherGridRef, record);
           if (theOtherGridRef.current?.tableType === "Ready") {
             audioRef.current?.play();
@@ -110,7 +108,7 @@ const applyTransactionWithEvent = (gridRef: RefObject<CustomAgGridReactProps<any
     let editingRowId = undefined;
 
     if (needFocus) {
-      const event = new CustomEvent("onLineChangingTransactionApplied");
+      const event = new CustomEvent(ON_LINE_CHANGING_TRANSACTION_APPLIED);
       api.dispatchEvent(event);
       editingRowId = api.getDisplayedRowAtIndex(editingCells[0].rowIndex)?.id;
     }

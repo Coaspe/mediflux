@@ -1,43 +1,48 @@
 /** @format */
 
 import { useLoaderData } from "@remix-run/react";
-import { AgGridReactProps } from "ag-grid-react";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useSetRecoilState } from "recoil";
+import { AgGridReactProps, CustomCellRendererProps } from "ag-grid-react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Role } from "shared";
 import { TEST_TAG } from "~/constant";
-import { globalSnackbarState } from "~/recoil_state";
-import { CustomAgGridReactProps, Member, ServerTreatment, Treatment } from "~/types/type";
+import { CustomAgGridReactProps, Member, Treatment } from "~/types/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";
-import { convertServerTreatmentToClient, getRevenueForPeriod } from "~/utils/utils";
+import { formatNumberWithCommas, getRevenueForPeriod } from "~/utils/utils";
 import SearchableGrid from "~/components/Table/SearchableGrid";
 
 export async function loader() {
+  const [doctorsResponse, recordsResponse, treatmentsResponse] = await Promise.all([
+    getAllRoleEmployees(Role.DOCTOR, TEST_TAG, process.env.SERVER_BASE_URL),
+    getRecords([], TEST_TAG, process.env.SERVER_BASE_URL),
+    getAllTreatments(TEST_TAG, process.env.SERVER_BASE_URL),
+  ]);
+
   const {
     statusCode: s1,
     body: {
       data: { rows: doctors },
     },
-  } = await getAllRoleEmployees(Role.DOCTOR, TEST_TAG, process.env.SERVER_BASE_URL);
+  } = doctorsResponse;
   const {
     statusCode: s2,
     body: {
       data: { rows: records },
     },
-  } = await getRecords([], TEST_TAG, process.env.SERVER_BASE_URL);
+  } = recordsResponse;
   const {
     statusCode: s3,
     body: {
-      data: { rows: t },
+      data: { rows: treatmentsData },
     },
-  } = await getAllTreatments(TEST_TAG, process.env.SERVER_BASE_URL);
+  } = treatmentsResponse;
 
   if (s1 === 200 && s2 === 200 && s3 === 200) {
-    const treatments: { [key: string]: Treatment } = {};
-    t.forEach((treatment: ServerTreatment) => {
-      treatments[treatment.id] = convertServerTreatmentToClient(treatment);
-    });
+    const treatments = treatmentsData.reduce((acc: { [key: string]: Treatment }, treatment: Treatment) => {
+      acc[treatment.id] = treatment;
+      return acc;
+    }, {} as { [key: string]: Treatment });
+
     return { revenue: getRevenueForPeriod(doctors, records, treatments), treatments };
   }
   return null;
@@ -45,7 +50,6 @@ export async function loader() {
 
 const Members = () => {
   const loaderData = useLoaderData<typeof loader>();
-  const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [rowData, setRowData] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [colDefs, setColDefs] = useState<ColDef<Treatment, any>[]>([]);
@@ -53,64 +57,48 @@ const Members = () => {
 
   useEffect(() => {
     if (!loaderData) return;
-    const { revenue, treatments }: { revenue: { [key: string]: { [key: string]: number | string } }; treatments: { [key: string]: Treatment } } = loaderData;
-    const setMembersRevenue = () => {
-      setIsLoading(true);
-      const data = [];
 
-      for (const [id, performedTreatments] of Object.entries(revenue)) {
-        let member = { id, revenue: 0, numOfTreatments: 0, name: performedTreatments["name"], performedTreatments } as Member;
-        Object.entries(performedTreatments || {}).forEach(([tid, v], i) => {
-          if (typeof v === "number") {
-            member.numOfTreatments += v;
-            member.revenue += v * (treatments[tid].price || 0);
-          } else {
-            member.name = v;
-            member.searchTitle = v;
-          }
-        });
-        data.push(member);
-      }
+    const { revenue, treatments } = loaderData;
 
-      data.sort((a, b) => b.revenue - a.revenue);
-      setRowData(data);
+    const membersData = Object.entries(revenue).map(([id, performedTreatments]) => {
+      let member: Member = { id, revenue: 0, numOfTreatments: 0, name: "", performedTreatments };
 
-      setIsLoading(false);
-    };
-    setMembersRevenue();
+      Object.entries(performedTreatments).forEach(([tid, value]) => {
+        if (typeof value === "number") {
+          member.numOfTreatments += value;
+          member.revenue += value * (treatments[tid].price || 0);
+        } else {
+          member.name = value;
+          member.searchTitle = value;
+        }
+      });
+
+      return member;
+    });
+
+    membersData.sort((a, b) => b.revenue - a.revenue);
+    setRowData(membersData);
+    setIsLoading(false);
   }, [loaderData]);
 
-  // Columns definition
   useEffect(() => {
     setColDefs([
       { field: "id", headerName: "id", hide: true },
       { field: "name", headerName: "이름", width: 100 },
       { field: "numOfTreatments", headerName: "시술 건수", width: 100 },
-      { field: "revenue", headerName: "매출", width: 100 },
+      { field: "revenue", headerName: "매출", width: 100, cellRenderer: (params: CustomCellRendererProps) => formatNumberWithCommas(params.value) },
     ]);
   }, []);
 
-  const showErrorSnackbar = useCallback(
-    (message: string) => {
-      setGlobalSnackBar({ open: true, msg: message, severity: "error" });
-    },
-    [setGlobalSnackBar]
-  );
+  const defaultColDef = useMemo<ColDef>(() => ({ editable: false }), []);
 
-  const defaultColDef = useMemo<ColDef>(() => {
-    return {
-      editable: false,
-    };
-  }, []);
-
-  const noRowsOverlayComponent = () => {
-    return <span>차트가 존재하지 않습니다</span>;
-  };
+  const noRowsOverlayComponent = () => <span>차트가 존재하지 않습니다</span>;
 
   const rowStyle = {
-    fontSize: "0.75rem" /* 12px */,
-    lineheight: "1rem" /* 16px */,
+    fontSize: "0.75rem",
+    lineHeight: "1rem",
   };
+
   const agGridProps: AgGridReactProps = {
     defaultColDef,
     columnDefs: colDefs,
@@ -121,6 +109,7 @@ const Members = () => {
     loading: isLoading,
     noRowsOverlayComponent,
   };
+
   return <SearchableGrid gridRef={gridRef} originalData={rowData} gridProps={agGridProps} addButton={false} />;
 };
 

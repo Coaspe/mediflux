@@ -4,7 +4,7 @@ import { ChipColor, CustomAgGridReactProps, GlobalSnackBark, SearchHelp, TableTy
 import { Autocomplete, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { INTERNAL_SERVER_ERROR, OpReadiness, PRecord, Role } from "shared";
-import { FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TEST_TAG } from "~/constant";
+import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TEST_TAG, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -58,13 +58,13 @@ export const createdAtEdit = (value: string, onValueChange: (value: string) => v
 
 export const getStatusChipColor = (label: ReactNode): ChipColor => {
   switch (label) {
-    case "N":
+    case OpReadiness.N:
       return "error";
-    case "P":
+    case OpReadiness.P:
       return "primary";
-    case "D":
+    case OpReadiness.Y:
       return "info";
-    case "C":
+    case OpReadiness.C:
       return "secondary";
     default:
       return "success";
@@ -89,9 +89,9 @@ const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
       const time = dayjs().toISOString();
       const originRecord = JSON.parse(JSON.stringify(record));
       if (record.opReadiness === OpReadiness.Y) {
-        record[`treatmentStart${treatmentNumber}`] = time;
-        record[`doctor${treatmentNumber}`] = id;
-        record["doctor"] = id;
+        record[`${TREATMENT_START}${treatmentNumber}`] = time;
+        record[`${DOCTOR}${treatmentNumber}`] = id;
+        record[DOCTOR] = id;
       }
 
       editAndStopRecord(gridRef, record, originRecord);
@@ -130,9 +130,9 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
 
   useEffect(() => {
     setConfirmItemTitle(() => {
-      const start = record[`treatmentStart${treatmentNumber}`];
-      const ready = record[`treatmentReady${treatmentNumber}`];
-      const end = record[`treatmentEnd${treatmentNumber}`];
+      const start = record[`${TREATMENT_START}${treatmentNumber}`];
+      const ready = record[`${TREATMENT_READY}${treatmentNumber}`];
+      const end = record[`${TREATMENT_END}${treatmentNumber}`];
 
       if (record.opReadiness === OpReadiness.N) {
         if (end) {
@@ -176,10 +176,10 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
       const originRecord = JSON.parse(JSON.stringify(record));
 
       if (record.opReadiness === OpReadiness.N) {
-        record[`treatmentReady${treatmentNumber}`] = time;
+        record[`${TREATMENT_READY}${treatmentNumber}`] = time;
       } else if (record.opReadiness === OpReadiness.P) {
-        record[`treatmentEnd${treatmentNumber}`] = time;
-        record["doctor"] = undefined;
+        record[`${TREATMENT_END}${treatmentNumber}`] = time;
+        record[DOCTOR] = undefined;
       } else {
         return;
       }
@@ -194,9 +194,9 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
 
     try {
       if (!record || !treatmentNumber || !user) return;
-      const ready = record[`treatmentReady${treatmentNumber}`];
-      const start = record[`treatmentStart${treatmentNumber}`];
-      const end = record[`treatmentEnd${treatmentNumber}`];
+      const ready = record[`${TREATMENT_READY}${treatmentNumber}`];
+      const start = record[`${TREATMENT_START}${treatmentNumber}`];
+      const end = record[`${TREATMENT_END}${treatmentNumber}`];
       const originRecord = JSON.parse(JSON.stringify(record));
 
       const isInProgress = ready && start && !end;
@@ -204,14 +204,14 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
       const isReady = ready && !start && !end;
 
       if (isReady) {
-        record[`treatmentReady${treatmentNumber}`] = undefined;
+        record[`${TREATMENT_READY}${treatmentNumber}`] = undefined;
       } else if (isInProgress) {
-        record[`doctor${treatmentNumber}`] = undefined;
-        record[`treatmentStart${treatmentNumber}`] = undefined;
-        record["doctor"] = undefined;
+        record[`${DOCTOR}${treatmentNumber}`] = undefined;
+        record[`${TREATMENT_START}${treatmentNumber}`] = undefined;
+        record[DOCTOR] = undefined;
       } else if (isCompleted) {
-        record["doctor"] = record[`doctor${treatmentNumber}`];
-        record[`treatmentEnd${treatmentNumber}`] = undefined;
+        record[DOCTOR] = record[`${DOCTOR}${treatmentNumber}`];
+        record[`${TREATMENT_END}${treatmentNumber}`] = undefined;
       }
 
       editAndStopRecord(gridRef, record, originRecord);
@@ -267,9 +267,9 @@ const CustomToolTip = styled(({ className, ...props }: TooltipProps) => <Tooltip
 
 export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, gridRef: RefObject<CustomAgGridReactProps<PRecord>>, tableType: TableType) => {
   const number = colDef?.field?.charAt(colDef.field.length - 1);
-  const end = data[`treatmentEnd${number}`];
-  const ready = data[`treatmentReady${number}`];
-  const start = data[`treatmentStart${number}`];
+  const end = data[`${TREATMENT_END}${number}`];
+  const ready = data[`${TREATMENT_READY}${number}`];
+  const start = data[`${TREATMENT_START}${number}`];
   const searchHelp = useRecoilValue(treatmentSearchHelpState);
 
   const canBeAssigned = data.opReadiness === OpReadiness.Y && ready && !start && !end;
@@ -292,7 +292,7 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, 
         <div>
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
-              tableType === "ExceptReady" && data.opReadiness === "P" && (isInProgressTreatment ? "font-black" : "text-gray-400")
+              tableType === "ExceptReady" && data.opReadiness === OpReadiness.P && (isInProgressTreatment ? "font-black" : "text-gray-400")
             }`}
           >
             {getValueWithId(searchHelp, value).title}

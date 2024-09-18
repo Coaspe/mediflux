@@ -31,9 +31,23 @@ import { Socket } from "socket.io-client";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { globalSnackbarState, userState } from "~/recoil_state";
 import { TableAction } from "./TableAction";
-import { checkIsInvaildRecord, getEditingCell, moveRecord, refreshTreatmentCells, statusTransition } from "~/utils/utils";
+import { checkIsInvalidRecord, getEditingCell, moveRecord, refreshTreatmentCells, statusTransition } from "~/utils/utils";
 import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
-import { LOCKING_USER, TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H, TEST_TAG } from "~/constant";
+import {
+  LOCKING_USER,
+  TREATMENT1,
+  TREATMENT1_H,
+  TREATMENT2,
+  TREATMENT2_H,
+  TREATMENT3,
+  TREATMENT3_H,
+  TREATMENT4,
+  TREATMENT4_H,
+  TREATMENT5,
+  TREATMENT5_H,
+  TEST_TAG,
+  ON_LINE_CHANGING_TRANSACTION_APPLIED,
+} from "~/constant";
 import dayjs from "dayjs";
 import LoadingOverlay from "../Loading";
 
@@ -72,13 +86,13 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         record.lockingUser = null;
         record.opReadiness = statusTransition(record);
 
-        const { etrcondition, rtecondition1, rtecondition2 } = checkIsInvaildRecord(tableType, record);
+        const { etrCondition, rteCondition1, rteCondition2 } = checkIsInvalidRecord(tableType, record);
 
         const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
 
         if (result.statusCode === 200) {
           emitSaveRecord([record], tableType, socket, roomId);
-          if (theOtherGridRef && (etrcondition || rtecondition1 || rtecondition2)) {
+          if (theOtherGridRef && (etrCondition || rteCondition1 || rteCondition2)) {
             moveRecord(gridRef, theOtherGridRef, record);
           } else {
             gridRef.current?.api.applyTransaction({
@@ -87,7 +101,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
             refreshTreatmentCells(api, record.id);
           }
         } else {
-          originRecord["lockingUser"] = null;
+          originRecord[LOCKING_USER] = null;
           await updateRecord(originRecord, TEST_TAG, window.ENV.FRONT_BASE_URL);
           api.applyTransaction({
             update: [originRecord],
@@ -111,13 +125,13 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         api.stopEditing();
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
-      api.addEventListener<any>("onLineChangingTransactionApplied", () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
+      api.addEventListener<any>(ON_LINE_CHANGING_TRANSACTION_APPLIED, () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
     }
 
     return () => {
       if (gridRef.current && gridRef.current.api) {
         const api = gridRef.current.api;
-        api.removeEventListener<any>("onLineChangingTransactionApplied", () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
+        api.removeEventListener<any>(ON_LINE_CHANGING_TRANSACTION_APPLIED, () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
       }
     };
   }, [gridRef.current]);
@@ -164,7 +178,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       coordinatorColumn,
       consultantColumn,
       commentCautionColumn,
-      { field: LOCKING_USER, headerName: "lock", hide: true },
+      { field: LOCKING_USER, headerName: "", hide: true },
     ]);
   }, [doctorSearchHelp, treatmentSearchHelp]);
   // Get records and process unlocked records.

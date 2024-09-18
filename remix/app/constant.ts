@@ -23,11 +23,15 @@ export const PATIENT_NAME = "patientName";
 export const PATIENT_NAME_H = "고객";
 export const OP_READINESS = "opReadiness";
 export const OP_READINESS_H = "상태";
-export const TREATMENT1 = "treatment1";
-export const TREATMENT2 = "treatment2";
-export const TREATMENT3 = "treatment3";
-export const TREATMENT4 = "treatment4";
-export const TREATMENT5 = "treatment5";
+export const TREATMENT = "treatment";
+export const TREATMENT_START = "treatmentStart";
+export const TREATMENT_END = "treatmentEnd";
+export const TREATMENT_READY = "treatmentReady";
+export const TREATMENT1 = TREATMENT + "1";
+export const TREATMENT2 = TREATMENT + "2";
+export const TREATMENT3 = TREATMENT + "3";
+export const TREATMENT4 = TREATMENT + "4";
+export const TREATMENT5 = TREATMENT + "5";
 export const TREATMENT1_H = "시술1";
 export const TREATMENT2_H = "시술2";
 export const TREATMENT3_H = "시술3";
@@ -62,6 +66,17 @@ export const COMMENT_CAUTION = "commentCaution";
 export const COMMENT_CAUTION_H = "비고/주의";
 export const LOCKING_USER = "lockingUser";
 
+export const GROUP_H = "그룹";
+export const GROUP = "group";
+export const POINT = "point";
+export const POINT_H = "포인트";
+export const DURATION = "duration";
+export const DURATION_H = "시술 시간";
+export const PRICE = "price";
+export const PRICE_H = "가격";
+export const DELETE = "delete";
+export const DELETE_H = "삭제";
+
 export const TREATMENT_NAME_COLUMN = 250;
 export const LONG_COLUMN_LENGTH = 150;
 export const MEDIUM_COLUMN_LENGTH = 100;
@@ -88,3 +103,5 @@ export const EMPTY_SEARCHHELP: SearchHelp = {
 };
 
 export const TREATMENT_NUMBERS = Array.from({ length: 5 }, (_, k) => k + 1);
+
+export const ON_LINE_CHANGING_TRANSACTION_APPLIED = "onLineChangingTransactionApplied";

@@ -2,7 +2,7 @@
 
 import { CustomAgGridReactProps, TableType } from "../../types/type";
 import { FC, RefObject, useState, useCallback } from "react";
-import { PRecord, SCHEDULING_ROOM_ID } from "shared";
+import { OpReadiness, PRecord, SCHEDULING_ROOM_ID } from "shared";
 import { emitCreateRecords, emitDeleteRecords, emitSaveRecord } from "~/utils/Table/socket";
 import { hideRecords, insertRecords, lockOrUnlockRecords } from "~/utils/request.client";
 import { convertServerPRecordToPRecord } from "~/utils/utils";
@@ -43,7 +43,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   const onAddRecord = async () => {
     if (!gridRef.current) return;
 
-    const newRecord = { opReadiness: tableType === "ExceptReady" ? "N" : "Y" } as PRecord;
+    const newRecord = { opReadiness: tableType === "ExceptReady" ? OpReadiness.N : OpReadiness.Y } as PRecord;
     const {
       statusCode,
       body: { data, error },

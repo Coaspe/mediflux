@@ -1,12 +1,13 @@
 /** @format */
 
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { LoginForm, RegisgerForm, User } from "~/types/type";
+import { LoginError, LoginForm, RegisgerForm, User } from "~/types/type";
 import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
 import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
+import { INTERNAL_SERVER_ERROR } from "shared";
 
 const sessionSecret = process.env.SESSION_SECRET || "";
 if (!sessionSecret) {
@@ -34,9 +35,9 @@ export async function login({ userId, password }: LoginForm) {
   } catch (error: any) {
     const res = error.response;
     if (res) {
-      return { status: res.status, message: res.data.message, errorType: res.data.errorType };
+      return { status: res.status, message: res.data.message, errorType: LoginError.EtcError };
     }
-    return { status: 500, message: INTERNAL_SERVER_ERROR };
+    return { status: 500, message: INTERNAL_SERVER_ERROR, errorType: LoginError.EtcError };
   }
 }
 

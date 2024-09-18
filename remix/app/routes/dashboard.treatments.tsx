@@ -4,12 +4,11 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import "../css/Table.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { convertServerTreatmentToClient } from "~/utils/utils";
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
 import { updateTreatment } from "~/utils/request.client";
 import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
-import { CustomAgGridReactProps, ServerTreatment, Treatment } from "~/types/type";
+import { CustomAgGridReactProps, Treatment } from "~/types/type";
 import { ColDef, CellEditingStoppedEvent, GridApi } from "ag-grid-community";
 import { AgGridReactProps } from "ag-grid-react";
 import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
@@ -31,12 +30,11 @@ const Treatments: React.FC = () => {
         body: { data, error },
       } = await getAllTreatments(TEST_TAG, window.ENV.FRONT_BASE_URL);
       if (statusCode === 200) {
-        const convertedData: Treatment[] = data.rows.map((t: ServerTreatment) => {
-          let ret = convertServerTreatmentToClient(t);
-          if (ret.title) {
-            ret.searchTitle = ret.title.replace(/\s/g, "");
+        const convertedData: Treatment[] = data.rows.map((t: Treatment) => {
+          if (t.title) {
+            t.searchTitle = t.title.replace(/\s/g, "");
           }
-          return ret;
+          return t;
         });
 
         convertedData.sort((a, b) => {

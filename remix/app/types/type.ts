@@ -31,14 +31,6 @@ export type Treatment = SearchHelp &
     price?: number;
     [key: string]: any;
   };
-export type ServerTreatment = {
-  id: string;
-  group?: string;
-  title?: string;
-  duration?: number;
-  point?: number;
-  price?: number;
-};
 export type TableType = "Ready" | "ExceptReady" | "Archive";
 export type ChipColor = OverridableStringUnion<"default" | "error" | "primary" | "secondary" | "info" | "success" | "warning", ChipPropsColorOverrides>;
 export type SearchHelp = {
@@ -60,12 +52,14 @@ export type RegisgerForm = {
   lastName: string;
 };
 
-export type IdError = 1;
-export type PasswordError = 2;
-export type EtcError = 3;
+export enum LoginError {
+  IdError = 1,
+  PasswordError = 2,
+  EtcError = 3,
+}
 
 export type LoginResponse = {
-  errorType?: IdError | PasswordError | EtcError;
+  errorType?: LoginError;
   message?: string;
   status: number;
   user: ServerUser;
@@ -101,5 +95,5 @@ export type Member = SearchableType & {
   name: string;
   numOfTreatments: number;
   revenue: number;
-  performedTreatments: { [key: string]: number };
+  performedTreatments: { [key: string]: number | string };
 };

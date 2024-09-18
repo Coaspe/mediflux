@@ -22,9 +22,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (sessionData.id) {
     const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
     if (statusCode === 200) {
-      const where = [];
-      where.push(`and created_at >= '${dayjs().startOf("day").toISOString()}'`);
-      where.push(`and created_at <= '${dayjs().endOf("day").toISOString()}'`);
+      const where = [`and created_at >= '${dayjs().startOf("day").toISOString()}'`, `and created_at <= '${dayjs().endOf("day").toISOString()}'`];
       const {
         statusCode,
         body: { data },
@@ -39,17 +37,76 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return null;
 };
 
-export default function Scheduling() {
+const useInitializeSocket = (user: User | null) => {
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [user, setUser] = useRecoilState(userState);
-  const loaderData = useLoaderData<{ user: User; records: ServerPRecord[] }>();
-  const [readyData, setReadyData] = useState<PRecord[]>([]);
-  const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
-  const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
-  const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const socketInstance = io(`${window.ENV.FRONT_BASE_URL}`, { path: "/socket" });
+
+    socketInstance.on(CONNECT, () => {
+      socketInstance.emit(JOIN_ROOM, {
+        userId: user.id,
+        username: user.name,
+        roomId: SCHEDULING_ROOM_ID,
+      });
+    });
+
+    setSocket(socketInstance);
+
+    return () => {
+      socketInstance.off(CONNECTED_USERS);
+      socketInstance.disconnect();
+    };
+  }, [user]);
+
+  return socket;
+};
+
+const useFetchSearchHelpData = () => {
   const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
   const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
+
+  useEffect(() => {
+    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL);
+    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL);
+  }, []);
+
+  return { treatmentSearchHelp, doctorSearchHelp };
+};
+
+const useUpdateUserData = (loaderData: { user: User; records: ServerPRecord[] }) => {
+  const [user, setUser] = useRecoilState(userState);
+  const [readyData, setReadyData] = useState<PRecord[]>([]);
+  const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
+
+  useEffect(() => {
+    if (!user || user.id !== loaderData.user.id) {
+      setUser(loaderData.user);
+    }
+
+    if (user) {
+      const recordsData: PRecord[] = loaderData.records.map(convertServerPRecordToPRecord);
+      const ready = recordsData.filter((record) => record.opReadiness === OpReadiness.Y);
+      const exceptReady = recordsData.filter((record) => record.opReadiness !== OpReadiness.Y);
+
+      setReadyData(ready);
+      setExceptReadyData(exceptReady);
+    }
+  }, [loaderData, user, setUser]);
+
+  return { readyData, exceptReadyData };
+};
+
+export default function Scheduling() {
+  const loaderData = useLoaderData<{ user: User; records: ServerPRecord[] }>();
+  const { treatmentSearchHelp, doctorSearchHelp } = useFetchSearchHelpData();
+  const { readyData, exceptReadyData } = useUpdateUserData(loaderData);
+  const socket = useInitializeSocket(loaderData.user);
+
+  const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
+  const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
 
   useEffect(() => {
     if (exceptReadyRef.current) {
@@ -58,54 +115,7 @@ export default function Scheduling() {
     if (readyRef.current) {
       readyRef.current.tableType = "Ready";
     }
-    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL);
-    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL);
   }, []);
-
-  useEffect(() => {
-    const { user: suser, records } = loaderData;
-    if (!user || user.id != suser.id) {
-      setUser(suser);
-    }
-
-    if (user) {
-      const recordsData: PRecord[] = records.map((record) => convertServerPRecordToPRecord(record));
-      const ready = [];
-      const exceptReady = [];
-
-      while (recordsData.length > 0) {
-        const record = recordsData.pop();
-        if (!record) continue;
-        if (record?.opReadiness === OpReadiness.Y) {
-          ready.push(record);
-        } else {
-          exceptReady.push(record);
-        }
-      }
-
-      setReadyData(ready);
-      setExceptReadyData(exceptReady);
-    }
-  }, [loaderData]);
-
-  useEffect(() => {
-    const socketInstance = io(`${window.ENV.FRONT_BASE_URL}`, { path: "/socket" });
-    setSocket(socketInstance);
-
-    // Default
-    socketInstance.on(CONNECT, () => {
-      socketInstance.emit(JOIN_ROOM, {
-        userId: user && user.id,
-        username: user && user.name,
-        roomId: SCHEDULING_ROOM_ID,
-      });
-    });
-
-    return () => {
-      socketInstance.off(CONNECTED_USERS);
-      socketInstance.disconnect();
-    };
-  }, [user]);
 
   return (
     <div className="flex flex-col w-full h-full gap-5 pb-5">

@@ -37,6 +37,17 @@ import {
   MEDIUM_COLUMN_LENGTH,
   LONG_COLUMN_LENGTH,
   POINT_COLUMN_LENGTH,
+  TREATMENT_END,
+  GROUP,
+  GROUP_H,
+  POINT,
+  POINT_H,
+  DURATION,
+  DURATION_H,
+  PRICE,
+  PRICE_H,
+  DELETE,
+  DELETE_H,
 } from "~/constant";
 import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps } from "~/types/type";
 import { ColDef } from "ag-grid-community";
@@ -47,7 +58,7 @@ import { PRecord } from "shared";
 import { RefObject } from "react";
 
 export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
-  const record = searchHelp.find((ele) => ele.id === id);
+  const record = searchHelp.find((ele) => ele.id == id);
   const title = record?.title;
   return title;
 };
@@ -101,7 +112,7 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
     width: LONG_COLUMN_LENGTH,
     editable: (params) => {
       const number = params.colDef.field?.charAt(params.colDef.field?.length - 1);
-      return !(params.data && params.data[`treatmentEnd${number}`]);
+      return !(params.data && params.data[`${TREATMENT_END}${number}`]);
     },
   };
 };
@@ -136,7 +147,7 @@ const personComparator = (searchHelp: SearchHelp[], valueA: string | null | unde
   }
 };
 export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[], setGlobalSnackbar?: SetterOrUpdater<GlobalSnackBark>): ColDef<PRecord, string> => {
-  const isDoctor = "doctor" === field;
+  const isDoctor = field === DOCTOR;
   return {
     field,
     filter: true,
@@ -151,7 +162,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
       if (data && isDoctor) {
         number = findCanCompleteTreatmentNumber(data);
       }
-      return nameChipRendererByFieldname(colDef?.headerName, searchHelp, number !== -1 && data ? data[`doctor${number}`] : value);
+      return nameChipRendererByFieldname(colDef?.headerName, searchHelp, number !== -1 && data ? data[`${DOCTOR}${number}`] : value);
     },
   };
 };
@@ -169,16 +180,16 @@ export const commentCautionColumn: ColDef<PRecord, string> = { field: COMMENT_CA
 
 export const treatmentGroupColumn = (): ColDef<Treatment, string> => {
   return {
-    field: "group",
-    headerName: "그룹",
+    field: GROUP,
+    headerName: GROUP_H,
     width: POINT_COLUMN_LENGTH,
   };
 };
 
 export const treatmentPointColumn = (): ColDef<Treatment, number> => {
   return {
-    field: "point",
-    headerName: "포인트",
+    field: POINT,
+    headerName: POINT_H,
     width: POINT_COLUMN_LENGTH,
     type: "number",
   };
@@ -186,8 +197,8 @@ export const treatmentPointColumn = (): ColDef<Treatment, number> => {
 
 export const treatmentDurationColumn = (): ColDef<Treatment, number> => {
   return {
-    field: "duration",
-    headerName: "시술 시간",
+    field: DURATION,
+    headerName: DURATION_H,
     width: MEDIUM_COLUMN_LENGTH,
     type: "number",
   };
@@ -195,16 +206,16 @@ export const treatmentDurationColumn = (): ColDef<Treatment, number> => {
 
 export const treatmentPriceColumn = (): ColDef<Treatment, number> => {
   return {
-    field: "price",
-    headerName: "가격",
+    field: PRICE,
+    headerName: PRICE_H,
     width: SHORT_COLUMN_LENGTH,
     type: "number",
   };
 };
 export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>): ColDef<Treatment, any> => {
   return {
-    field: "delete",
-    headerName: "삭제",
+    field: DELETE,
+    headerName: DELETE_H,
     width: SHORT_COLUMN_LENGTH,
     cellStyle: () => {
       return {
