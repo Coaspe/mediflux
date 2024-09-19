@@ -79,7 +79,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     [setGlobalSnackBar]
   );
 
-  // Set saveRecord method
+  // Set saveRecord function to gridRef
   useEffect(() => {
     if (socket && gridRef.current) {
       const saveRecord = async (record: PRecord, originRecord: PRecord, api: GridApi<PRecord>) => {

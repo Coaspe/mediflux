@@ -4,7 +4,7 @@ import { useLoaderData } from "@remix-run/react";
 import { AgGridReactProps, CustomCellRendererProps } from "ag-grid-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Role } from "shared";
-import { TEST_TAG } from "~/constant";
+import { ID, NAME, NAME_H, NUM_OF_TREATMENTS, NUM_OF_TREATMENTS_H, REVENUE, REVENUE_H, TEST_TAG } from "~/constant";
 import { CustomAgGridReactProps, Member, Treatment } from "~/types/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";
@@ -83,10 +83,10 @@ const Members = () => {
 
   useEffect(() => {
     setColDefs([
-      { field: "id", headerName: "id", hide: true },
-      { field: "name", headerName: "이름", width: 100 },
-      { field: "numOfTreatments", headerName: "시술 건수", width: 100 },
-      { field: "revenue", headerName: "매출", width: 100, cellRenderer: (params: CustomCellRendererProps) => formatNumberWithCommas(params.value) },
+      { field: ID, headerName: ID, hide: true },
+      { field: NAME, headerName: NAME_H, width: 100 },
+      { field: NUM_OF_TREATMENTS, headerName: NUM_OF_TREATMENTS_H, width: 100 },
+      { field: REVENUE, headerName: REVENUE_H, width: 100, cellRenderer: (params: CustomCellRendererProps) => formatNumberWithCommas(params.value) },
     ]);
   }, []);
 

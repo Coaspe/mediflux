@@ -77,6 +77,14 @@ export const PRICE_H = "가격";
 export const DELETE = "delete";
 export const DELETE_H = "삭제";
 
+export const ID = "id";
+export const NAME = "name";
+export const NAME_H = "이름";
+export const NUM_OF_TREATMENTS = "numOfTreatments";
+export const NUM_OF_TREATMENTS_H = "시술 건수";
+export const REVENUE = "revenue";
+export const REVENUE_H = "매출";
+
 export const TREATMENT_NAME_COLUMN = 250;
 export const LONG_COLUMN_LENGTH = 150;
 export const MEDIUM_COLUMN_LENGTH = 100;

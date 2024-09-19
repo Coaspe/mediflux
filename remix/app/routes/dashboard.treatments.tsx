@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
 import { updateTreatment } from "~/utils/request.client";
-import { TEST_TAG, TREATMENT_NAME_COLUMN } from "~/constant";
+import { ID, TEST_TAG, TITLE, TITLE_H, TREATMENT_NAME_COLUMN } from "~/constant";
 import { CustomAgGridReactProps, Treatment } from "~/types/type";
 import { ColDef, CellEditingStoppedEvent, GridApi } from "ag-grid-community";
 import { AgGridReactProps } from "ag-grid-react";
@@ -63,8 +63,8 @@ const Treatments: React.FC = () => {
   // Columns definition
   useEffect(() => {
     setColDefs([
-      { field: "id", headerName: "id", hide: true },
-      { field: "title", headerName: "이름", width: TREATMENT_NAME_COLUMN },
+      { field: ID, headerName: ID, hide: true },
+      { field: TITLE, headerName: TITLE_H, width: TREATMENT_NAME_COLUMN },
       treatmentGroupColumn(),
       treatmentDurationColumn(),
       treatmentPriceColumn(),

@@ -165,16 +165,20 @@ export const statusTransition = (record: PRecord): OpReadiness => {
   let hasAnyTreatment = false;
 
   for (const number of TREATMENT_NUMBERS) {
+    const ready = record[`${TREATMENT_READY}${number}`];
+    const start = record[`${TREATMENT_START}${number}`];
+    const end = record[`${TREATMENT_END}${number}`];
+
     if (record[`${TREATMENT}${number}`]) {
       hasAnyTreatment = true;
-      if (!record[`${TREATMENT_READY}${number}`] || !record[`${TREATMENT_START}${number}`] || !record[`${TREATMENT_END}${number}`]) {
+      if (!ready || !start || !end) {
         cFlag = false;
       }
-      if (record[`${TREATMENT_READY}${number}`] && !record[`${TREATMENT_START}${number}`]) {
+      if (ready && !start) {
         yFlag = true;
         break;
       }
-      if (record[`${TREATMENT_READY}${number}`] && record[`${TREATMENT_START}${number}`] && !record[`${TREATMENT_END}${number}`]) {
+      if (ready && start && !end) {
         pFlag = true;
         break;
       }
