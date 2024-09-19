@@ -63,7 +63,7 @@ export const getStatusChipColor = (label: ReactNode): ChipColor => {
     case OpReadiness.P:
       return "primary";
     case OpReadiness.Y:
-      return "info";
+      return "success";
     case OpReadiness.C:
       return "secondary";
     default:
