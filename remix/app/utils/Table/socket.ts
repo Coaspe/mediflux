@@ -80,8 +80,8 @@ export const onSaveRecord = (
   try {
     if (records.length > 0) {
       records.forEach((record) => {
-        const { etrCondition, rteCondition1, rteCondition2 } = checkIsInvalidRecord(curTableType, record);
-        if (theOtherGridRef && (etrCondition || rteCondition1 || rteCondition2)) {
+        const { etrCondition, rteCondition } = checkIsInvalidRecord(curTableType, record);
+        if (theOtherGridRef && (etrCondition || rteCondition)) {
           moveRecord(gridRef, theOtherGridRef, record);
           if (theOtherGridRef.current?.tableType === "Ready") {
             audioRef.current?.play();

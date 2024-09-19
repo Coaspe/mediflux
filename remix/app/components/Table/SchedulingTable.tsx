@@ -86,13 +86,13 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         record.lockingUser = null;
         record.opReadiness = statusTransition(record);
 
-        const { etrCondition, rteCondition1, rteCondition2 } = checkIsInvalidRecord(tableType, record);
+        const { etrCondition, rteCondition } = checkIsInvalidRecord(tableType, record);
 
         const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
 
         if (result.statusCode === 200) {
           emitSaveRecord([record], tableType, socket, roomId);
-          if (theOtherGridRef && (etrCondition || rteCondition1 || rteCondition2)) {
+          if (theOtherGridRef && (etrCondition || rteCondition)) {
             moveRecord(gridRef, theOtherGridRef, record);
           } else {
             gridRef.current?.api.applyTransaction({
