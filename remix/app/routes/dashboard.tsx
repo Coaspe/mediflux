@@ -1,7 +1,7 @@
 /** @format */
 
 import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
-import { DEFAULT_REDIRECT, SideMenu } from "~/constant";
+import { DEFAULT_REDIRECT, SideMenu } from "~/constants/constant";
 import { useEffect, useState } from "react";
 import { Menu, SubMenu } from "react-pro-sidebar";
 import { User } from "~/types/type";

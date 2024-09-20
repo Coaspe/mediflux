@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
 import { updateTreatment } from "~/utils/request.client";
-import { ID, TEST_TAG, TITLE, TITLE_H, TREATMENT_NAME_COLUMN } from "~/constant";
+import { ID, TEST_TAG, TITLE, TITLE_H, TREATMENT_NAME_COLUMN } from "~/constants/constant";
 import { CustomAgGridReactProps, Treatment } from "~/types/type";
 import { ColDef, CellEditingStoppedEvent, GridApi } from "ag-grid-community";
 import { AgGridReactProps } from "ag-grid-react";

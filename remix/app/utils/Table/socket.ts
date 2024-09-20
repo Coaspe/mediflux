@@ -6,7 +6,7 @@ import { Socket } from "socket.io-client";
 import { TableType, User, CustomAgGridReactProps } from "~/types/type";
 import { checkIsInvalidRecord, focusEditingRecord, getEditingCell, moveRecord } from "../utils";
 import { RowDataTransaction } from "ag-grid-community";
-import { LOCKING_USER, ON_LINE_CHANGING_TRANSACTION_APPLIED } from "~/constant";
+import { LOCKING_USER, ON_LINE_CHANGING_TRANSACTION_APPLIED } from "~/constants/constant";
 
 export const emitLockRecord = async (recordId: string | undefined, tableType: TableType, socket: Socket | null, user: User | undefined, roomId: string) => {
   if (!user || !recordId) {

@@ -13,7 +13,7 @@ import {
   OP_READINESS,
   DOCTOR,
   ON_LINE_CHANGING_TRANSACTION_APPLIED,
-} from "~/constant";
+} from "~/constants/constant";
 import { CustomAgGridReactProps, SearchHelp, TableType, Treatment, User } from "~/types/type";
 import { MutableRefObject, RefObject } from "react";
 import { GridApi, RowDataTransaction } from "ag-grid-community";
@@ -90,6 +90,7 @@ export const focusEditingRecord = (gridRef: RefObject<CustomAgGridReactProps<any
 };
 
 const move = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, tx: RowDataTransaction<PRecord>, data: PRecord) => {
+  if (!gridRef.current?.api.getRowNode(data.id)) return;
   let isCurGridNeedFocus = false;
   let curGridEditingRowId: string | undefined;
   const curGridEditingCell = getEditingCell(gridRef);

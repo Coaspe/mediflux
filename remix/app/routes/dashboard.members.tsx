@@ -4,7 +4,7 @@ import { useLoaderData } from "@remix-run/react";
 import { AgGridReactProps, CustomCellRendererProps } from "ag-grid-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Role } from "shared";
-import { ID, NAME, NAME_H, NUM_OF_TREATMENTS, NUM_OF_TREATMENTS_H, REVENUE, REVENUE_H, TEST_TAG } from "~/constant";
+import { ID, NAME, NAME_H, NUM_OF_TREATMENTS, NUM_OF_TREATMENTS_H, REVENUE, REVENUE_H, TEST_TAG } from "~/constants/constant";
 import { CustomAgGridReactProps, Member, Treatment } from "~/types/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";

@@ -3,13 +3,14 @@ import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
 import { badRequest, checkSameIdExists } from "~/utils/request.server";
 import { createUserSession, getUserSession, login, register } from "~/services/session.server";
-import { LoginError, LoginResponse } from "~/types/type";
+import { LoginResponse } from "~/types/type";
 import { ServerUser } from "shared";
 import { json } from "@remix-run/react";
 import { redirect } from "@remix-run/node";
 import "../css/Animation.scss";
 import { convertServerUserToClientUser } from "~/utils/utils";
-import { DEFAULT_REDIRECT } from "~/constant";
+import { DEFAULT_REDIRECT } from "~/constants/constant";
+import { LoginError, RequestType } from "~/constants/enum";
 
 const validateUserid = async (userId: string) => {
   if (userId.length <= 3) {
@@ -47,7 +48,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
     return json({ fieldErrors: null, fields: null, formError: null }, { status: 200 });
   }
 
-  const requestType = form.get("requestType");
+  const requestType: RequestType | null = form.get("requestType") as RequestType | null;
   const password = form.get("password");
   const userId = form.get("userId");
   const redirectTo = validateUrl((form.get("redirectTo") as string) || DEFAULT_REDIRECT);
@@ -126,9 +127,9 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
   };
 
   switch (requestType) {
-    case "login":
+    case RequestType.Login:
       return await handleLogin();
-    case "register":
+    case RequestType.Register:
       return await handleRegister();
     default:
       return badRequest({

@@ -6,7 +6,7 @@ import ArchiveChart from "~/components/Archive/Chart";
 import { CustomAgGridReactProps, Interval, User } from "~/types/type";
 import { SelectChangeEvent } from "@mui/material/Select";
 import SchedulingTable from "~/components/Table/SchedulingTable";
-import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PORT, PRecord, ServerPRecord } from "shared";
+import { ARCHIVE_ROOM_ID, CONNECT, CONNECTED_USERS, JOIN_ROOM, PRecord, ServerPRecord } from "shared";
 import { Socket, io } from "socket.io-client";
 import { json, redirect, useLoaderData } from "@remix-run/react";
 import { useRecoilState, useSetRecoilState } from "recoil";
@@ -16,7 +16,7 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
 import { getUserSession } from "~/services/session.server";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constants/constant";
 import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

@@ -4,6 +4,7 @@ import { ServerUser, Role, PRecord } from "shared";
 import { CellPosition } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { GridApi } from "ag-grid-community";
+import { LoginError } from "../constants/enum";
 
 export type CustomResponse = {
   statusCode: number;
@@ -20,7 +21,7 @@ export type User = {
   role?: Role;
   sessionId?: string | null;
 };
-export type Gender = "M" | "F";
+
 export type SearchableType = { searchTitle?: string };
 
 // Do not change fields order arbitrarily.
@@ -51,12 +52,6 @@ export type RegisgerForm = {
   firstName: string;
   lastName: string;
 };
-
-export enum LoginError {
-  IdError = 1,
-  PasswordError = 2,
-  EtcError = 3,
-}
 
 export type LoginResponse = {
   errorType?: LoginError;

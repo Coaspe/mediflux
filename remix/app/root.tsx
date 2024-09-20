@@ -1,7 +1,7 @@
 import { Links, Outlet, Scripts } from "@remix-run/react";
 import { RecoilRoot } from "recoil";
 import type { LinksFunction } from "@remix-run/node";
-import stylesheet from "~/tailwind.css?url";
+import stylesheet from "~/css/tailwind.css?url";
 import { SessionExpiredModal } from "./components/Modals";
 import { ClientOnly } from "remix-utils/client-only";
 import GlobalSnackbar from "./components/Snackbar";

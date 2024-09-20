@@ -7,7 +7,7 @@ import { useRecoilValue } from "recoil";
 import { userState } from "~/recoil_state";
 import { Role } from "shared";
 import { useSubmit } from "@remix-run/react";
-import { SideMenu } from "~/constant";
+import { SideMenu } from "~/constants/constant";
 
 function DashboardUser() {
   const [doesAlarmExist, setDoesAlarmExist] = useState(true);

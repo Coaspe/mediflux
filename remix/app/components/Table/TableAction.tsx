@@ -19,7 +19,7 @@ import { Socket } from "socket.io-client";
 import IconButton from "@mui/material/IconButton";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { TEST_TAG } from "~/constant";
+import { TEST_TAG } from "~/constants/constant";
 type TableActionHeader = {
   gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;

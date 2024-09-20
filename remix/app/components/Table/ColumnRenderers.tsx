@@ -4,7 +4,7 @@ import { ChipColor, CustomAgGridReactProps, GlobalSnackBark, SearchHelp, TableTy
 import { Autocomplete, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { INTERNAL_SERVER_ERROR, OpReadiness, PRecord, Role } from "shared";
-import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TEST_TAG, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constant";
+import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TEST_TAG, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constants/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -414,7 +414,7 @@ export const deleteCell = (data: Treatment, setGlobalSnackbar: SetterOrUpdater<G
           remove: [data],
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setGlobalSnackbar({ open: true, msg: INTERNAL_SERVER_ERROR, severity: "error" });
     }
   };

@@ -8,6 +8,7 @@ import { useSubmit } from "@remix-run/react";
 import { Role } from "shared";
 import { useSetRecoilState } from "recoil";
 import { globalSnackbarState } from "~/recoil_state";
+import { RequestType } from "~/constants/enum";
 
 export const LoginButton = ({ name, onClick }: { name: string; onClick: () => void }) => {
   return (
@@ -231,7 +232,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ setIsModalOpen }) => {
                   </div>
                 )}
                 <input className="hidden" id="role-input" type="text" name="role" onChange={() => {}} value={role} />
-                <input className="hidden" id="logintype-input" type="text" name="requestType" onChange={() => {}} value={isLoginMode ? "login" : "register"} />
+                <input className="hidden" id="logintype-input" type="text" name="requestType" onChange={() => {}} value={isLoginMode ? RequestType.Login : RequestType.Register} />
                 <input className="hidden" id="redirectTo-input" type="text" name="redirectTo" defaultValue={"/dashboard/scheduling"} />
               </div>
               <div className="flex items-center justify-center h-10 w-full">

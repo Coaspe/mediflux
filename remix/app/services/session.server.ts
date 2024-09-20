@@ -1,13 +1,14 @@
 /** @format */
 
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
-import { LoginError, LoginForm, RegisgerForm, User } from "~/types/type";
+import { LoginForm, RegisgerForm, User } from "~/types/type";
 import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constants/constant";
 import { INTERNAL_SERVER_ERROR } from "shared";
+import { LoginError } from "~/constants/enum";
 
 const sessionSecret = process.env.SESSION_SECRET || "";
 if (!sessionSecret) {

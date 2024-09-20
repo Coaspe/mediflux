@@ -10,7 +10,7 @@ import { CustomAgGridReactProps, User } from "~/types/type";
 import { getUserByID } from "~/utils/request.server";
 import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord, OpReadiness } from "shared";
 import { Socket, io } from "socket.io-client";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constant";
+import { DEFAULT_REDIRECT, TEST_TAG } from "~/constants/constant";
 import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { destoryBrowserSession, getUserSession } from "~/services/session.server";
 import dayjs from "dayjs";

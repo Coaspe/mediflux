@@ -1,4 +1,4 @@
-import { SearchHelp } from "./types/type";
+import { SearchHelp } from "~/types/type";
 
 export const TEST_TAG = "gn_ss_bailor";
 export const DEFAULT_REDIRECT = "/";
@@ -76,6 +76,9 @@ export const PRICE = "price";
 export const PRICE_H = "가격";
 export const DELETE = "delete";
 export const DELETE_H = "삭제";
+
+export const TITLE = "title";
+export const TITLE_H = "이름";
 
 export const ID = "id";
 export const NAME = "name";

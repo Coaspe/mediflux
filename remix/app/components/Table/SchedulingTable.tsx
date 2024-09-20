@@ -47,7 +47,7 @@ import {
   TREATMENT5_H,
   TEST_TAG,
   ON_LINE_CHANGING_TRANSACTION_APPLIED,
-} from "~/constant";
+} from "~/constants/constant";
 import dayjs from "dayjs";
 import LoadingOverlay from "../Loading";
 
@@ -83,6 +83,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   useEffect(() => {
     if (socket && gridRef.current) {
       const saveRecord = async (record: PRecord, originRecord: PRecord, api: GridApi<PRecord>) => {
+        if (!api.getRowNode(record.id)) return;
         record.lockingUser = null;
         record.opReadiness = statusTransition(record);
 

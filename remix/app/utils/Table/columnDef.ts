@@ -48,7 +48,7 @@ import {
   PRICE_H,
   DELETE,
   DELETE_H,
-} from "~/constant";
+} from "~/constants/constant";
 import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps } from "~/types/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
@@ -57,7 +57,7 @@ import { SetterOrUpdater } from "recoil";
 import { PRecord } from "shared";
 import { RefObject } from "react";
 
-export const staffFilterFn = (id: unknown, searchHelp: SearchHelp[]) => {
+export const staffFilterFn = (id: string | number, searchHelp: SearchHelp[]) => {
   const record = searchHelp.find((ele) => ele.id == id);
   const title = record?.title;
   return title;
