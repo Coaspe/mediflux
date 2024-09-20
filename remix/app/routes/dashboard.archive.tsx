@@ -97,6 +97,7 @@ export default function Archive() {
         .subtract(numOfInterval - 1, interval)
         .toISOString()}'`
     );
+    where.push(`and op_readiness = 'C'`);
     const {
       statusCode,
       body: { data, error },
