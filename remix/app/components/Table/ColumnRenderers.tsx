@@ -13,7 +13,7 @@ import React, { ReactElement, ReactNode, RefObject, useEffect, useRef, useState 
 import { ChipPropsSizeOverrides } from "@mui/joy/Chip/ChipProps";
 import { OverridableStringUnion } from "@mui/types";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { autoCompleteKeyDownCapture, editAndStopRecord, getValueWithId } from "~/utils/utils";
+import { autoCompleteKeyDownCapture, saveRecord, getValueWithId } from "~/utils/utils";
 import Tooltip, { tooltipClasses, TooltipProps } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import { GridApi } from "ag-grid-community";
@@ -94,7 +94,7 @@ const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
         record[DOCTOR] = id;
       }
 
-      editAndStopRecord(gridRef, record, originRecord);
+      saveRecord(gridRef, record, originRecord);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
     }
@@ -173,8 +173,8 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
     try {
       if (!record || !treatmentNumber || !user) return;
       const time = dayjs().toISOString();
-      const originRecord = JSON.parse(JSON.stringify(record));
 
+      const originRecord = JSON.parse(JSON.stringify(record));
       if (record.opReadiness === OpReadiness.N) {
         record[`${TREATMENT_READY}${treatmentNumber}`] = time;
       } else if (record.opReadiness === OpReadiness.P) {
@@ -183,7 +183,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
       } else {
         return;
       }
-      editAndStopRecord(gridRef, record, originRecord);
+      saveRecord(gridRef, record, originRecord);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
     }
@@ -214,7 +214,7 @@ export const TreatmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, grid
         record[`${TREATMENT_END}${treatmentNumber}`] = undefined;
       }
 
-      editAndStopRecord(gridRef, record, originRecord);
+      saveRecord(gridRef, record, originRecord);
     } catch (error) {
       setGlobalSnackBar({ open: true, msg: "서버 에러.", severity: "error" });
     }

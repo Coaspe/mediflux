@@ -44,7 +44,7 @@ const Treatments: React.FC = () => {
     const getTreatments = async () => {
       if (!loaderData) return;
       setIsLoading(true);
-      const convertedData: Treatment[] = loaderData.treatments.rows.map((t: Treatment) => {
+      const convertedData: Treatment[] = loaderData.treatments.map((t: Treatment) => {
         if (t.title) {
           t.searchTitle = t.title.replace(/\s/g, "");
         }

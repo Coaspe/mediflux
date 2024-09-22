@@ -3,18 +3,19 @@
 import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
-import { CustomAgGridReactProps, User } from "~/types/type";
+import { CustomAgGridReactProps, SearchHelp, Treatment, User } from "~/types/type";
 import { getUserByID } from "~/utils/request.server";
-import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord, OpReadiness } from "shared";
+import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord, OpReadiness, Role, ServerUser } from "shared";
 import { Socket, io } from "socket.io-client";
 import { DEFAULT_REDIRECT } from "~/constants/constant";
-import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
+import { convertServerPRecordToPRecord, convertServerUserToClientUser, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
 import { destoryBrowserSession, getSessionId } from "~/services/session.server";
+import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
+import { SerializeFrom } from "@remix-run/node";
 import dayjs from "dayjs";
-import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const sessionData = await getSessionId(request);
@@ -22,13 +23,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (sessionData.id) {
     const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
     if (statusCode === 200 && user) {
-      const where = [`and created_at >= '${dayjs().startOf("day").toISOString()}'`, `and created_at <= '${dayjs().endOf("day").toISOString()}'`];
+      const [doctorsResponse, recordsResponse, treatmentsResponse] = await Promise.all([
+        getAllRoleEmployees(Role.DOCTOR, user.clinic, process.env.SERVER_BASE_URL),
+        getRecords([`and created_at >= '${dayjs().startOf("day").toISOString()}'`, `and created_at <= '${dayjs().endOf("day").toISOString()}'`], user.clinic, process.env.SERVER_BASE_URL),
+        getAllTreatments(user.clinic, process.env.SERVER_BASE_URL),
+      ]);
+
       const {
-        statusCode,
-        body: { data },
-      } = await getRecords(where, user.clinic, process.env.SERVER_BASE_URL);
-      if (statusCode === 200) {
-        return json({ user, records: data.rows });
+        statusCode: s1,
+        body: {
+          data: { rows: doctors },
+        },
+      } = doctorsResponse;
+      const {
+        statusCode: s2,
+        body: {
+          data: { rows: records },
+        },
+      } = recordsResponse;
+      const {
+        statusCode: s3,
+        body: {
+          data: { rows: treatmentsData },
+        },
+      } = treatmentsResponse;
+
+      if (s1 === 200 && s2 === 200 && s3 === 200) {
+        return json({ user, records, doctors, treatments: treatmentsData });
       } else {
         return await destoryBrowserSession(DEFAULT_REDIRECT, request);
       }
@@ -37,8 +58,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   return null;
 };
 
-const useInitializeSocket = (user: User | null) => {
+const useInitializeSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const user = useRecoilValue(userState);
 
   useEffect(() => {
     if (!user) return;
@@ -63,48 +85,45 @@ const useInitializeSocket = (user: User | null) => {
 
   return socket;
 };
-
-const useFetchSearchHelpData = () => {
-  const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
-  const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
-  const user = useRecoilValue(userState);
-  useEffect(() => {
-    if (!user) return;
-    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL, user?.clinic);
-    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL, user?.clinic);
-  }, [user]);
-
-  return { treatmentSearchHelp, doctorSearchHelp };
-};
-
-const useUpdateUserData = (loaderData: { user: User; records: ServerPRecord[] }) => {
-  const [user, setUser] = useRecoilState(userState);
+const useUpdateLoaderData = (
+  loaderData: SerializeFrom<{
+    user: any;
+    records: any;
+    doctors: any;
+    treatments: any;
+  }> | null
+) => {
+  const setUser = useSetRecoilState(userState);
   const [readyData, setReadyData] = useState<PRecord[]>([]);
   const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
+  const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
+  const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
 
   useEffect(() => {
-    if (!user || user.id !== loaderData.user.id) {
-      setUser(loaderData.user);
-    }
+    if (!loaderData) return;
+    const { user, doctors, treatments, records } = loaderData;
+    setUser(user);
+
+    setTreatmentSearchHelp(treatments.map((treatment: Treatment) => treatment as SearchHelp));
+    setDoctorSearchHelp(doctors.map((user: ServerUser) => convertServerUserToClientUser(user)).map((user: User) => ({ id: user.id, title: user.name, group: "" } as SearchHelp)));
 
     if (user) {
-      const recordsData: PRecord[] = loaderData.records.map(convertServerPRecordToPRecord);
+      const recordsData: PRecord[] = records.map(convertServerPRecordToPRecord);
       const ready = recordsData.filter((record) => record.opReadiness === OpReadiness.Y);
       const exceptReady = recordsData.filter((record) => record.opReadiness !== OpReadiness.Y);
 
       setReadyData(ready);
       setExceptReadyData(exceptReady);
     }
-  }, [loaderData, user, setUser]);
+  }, [loaderData]);
 
-  return { readyData, exceptReadyData };
+  return { readyData, exceptReadyData, treatmentSearchHelp, doctorSearchHelp };
 };
 
 export default function Scheduling() {
-  const loaderData = useLoaderData<{ user: User; records: ServerPRecord[] }>();
-  const { treatmentSearchHelp, doctorSearchHelp } = useFetchSearchHelpData();
-  const { readyData, exceptReadyData } = useUpdateUserData(loaderData);
-  const socket = useInitializeSocket(loaderData.user);
+  const loaderData = useLoaderData<typeof loader>();
+  const { readyData, exceptReadyData, treatmentSearchHelp, doctorSearchHelp } = useUpdateLoaderData(loaderData);
+  const socket = useInitializeSocket();
 
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
   const exceptReadyRef = useRef<CustomAgGridReactProps<PRecord>>(null);

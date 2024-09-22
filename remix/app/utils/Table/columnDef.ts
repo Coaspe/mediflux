@@ -52,7 +52,7 @@ import {
 import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps } from "~/types/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
-import { findCanCompleteTreatmentNumber } from "../utils";
+import { findCanCompleteTreatmentNumber, formatNumberWithCommas } from "../utils";
 import { SetterOrUpdater } from "recoil";
 import { PRecord } from "shared";
 import { RefObject } from "react";
@@ -210,6 +210,7 @@ export const treatmentPriceColumn = (): ColDef<Treatment, number> => {
     headerName: PRICE_H,
     width: SHORT_COLUMN_LENGTH,
     type: "number",
+    cellRenderer: (params: CustomCellRendererProps) => formatNumberWithCommas(params.value),
   };
 };
 export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>, clinic: string): ColDef<Treatment, any> => {

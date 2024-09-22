@@ -89,7 +89,9 @@ export const focusEditingRecord = (gridRef: RefObject<CustomAgGridReactProps<any
 };
 
 const move = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, tx: RowDataTransaction<PRecord>, data: PRecord) => {
-  if (!gridRef.current?.api.getRowNode(data.id)) return;
+  const doesRowExist = gridRef.current?.api.getRowNode(data.id);
+  if ((tx.remove && !doesRowExist) || (tx.add && doesRowExist)) return;
+
   let isCurGridNeedFocus = false;
   let curGridEditingRowId: string | undefined;
   const curGridEditingCell = getEditingCell(gridRef);
@@ -121,8 +123,8 @@ export const moveRecord = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, 
 };
 
 export const checkIsInvalidRecord = (tableType: TableType, record: PRecord) => {
-  const etrCondition = tableType === "ExceptReady" && record.opReadiness === "Y";
-  const rteCondition = tableType === "Ready" && record.opReadiness !== "Y";
+  const etrCondition = tableType === "ExceptReady" && record.opReadiness === OpReadiness.Y;
+  const rteCondition = tableType === "Ready" && record.opReadiness !== OpReadiness.Y;
   return { etrCondition, rteCondition };
 };
 
@@ -193,11 +195,11 @@ export const statusTransition = (record: PRecord): OpReadiness => {
   return OpReadiness.N;
 };
 
-export const editAndStopRecord = (grid: RefObject<CustomAgGridReactProps<PRecord>>, record: PRecord, originalRecord: PRecord) => {
+export const saveRecord = (grid: RefObject<CustomAgGridReactProps<PRecord>>, record: PRecord, originalRecord: PRecord) => {
   if (!grid.current) return;
   const api = grid.current.api;
   const row = api.getRowNode(record.id);
-  if (row && row.rowIndex !== null) {
+  if (row) {
     grid.current.saveRecord?.(record, originalRecord, api);
   }
 };

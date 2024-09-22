@@ -111,7 +111,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       };
       gridRef.current.saveRecord = saveRecord;
     }
-  }, [socket, gridRef.current, user]);
+  }, [socket, gridRef.current, user, theOtherGridRef]);
 
   // Add custom tracnsaction event listener
   useEffect(() => {
