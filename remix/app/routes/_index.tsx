@@ -2,7 +2,7 @@ import type { ActionFunction, ActionFunctionArgs, LoaderFunctionArgs } from "@re
 import { LoginButton, LoginModal } from "~/components/Landing";
 import { useState } from "react";
 import { badRequest, checkSameIdExists } from "~/utils/request.server";
-import { createUserSession, getUserSession, login, register } from "~/services/session.server";
+import { createUserSession, getSessionId, login, register } from "~/services/session.server";
 import { LoginResponse } from "~/types/type";
 import { ServerUser } from "shared";
 import { json } from "@remix-run/react";
@@ -36,7 +36,7 @@ const validateConfirm = (password: string, confirm: string) => {
 const validateUrl = (url: string) => url;
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const sessionResult = await getUserSession(request);
+  const sessionResult = await getSessionId(request);
   return sessionResult.status !== "active" ? null : redirect("/dashboard/scheduling");
 };
 
@@ -110,7 +110,7 @@ export const action: ActionFunction = async ({ request }: ActionFunctionArgs) =>
       });
     }
 
-    const result = await register({ userId, password, role, firstName, lastName });
+    const result = await register({ userId, password, role, firstName, lastName, clinic: "gn_ss_bailor" });
 
     if (result.status === 200) {
       const user = result.data.user as ServerUser;

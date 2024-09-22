@@ -5,7 +5,6 @@ import {
   EMPTY_SEARCHHELP,
   SideMenu,
   TREATMENT_NUMBERS,
-  TEST_TAG,
   TREATMENT,
   TREATMENT_START,
   TREATMENT_END,
@@ -203,27 +202,27 @@ export const editAndStopRecord = (grid: RefObject<CustomAgGridReactProps<PRecord
   }
 };
 
-export const encryptSessionId = (ip: string | null, browser: string | null, sessionSecret: string, userId: string) => {
-  const key = `${ip || ""}${browser || ""}${sessionSecret}${userId}`;
+export const encryptSessionId = (ip: string | null, browser: string | null, sessionSecret: string, userId: string, clinic: string) => {
+  const key = `${ip || ""}${browser || ""}${sessionSecret}${userId}${clinic}`;
   return CryptoJS.SHA256(key).toString();
 };
 
-export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpdater<Treatment[]>, baseURL: string) => {
+export const getTreatmentSearchHelp = async (setTreatmentSearchHelp: SetterOrUpdater<Treatment[]>, baseURL: string, clinic: string) => {
   const {
     statusCode,
     body: { data },
-  } = await getAllTreatments(TEST_TAG, baseURL);
+  } = await getAllTreatments(clinic, baseURL);
   if (statusCode === 200) {
     const treatment = data.rows.map((treatment: Treatment) => treatment as SearchHelp);
     setTreatmentSearchHelp(treatment);
   }
 };
 
-export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<SearchHelp[]>, baseURL: string) => {
+export const getDoctorSearchHelp = async (setDoctorSearchHelp: SetterOrUpdater<SearchHelp[]>, baseURL: string, clinic: string) => {
   const {
     statusCode,
     body: { data },
-  } = await getAllRoleEmployees(Role.DOCTOR, TEST_TAG, baseURL);
+  } = await getAllRoleEmployees(Role.DOCTOR, clinic, baseURL);
 
   if (statusCode === 200) {
     const doctors = data.rows.map((user: ServerUser) => convertServerUserToClientUser(user)).map((user: User) => ({ id: user.id, title: user.name, group: "" } as SearchHelp));

@@ -45,7 +45,6 @@ import {
   TREATMENT4_H,
   TREATMENT5,
   TREATMENT5_H,
-  TEST_TAG,
   ON_LINE_CHANGING_TRANSACTION_APPLIED,
 } from "~/constants/constant";
 import dayjs from "dayjs";
@@ -81,7 +80,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   // Set saveRecord function to gridRef
   useEffect(() => {
-    if (socket && gridRef.current) {
+    if (socket && gridRef.current && user) {
       const saveRecord = async (record: PRecord, originRecord: PRecord, api: GridApi<PRecord>) => {
         if (!api.getRowNode(record.id)) return;
         record.lockingUser = null;
@@ -89,7 +88,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
         const { etrCondition, rteCondition } = checkIsInvalidRecord(tableType, record);
 
-        const result = await updateRecord(record, TEST_TAG, window.ENV.FRONT_BASE_URL);
+        const result = await updateRecord(record, user.clinic, window.ENV.FRONT_BASE_URL);
 
         if (result.statusCode === 200) {
           emitSaveRecord([record], tableType, socket, roomId);
@@ -103,7 +102,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
           }
         } else {
           originRecord[LOCKING_USER] = null;
-          await updateRecord(originRecord, TEST_TAG, window.ENV.FRONT_BASE_URL);
+          await updateRecord(originRecord, user.clinic, window.ENV.FRONT_BASE_URL);
           api.applyTransaction({
             update: [originRecord],
           });
@@ -112,7 +111,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       };
       gridRef.current.saveRecord = saveRecord;
     }
-  }, [socket, gridRef.current]);
+  }, [socket, gridRef.current, user]);
 
   // Add custom tracnsaction event listener
   useEffect(() => {
@@ -198,7 +197,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         }
       }
 
-      let result = await lockOrUnlockRecords(mustBeUnlocked, null, TEST_TAG, window.ENV.FRONT_BASE_URL);
+      let result = await lockOrUnlockRecords(mustBeUnlocked, null, user.clinic, window.ENV.FRONT_BASE_URL);
       if (result.statusCode === 200) {
         mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, roomId));
         records.sort((a, b) => {
@@ -271,7 +270,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     }
 
     if (user && event.data && !event.data.lockingUser) {
-      const result = await lockOrUnlockRecords([event.data.id], user.id, TEST_TAG, window.ENV.FRONT_BASE_URL);
+      const result = await lockOrUnlockRecords([event.data.id], user.id, user.clinic, window.ENV.FRONT_BASE_URL);
       if (result.statusCode === 200) {
         emitLockRecord(event.data?.id, tableType, socket, user, roomId);
         event.data.lockingUser = user.id;

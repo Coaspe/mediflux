@@ -51,6 +51,7 @@ export type RegisgerForm = {
   role: string;
   firstName: string;
   lastName: string;
+  clinic: string;
 };
 
 export type LoginResponse = {

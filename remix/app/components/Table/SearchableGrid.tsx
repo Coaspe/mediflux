@@ -9,11 +9,10 @@ import { Dispatch, FC, SetStateAction } from "react";
 import { TextField } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
-import { useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { insertTreatment } from "~/utils/request.client";
-import { TEST_TAG } from "~/constants/constant";
 import { GridApi } from "ag-grid-community";
-import { globalSnackbarState } from "~/recoil_state";
+import { globalSnackbarState, userState } from "~/recoil_state";
 import { SearchableType } from "~/types/type";
 
 type SearchableGridProps = {
@@ -48,12 +47,13 @@ type SearchGridHeaderProps = {
 };
 const SearchGridHeader: FC<SearchGridHeaderProps> = ({ searchTerm, setSearchTerm, api, addButton }) => {
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
-
+  const user = useRecoilValue(userState);
   const onClick = async () => {
+    if (!user) return;
     const {
       statusCode,
       body: { data: { rows = [] } = {}, error = null },
-    } = await insertTreatment(TEST_TAG, window.ENV.FRONT_BASE_URL);
+    } = await insertTreatment(user?.clinic, window.ENV.FRONT_BASE_URL);
 
     if (statusCode === 200) {
       const row = rows[0];

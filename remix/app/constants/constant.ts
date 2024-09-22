@@ -1,6 +1,5 @@
 import { SearchHelp } from "~/types/type";
 
-export const TEST_TAG = "gn_ss_bailor";
 export const DEFAULT_REDIRECT = "/";
 export enum SideMenu {
   SCHEDULING = "scheduling",

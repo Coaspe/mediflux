@@ -15,12 +15,12 @@ import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchH
 import { LoaderFunctionArgs } from "@remix-run/node";
 import { getUserByID } from "~/utils/request.server";
 import ArchiveHeader from "~/components/Archive/Header";
-import { getUserSession } from "~/services/session.server";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constants/constant";
+import { getSessionId } from "~/services/session.server";
+import { DEFAULT_REDIRECT } from "~/constants/constant";
 import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const sessionData = await getUserSession(request);
+  const sessionData = await getSessionId(request);
   if (sessionData.id) {
     const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
     if (statusCode === 200) {
@@ -65,9 +65,10 @@ export default function Archive() {
   };
 
   useEffect(() => {
-    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL);
-    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL);
-  }, [window.ENV.FRONT_BASE_URL]);
+    if (!window.ENV.FRONT_BASE_URL || !user) return;
+    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL, user?.clinic);
+    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL, user?.clinic);
+  }, [user, window.ENV.FRONT_BASE_URL]);
 
   useEffect(() => {
     const socketInstance = io(`${window.ENV.FRONT_BASE_URL}`, { path: "/socket" });
@@ -89,6 +90,7 @@ export default function Archive() {
   }, []);
 
   const getData = async () => {
+    if (!user || !window.ENV.FRONT_BASE_URL) return;
     let where = [];
     where.push(`and created_at <= '${dayjs(baseDate).endOf(interval).toISOString()}'`);
     where.push(
@@ -101,7 +103,7 @@ export default function Archive() {
     const {
       statusCode,
       body: { data, error },
-    } = await getRecords(where, TEST_TAG, window.ENV.FRONT_BASE_URL);
+    } = await getRecords(where, user?.clinic, window.ENV.FRONT_BASE_URL);
     if (statusCode === 200) {
       setRowData(data.rows.map((record: ServerPRecord) => convertServerPRecordToPRecord(record)));
     } else {

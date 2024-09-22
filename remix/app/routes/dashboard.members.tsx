@@ -4,18 +4,25 @@ import { useLoaderData } from "@remix-run/react";
 import { AgGridReactProps, CustomCellRendererProps } from "ag-grid-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Role } from "shared";
-import { ID, NAME, NAME_H, NUM_OF_TREATMENTS, NUM_OF_TREATMENTS_H, REVENUE, REVENUE_H, TEST_TAG } from "~/constants/constant";
+import { ID, NAME, NAME_H, NUM_OF_TREATMENTS, NUM_OF_TREATMENTS_H, REVENUE, REVENUE_H } from "~/constants/constant";
 import { CustomAgGridReactProps, Member, Treatment } from "~/types/type";
 import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
 import { ColDef } from "ag-grid-community";
 import { formatNumberWithCommas, getRevenueForPeriod } from "~/utils/utils";
 import SearchableGrid from "~/components/Table/SearchableGrid";
+import { getSession } from "~/services/session.server";
 
-export async function loader() {
+export async function loader({ request }: { request: Request }) {
+  const clinic = (await getSession(request)).get("clinic");
+
+  if (!clinic) {
+    return null;
+  }
+
   const [doctorsResponse, recordsResponse, treatmentsResponse] = await Promise.all([
-    getAllRoleEmployees(Role.DOCTOR, TEST_TAG, process.env.SERVER_BASE_URL),
-    getRecords([], TEST_TAG, process.env.SERVER_BASE_URL),
-    getAllTreatments(TEST_TAG, process.env.SERVER_BASE_URL),
+    getAllRoleEmployees(Role.DOCTOR, clinic, process.env.SERVER_BASE_URL),
+    getRecords([], clinic, process.env.SERVER_BASE_URL),
+    getAllTreatments(clinic, process.env.SERVER_BASE_URL),
   ]);
 
   const {

@@ -3,30 +3,30 @@
 import { LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
 import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
 import { CustomAgGridReactProps, User } from "~/types/type";
 import { getUserByID } from "~/utils/request.server";
 import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord, OpReadiness } from "shared";
 import { Socket, io } from "socket.io-client";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constants/constant";
+import { DEFAULT_REDIRECT } from "~/constants/constant";
 import { convertServerPRecordToPRecord, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
-import { destoryBrowserSession, getUserSession } from "~/services/session.server";
+import { destoryBrowserSession, getSessionId } from "~/services/session.server";
 import dayjs from "dayjs";
 import { getRecords } from "~/utils/request";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const sessionData = await getUserSession(request);
+  const sessionData = await getSessionId(request);
 
   if (sessionData.id) {
     const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
-    if (statusCode === 200) {
+    if (statusCode === 200 && user) {
       const where = [`and created_at >= '${dayjs().startOf("day").toISOString()}'`, `and created_at <= '${dayjs().endOf("day").toISOString()}'`];
       const {
         statusCode,
         body: { data },
-      } = await getRecords(where, TEST_TAG, process.env.SERVER_BASE_URL);
+      } = await getRecords(where, user.clinic, process.env.SERVER_BASE_URL);
       if (statusCode === 200) {
         return json({ user, records: data.rows });
       } else {
@@ -67,11 +67,12 @@ const useInitializeSocket = (user: User | null) => {
 const useFetchSearchHelpData = () => {
   const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
   const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
-
+  const user = useRecoilValue(userState);
   useEffect(() => {
-    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL);
-    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL);
-  }, []);
+    if (!user) return;
+    getTreatmentSearchHelp(setTreatmentSearchHelp, window.ENV.FRONT_BASE_URL, user?.clinic);
+    getDoctorSearchHelp(setDoctorSearchHelp, window.ENV.FRONT_BASE_URL, user?.clinic);
+  }, [user]);
 
   return { treatmentSearchHelp, doctorSearchHelp };
 };

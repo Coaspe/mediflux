@@ -9,7 +9,7 @@ import Icon, { ICONS } from "~/components/Icons";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { sessionExpireModalOpenState, userState } from "~/recoil_state";
 import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from "@remix-run/node";
-import { destoryBrowserSession, destroyUserSession, getUserSession } from "~/services/session.server";
+import { destoryBrowserSession, destroyUserSession, getSessionId } from "~/services/session.server";
 import { getUserByID } from "~/utils/request.server";
 import DashboardHeader from "~/components/Dashboard/Header";
 
@@ -45,7 +45,7 @@ const isSideMenu = (value: any): value is SideMenu => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let sessionData = await getUserSession(request);
+  let sessionData = await getSessionId(request);
 
   if (sessionData.status === "session-expired") {
     return await destroyUserSession(request, sessionData.id);

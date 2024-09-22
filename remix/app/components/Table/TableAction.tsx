@@ -19,7 +19,6 @@ import { Socket } from "socket.io-client";
 import IconButton from "@mui/material/IconButton";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { TEST_TAG } from "~/constants/constant";
 type TableActionHeader = {
   gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;
@@ -41,13 +40,13 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   );
 
   const onAddRecord = async () => {
-    if (!gridRef.current) return;
+    if (!gridRef.current || !user) return;
 
     const newRecord = { opReadiness: tableType === "ExceptReady" ? OpReadiness.N : OpReadiness.Y } as PRecord;
     const {
       statusCode,
       body: { data, error },
-    } = await insertRecords([newRecord], TEST_TAG, window.ENV.FRONT_BASE_URL);
+    } = await insertRecords([newRecord], user.clinic, window.ENV.FRONT_BASE_URL);
 
     if (statusCode === 200) {
       const row = data.rows[0];
@@ -60,9 +59,10 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   };
 
   const onDeleteRecord = async () => {
+    if (!user) return;
     if (!gridRef.current || !selectedRows.length) throw new Error("삭제할 레코드가 선택되지 않았습니다.");
     const ids = selectedRows.map((record) => record.id);
-    const result = await hideRecords(ids, TEST_TAG, window.ENV.FRONT_BASE_URL);
+    const result = await hideRecords(ids, user.clinic, window.ENV.FRONT_BASE_URL);
 
     if (result.statusCode === 200) {
       gridRef.current.api.applyTransaction({
@@ -88,7 +88,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     const result = await lockOrUnlockRecords(
       records.map((record) => record.id),
       user.id,
-      TEST_TAG,
+      user.clinic,
       window.ENV.FRONT_BASE_URL
     );
     if (result.statusCode === 200) {
@@ -103,7 +103,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       const result = await lockOrUnlockRecords(
         selectedRows.map((record) => record.id),
         null,
-        TEST_TAG,
+        user.clinic,
         window.ENV.FRONT_BASE_URL
       );
       if (result.statusCode === 200) {

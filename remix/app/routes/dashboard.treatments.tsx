@@ -4,64 +4,76 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import "../css/Table.css";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSetRecoilState } from "recoil";
-import { globalSnackbarState } from "~/recoil_state";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { globalSnackbarState, userState } from "~/recoil_state";
 import { updateTreatment } from "~/utils/request.client";
-import { ID, TEST_TAG, TITLE, TITLE_H, TREATMENT_NAME_COLUMN } from "~/constants/constant";
+import { ID, TITLE, TITLE_H, TREATMENT_NAME_COLUMN } from "~/constants/constant";
 import { CustomAgGridReactProps, Treatment } from "~/types/type";
 import { ColDef, CellEditingStoppedEvent, GridApi } from "ag-grid-community";
 import { AgGridReactProps } from "ag-grid-react";
 import { treatmentGroupColumn, treatmentDurationColumn, treatmentPriceColumn, treatmentPointColumn, treatementDeleteColumn } from "~/utils/Table/columnDef";
 import { getAllTreatments } from "~/utils/request";
 import SearchableGrid from "~/components/Table/SearchableGrid";
+import { getSession } from "~/services/session.server";
+import { useLoaderData } from "@remix-run/react";
+export async function loader({ request }: { request: Request }) {
+  const clinic = (await getSession(request)).get("clinic");
+  const treatmentsResponse = await getAllTreatments(clinic, process.env.SERVER_BASE_URL);
+  const {
+    statusCode,
+    body: {
+      data: { rows: treatmentsData },
+    },
+  } = treatmentsResponse;
 
+  if (statusCode === 200) {
+    return { treatments: treatmentsData };
+  }
+  return null;
+}
 const Treatments: React.FC = () => {
   const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const [data, setData] = useState<Treatment[]>([]);
   const [colDefs, setColDefs] = useState<ColDef<Treatment, any>[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const loaderData = useLoaderData<typeof loader>();
+  const user = useRecoilValue(userState);
 
   useEffect(() => {
     const getTreatments = async () => {
+      if (!loaderData) return;
       setIsLoading(true);
-      const {
-        statusCode,
-        body: { data, error },
-      } = await getAllTreatments(TEST_TAG, window.ENV.FRONT_BASE_URL);
-      if (statusCode === 200) {
-        const convertedData: Treatment[] = data.rows.map((t: Treatment) => {
-          if (t.title) {
-            t.searchTitle = t.title.replace(/\s/g, "");
-          }
-          return t;
-        });
+      const convertedData: Treatment[] = loaderData.treatments.rows.map((t: Treatment) => {
+        if (t.title) {
+          t.searchTitle = t.title.replace(/\s/g, "");
+        }
+        return t;
+      });
 
-        convertedData.sort((a, b) => {
-          if (a.group && b.group) {
-            const groupComparison = a.group.localeCompare(b.group, "ko");
-            if (groupComparison !== 0) {
-              return groupComparison; // 1순위: group 기준 정렬
-            } else {
-              return a.title.localeCompare(b.title, "ko"); // 2순위: title 기준 정렬
-            }
-          } else if (b.group) {
-            return 1;
+      convertedData.sort((a, b) => {
+        if (a.group && b.group) {
+          const groupComparison = a.group.localeCompare(b.group, "ko");
+          if (groupComparison !== 0) {
+            return groupComparison; // 1순위: group 기준 정렬
           } else {
-            return -1;
+            return a.title.localeCompare(b.title, "ko"); // 2순위: title 기준 정렬
           }
-        });
-        setData(convertedData);
-      } else {
-        error && setGlobalSnackBar({ msg: error, severity: "error", open: true });
-      }
+        } else if (b.group) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+      setData(convertedData);
       setIsLoading(false);
     };
     getTreatments();
-  }, []);
+  }, [loaderData]);
 
   // Columns definition
   useEffect(() => {
+    if (!user) return;
     setColDefs([
       { field: ID, headerName: ID, hide: true },
       { field: TITLE, headerName: TITLE_H, width: TREATMENT_NAME_COLUMN },
@@ -69,9 +81,9 @@ const Treatments: React.FC = () => {
       treatmentDurationColumn(),
       treatmentPriceColumn(),
       treatmentPointColumn(),
-      treatementDeleteColumn(setGlobalSnackBar),
+      treatementDeleteColumn(setGlobalSnackBar, user.clinic),
     ]);
-  }, []);
+  }, [user]);
 
   const showErrorSnackbar = useCallback(
     (message: string) => {
@@ -87,8 +99,10 @@ const Treatments: React.FC = () => {
   }, []);
 
   const saveTreatment = async (treatment: Treatment, oldValue: any, field: string, api: GridApi<Treatment>) => {
+    if (!user?.clinic) return;
+
     const copyTreatment: Treatment = JSON.parse(JSON.stringify(treatment));
-    const result = await updateTreatment(treatment, TEST_TAG, window.ENV.FRONT_BASE_URL);
+    const result = await updateTreatment(treatment, user?.clinic, window.ENV.FRONT_BASE_URL);
 
     if (result.statusCode !== 200) {
       if (field in copyTreatment) {

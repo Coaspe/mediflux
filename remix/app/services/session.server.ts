@@ -6,7 +6,7 @@ import axios from "axios";
 import { getUserByID, setUserSession } from "~/utils/request.server";
 import { getClientIPAddress } from "remix-utils/get-client-ip-address";
 import { encryptSessionId } from "~/utils/utils";
-import { DEFAULT_REDIRECT, TEST_TAG } from "~/constants/constant";
+import { DEFAULT_REDIRECT } from "~/constants/constant";
 import { INTERNAL_SERVER_ERROR } from "shared";
 import { LoginError } from "~/constants/enum";
 
@@ -46,12 +46,13 @@ export async function createUserSession(user: User, redirectTo: string, request:
   const ip = getClientIPAddress(request.headers);
   const session = await storage.getSession();
   const browser = request.headers.get("User-Agent");
-  const sessionId = encryptSessionId(ip, browser, sessionSecret, user.id);
+  const sessionId = encryptSessionId(ip, browser, sessionSecret, user.id, user.clinic);
 
   session.set("id", user.id);
   session.set("expires", Date.now() + SESSION_AGE);
   session.set("ip", ip);
   session.set("browser", browser);
+  session.set("clinic", user.clinic);
 
   user.sessionId = sessionId;
   const setUserSessionResult = await setUserSession(user);
@@ -66,9 +67,9 @@ export async function createUserSession(user: User, redirectTo: string, request:
   return redirect("/dashboard/scheduling");
 }
 
-export async function register({ userId, password, role, firstName, lastName }: RegisgerForm) {
+export async function register({ userId, password, role, firstName, lastName, clinic }: RegisgerForm) {
   try {
-    let result = await axios.post(`${process.env.SERVER_BASE_URL}/api/register`, { userId, password, role, firstName, lastName, clinic: TEST_TAG });
+    let result = await axios.post(`${process.env.SERVER_BASE_URL}/api/register`, { userId, password, role, firstName, lastName, clinic });
     return result;
   } catch (error: any) {
     return error;
@@ -76,7 +77,7 @@ export async function register({ userId, password, role, firstName, lastName }: 
 }
 
 export async function destoryBrowserSession(redirectTo: string, request: Request) {
-  const session = await storage.getSession(request.headers.get("Cookie"));
+  const session = await getSession(request);
   if (session) {
     return redirect(redirectTo, {
       headers: {
@@ -87,11 +88,16 @@ export async function destoryBrowserSession(redirectTo: string, request: Request
   return redirect(redirectTo);
 }
 
-export async function getUserSession(request: Request) {
-  const session = await storage.getSession(request.headers.get("Cookie"));
+export async function getSession(request: Request) {
+  return await storage.getSession(request.headers.get("Cookie"));
+}
+
+export async function getSessionId(request: Request) {
+  const session = await getSession(request);
 
   const userId = session.get("id");
   const expires = session.get("expires");
+  const clinic = session.get("clinic");
   const ip = getClientIPAddress(request.headers);
   const browser = request.headers.get("User-Agent");
 
@@ -103,7 +109,7 @@ export async function getUserSession(request: Request) {
     return { status: "session-expired" };
   }
 
-  const sessionId = encryptSessionId(ip, browser, sessionSecret, userId);
+  const sessionId = encryptSessionId(ip, browser, sessionSecret, userId, clinic);
 
   if (userId === process.env.ADMIN || userId === process.env.ADMIN2) {
     return { status: "active", id: userId, sessionId };

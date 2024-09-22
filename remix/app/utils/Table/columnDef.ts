@@ -212,7 +212,7 @@ export const treatmentPriceColumn = (): ColDef<Treatment, number> => {
     type: "number",
   };
 };
-export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>): ColDef<Treatment, any> => {
+export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>, clinic: string): ColDef<Treatment, any> => {
   return {
     field: DELETE,
     headerName: DELETE_H,
@@ -224,6 +224,6 @@ export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<Global
         display: "flex",
       };
     },
-    cellRenderer: ({ data, api }: CustomCellRendererProps) => deleteCell(data, setGlobalSnackbar, api),
+    cellRenderer: ({ data, api }: CustomCellRendererProps) => deleteCell(data, setGlobalSnackbar, api, clinic),
   };
 };

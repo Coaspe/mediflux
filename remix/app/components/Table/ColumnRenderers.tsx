@@ -4,7 +4,7 @@ import { ChipColor, CustomAgGridReactProps, GlobalSnackBark, SearchHelp, TableTy
 import { Autocomplete, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { INTERNAL_SERVER_ERROR, OpReadiness, PRecord, Role } from "shared";
-import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TEST_TAG, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constants/constant";
+import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constants/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -404,10 +404,10 @@ export const nameChipRendererByRole = (role: Role, name?: string) => {
   }
   return name ? <Chip size="small" color={color} label={name} /> : <></>;
 };
-export const deleteCell = (data: Treatment, setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>, api: GridApi<Treatment>) => {
+export const deleteCell = (data: Treatment, setGlobalSnackbar: SetterOrUpdater<GlobalSnackBark>, api: GridApi<Treatment>, clinic: string) => {
   const onClick = async () => {
     try {
-      const result = await deleteTreatement(data.id, TEST_TAG, window.ENV.FRONT_BASE_URL);
+      const result = await deleteTreatement(data.id, clinic, window.ENV.FRONT_BASE_URL);
 
       if (result.statusCode === 200) {
         api.applyTransaction({
