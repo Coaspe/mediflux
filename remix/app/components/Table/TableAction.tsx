@@ -52,7 +52,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       const row = data.rows[0];
       const addedRecord = convertServerPRecordToPRecord(row);
       gridRef.current.api.applyTransaction({ add: [addedRecord], addIndex: 0 });
-      emitCreateRecords([addedRecord], tableType, socket, SCHEDULING_ROOM_ID);
+      emitCreateRecords([addedRecord], tableType, socket, user.clinic + SCHEDULING_ROOM_ID);
     } else {
       error && showErrorSnackbar(error);
     }
@@ -68,7 +68,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       gridRef.current.api.applyTransaction({
         remove: selectedRows,
       });
-      emitDeleteRecords(ids, tableType, socket, user, SCHEDULING_ROOM_ID);
+      emitDeleteRecords(ids, tableType, socket, user, user.clinic + SCHEDULING_ROOM_ID);
     } else {
       result.body.error && showErrorSnackbar(result.body.error);
     }
@@ -92,7 +92,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
       window.ENV.FRONT_BASE_URL
     );
     if (result.statusCode === 200) {
-      emitSaveRecord(result.body.data.rows.map(convertServerPRecordToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+      emitSaveRecord(result.body.data.rows.map(convertServerPRecordToPRecord), tableType, socket, user.clinic + SCHEDULING_ROOM_ID);
       setOpenDeleteModal(true);
     } else {
       result.body.error && showErrorSnackbar(result.body.error);
@@ -107,7 +107,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
         window.ENV.FRONT_BASE_URL
       );
       if (result.statusCode === 200) {
-        emitSaveRecord(result.body.data.rows.map(convertServerPRecordToPRecord), tableType, socket, SCHEDULING_ROOM_ID);
+        emitSaveRecord(result.body.data.rows.map(convertServerPRecordToPRecord), tableType, socket, user.clinic + SCHEDULING_ROOM_ID);
       } else {
         result.body.error && showErrorSnackbar(result.body.error);
       }

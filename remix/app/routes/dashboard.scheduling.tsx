@@ -72,6 +72,7 @@ const useInitializeSocket = () => {
         userId: user.id,
         username: user.name,
         roomId: SCHEDULING_ROOM_ID,
+        clinic: user.clinic,
       });
     });
 

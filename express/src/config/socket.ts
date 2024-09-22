@@ -2,10 +2,7 @@ import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
 import { JOIN_ROOM, LOCK_RECORD, DELETE_RECORD, SAVE_RECORD, UNLOCK_RECORD, CREATE_RECORD, USER_JOINED, CONNECTED_USERS, CONNECTION, SCHEDULING_ROOM_ID, ARCHIVE_ROOM_ID, PRecord } from "shared";
 
-const roomUsers: { [key: string]: { [key: string]: string } } = {
-  [SCHEDULING_ROOM_ID]: {},
-  [ARCHIVE_ROOM_ID]: {},
-};
+const room: { [key: string]: { [key: string]: { [key: string]: string } } } = {};
 
 type SocketArgs = {
   userId?: string;
@@ -16,6 +13,7 @@ type SocketArgs = {
   tableType?: string;
   recordIds?: string[];
   records?: PRecord[];
+  clinic?: string;
 };
 export const setupSocket = (server: HttpServer) => {
   const io = new Server(server, {
@@ -26,21 +24,23 @@ export const setupSocket = (server: HttpServer) => {
   });
 
   io.on(CONNECTION, (socket) => {
-    socket.on(JOIN_ROOM, ({ userId, username, roomId }: SocketArgs) => {
-      if (!userId || !username || !roomId) return;
+    socket.on(JOIN_ROOM, ({ userId, username, roomId, clinic }: SocketArgs) => {
+      if (!userId || !username || !roomId || !clinic) return;
 
-      socket.join(roomId);
+      socket.join(clinic + roomId);
 
-      if (!(roomId in roomUsers)) {
-        roomUsers[roomId] = { [userId]: username };
+      if (!(clinic in room)) {
+        room[clinic] = {};
+        room[clinic][SCHEDULING_ROOM_ID] = {};
+        room[clinic][ARCHIVE_ROOM_ID] = {};
       }
 
-      if (!(userId in roomUsers[roomId])) {
-        roomUsers[roomId][userId] = username;
+      if (!(userId in room[clinic][roomId])) {
+        room[clinic][roomId][userId] = username;
         socket.broadcast.to(roomId).emit(USER_JOINED, userId);
       }
 
-      io.in(roomId).emit(CONNECTED_USERS, Object.keys(roomUsers[roomId]));
+      io.in(roomId).emit(CONNECTED_USERS, Object.keys(room[clinic][roomId]));
     });
 
     socket.on(LOCK_RECORD, ({ recordId, locker, tableType, roomId }: SocketArgs) => {

@@ -91,7 +91,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         const result = await updateRecord(record, user.clinic, window.ENV.FRONT_BASE_URL);
 
         if (result.statusCode === 200) {
-          emitSaveRecord([record], tableType, socket, roomId);
+          emitSaveRecord([record], tableType, socket, user.clinic + roomId);
           if (theOtherGridRef && (etrCondition || rteCondition)) {
             moveRecord(gridRef, theOtherGridRef, record);
           } else {
@@ -204,7 +204,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
       let result = await lockOrUnlockRecords(mustBeUnlocked, null, user.clinic, window.ENV.FRONT_BASE_URL);
       if (result.statusCode === 200) {
-        mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, roomId));
+        mustBeUnlocked.forEach((id) => emitUnlockRecord(id, tableType, socket, user.clinic + roomId));
         records.sort((a, b) => {
           const dateA = dayjs(a.createdAt ?? 0).valueOf();
           const dateB = dayjs(b.createdAt ?? 0).valueOf();
@@ -277,7 +277,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     if (user && event.data && !event.data.lockingUser) {
       const result = await lockOrUnlockRecords([event.data.id], user.id, user.clinic, window.ENV.FRONT_BASE_URL);
       if (result.statusCode === 200) {
-        emitLockRecord(event.data?.id, tableType, socket, user, roomId);
+        emitLockRecord(event.data?.id, tableType, socket, user, user.clinic + roomId);
         event.data.lockingUser = user.id;
         gridRef.current?.api.applyTransaction({
           update: [event.data],
