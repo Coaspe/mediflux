@@ -105,6 +105,7 @@ const applyTransactionWithEvent = (gridRef: RefObject<CustomAgGridReactProps<any
     const api = gridRef.current.api;
     const editingCells = gridRef.current.api.getEditingCells();
     const needFocus = eventFlag && editingCells && editingCells.length > 0;
+
     let editingRowId = undefined;
 
     if (needFocus) {

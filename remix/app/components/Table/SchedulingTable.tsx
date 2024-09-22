@@ -35,6 +35,7 @@ import { checkIsInvalidRecord, getEditingCell, moveRecord, refreshTreatmentCells
 import { lockOrUnlockRecords, updateRecord } from "~/utils/request.client";
 import {
   LOCKING_USER,
+  ON_LINE_CHANGING_TRANSACTION_APPLIED,
   TREATMENT1,
   TREATMENT1_H,
   TREATMENT2,
@@ -45,7 +46,6 @@ import {
   TREATMENT4_H,
   TREATMENT5,
   TREATMENT5_H,
-  ON_LINE_CHANGING_TRANSACTION_APPLIED,
 } from "~/constants/constant";
 import dayjs from "dayjs";
 import LoadingOverlay from "../Loading";
@@ -119,9 +119,11 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
       onLineChangingdEditingStoppedRef.current = true;
     };
 
+    let handleBeforeUnload = undefined;
+
     if (gridRef.current && gridRef.current.api) {
       const api = gridRef.current.api;
-      const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      handleBeforeUnload = (event: BeforeUnloadEvent) => {
         api.stopEditing();
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
@@ -131,10 +133,13 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     return () => {
       if (gridRef.current && gridRef.current.api) {
         const api = gridRef.current.api;
+        if (handleBeforeUnload) {
+          window.removeEventListener("beforeunload", handleBeforeUnload);
+        }
         api.removeEventListener<any>(ON_LINE_CHANGING_TRANSACTION_APPLIED, () => handleLineChangingTransactionApplied(onLineChangingdEditingStoppedRef));
       }
     };
-  }, [gridRef.current]);
+  }, [gridRef.current, gridRef.current?.api]);
 
   // Socket setting
   useEffect(() => {

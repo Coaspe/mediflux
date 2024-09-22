@@ -121,7 +121,6 @@ router.post("/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, fu
         res.status(200).json(result);
     }
     catch (error) {
-        console.log(error);
         res.status(500).json({ message: "Error inserting records." });
     }
 }));
