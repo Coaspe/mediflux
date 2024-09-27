@@ -69,9 +69,9 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
   }, [interval, numOfInterval, baseDate, data]);
 
   return (
-    <div className="h-1/2 w-full">
+    <>
       {chartData && (
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="45%">
           <LineChart
             data={chartData}
             margin={{
@@ -79,8 +79,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
               right: 30,
               left: 20,
               bottom: 5,
-            }}
-          >
+            }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" />
             <YAxis dataKey="numOfPRecords" />
@@ -91,7 +90,7 @@ const ArchiveChart: React.FC<ArchiveChartProps> = ({ numOfInterval, interval, ba
           </LineChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </>
   );
 };
 

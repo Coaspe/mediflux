@@ -1,3 +1,4 @@
+/** @format */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -114,6 +115,15 @@ router.post("/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, fu
       `;
         const queryValues = [];
         records.forEach((record) => {
+            if (record instanceof Object && "id" in record) {
+                if ("id" in record) {
+                    record.id = null;
+                }
+                if ("createdAt" in record) {
+                    record.createdAt = null;
+                }
+                console.log(record);
+            }
             let value = deconstructRecord(record);
             queryValues.push(...value);
         });

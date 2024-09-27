@@ -2,11 +2,13 @@
 
 import { KEY_OF_CLIENT_PRECORD, KEY_OF_CLIENT_TREATMENT, PRecord } from "shared";
 
-export const deconstructRecord = (record: PRecord) => {
-  const newRecord = {} as any;
+export const deconstructRecord = (record: unknown) => {
+  const newRecord = {} as PRecord;
   for (const s of KEY_OF_CLIENT_PRECORD) {
-    newRecord[s] = record[s];
+    newRecord[s] = (record as PRecord)[s];
   }
+
+  console.log(newRecord);
 
   const values = Object.values(newRecord);
 

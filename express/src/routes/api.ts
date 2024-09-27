@@ -1,3 +1,5 @@
+/** @format */
+
 import { Router } from "express";
 import { pool } from "../config/db.js";
 import bcrypt from "bcryptjs";
@@ -116,8 +118,18 @@ router.post("/insertRecords", async (req, res) => {
       `;
 
     const queryValues: unknown[] = [];
-    records.forEach((record: PRecord) => {
+    records.forEach((record: unknown) => {
+      if (record instanceof Object && "id" in record) {
+        if ("id" in record) {
+          record.id = null;
+        }
+        if ("createdAt" in record) {
+          record.createdAt = null;
+        }
+        console.log(record);
+      }
       let value = deconstructRecord(record);
+
       queryValues.push(...value);
     });
 

@@ -33,7 +33,7 @@ const ArchiveHeader: React.FC<HeaderProps> = ({ handleBaseDateChange, handleInte
   });
 
   return (
-    <header className="flex gap-3 pb-5">
+    <header className="flex gap-3 pb-5 h-fit">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <DatePickerCustom label="기준일" defaultValue={dayjs()} value={baseDate} format="YYYY/MM/DD" onChange={handleBaseDateChange} />
       </LocalizationProvider>

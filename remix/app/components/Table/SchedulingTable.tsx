@@ -123,7 +123,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
     if (gridRef.current && gridRef.current.api) {
       const api = gridRef.current.api;
-      handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      handleBeforeUnload = () => {
         api.stopEditing();
       };
       window.addEventListener("beforeunload", handleBeforeUnload);

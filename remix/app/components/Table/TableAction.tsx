@@ -19,6 +19,8 @@ import { Socket } from "socket.io-client";
 import IconButton from "@mui/material/IconButton";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+
 type TableActionHeader = {
   gridRef: RefObject<CustomAgGridReactProps<PRecord>>;
   tableType: TableType;
@@ -81,7 +83,8 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     const records = gridRef.current.api.getSelectedRows();
 
     if (records.length === 0) {
-      throw new Error("삭제할 레코드가 선택되지 않았습니다.");
+      showErrorSnackbar("삭제할 레코드가 선택되지 않았습니다.");
+      return;
     }
 
     setSelectedRows(records);
@@ -115,6 +118,34 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
     setOpenDeleteModal(false);
   }, [selectedRows, user, tableType, socket]);
 
+  // 한 개의 로우를 복사하는 기능
+  const handleCopyRow = async () => {
+    if (!gridRef.current || !user) return;
+
+    const records = gridRef.current.api.getSelectedNodes();
+
+    if (records.length === 0) {
+      showErrorSnackbar("복사할 레코드가 선택되지 않았습니다.");
+      return;
+    } else if (records.length > 1) {
+      showErrorSnackbar("복사할 레코드는 한 개만 선택해주세요.");
+      return;
+    }
+    const index = records[0].rowIndex;
+    const result = await insertRecords([records[0].data as PRecord], user.clinic, window.ENV.FRONT_BASE_URL);
+    if (result.statusCode === 200) {
+      const converted = result.body.data.rows.map(convertServerPRecordToPRecord);
+
+      gridRef.current.api.applyTransaction({
+        add: converted,
+        addIndex: index,
+      });
+      emitCreateRecords(converted, tableType, socket, user.clinic + SCHEDULING_ROOM_ID);
+    } else {
+      result.body.error && showErrorSnackbar(result.body.error);
+    }
+  };
+
   return (
     <>
       {tableType === "ExceptReady" && (
@@ -125,6 +156,9 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
             </IconButton>
             <IconButton onClick={handleOpenDeleteModal}>
               <DeleteIcon />
+            </IconButton>
+            <IconButton onClick={handleCopyRow}>
+              <ContentCopyIcon />
             </IconButton>
           </Box>
           <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>

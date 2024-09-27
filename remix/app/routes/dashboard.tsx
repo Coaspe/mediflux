@@ -103,7 +103,7 @@ export default function Dashboard() {
   return user ? (
     <div className="flex flex-col h-screen w-full pr-5">
       <DashboardHeader selectedMenu={clickedMenu} />
-      <div className="flex h-full max-w-full">
+      <div className="flex h-full w-full">
         <aside className="w-[220px] pr-5 font-work">
           <Menu>
             <SubMenu icon={<Icon className="text-gray-500" iconName={ICONS.EVENT_NOTE} />} label="Schedule">
