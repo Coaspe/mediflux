@@ -4,7 +4,7 @@ import { Router } from "express";
 import { pool } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import { deconstructRecord, lockOrUnlockRowsQuery, setUserSessionQuery, deconstructTreatement, updateQuery } from "../utils.js";
-import { KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT, INTERNAL_SERVER_ERROR, PRecord } from "shared";
+import { KEY_OF_SERVER_PRECORD, KEY_OF_SERVER_TREATMENT, INTERNAL_SERVER_ERROR } from "shared";
 
 const router = Router();
 
@@ -126,7 +126,6 @@ router.post("/insertRecords", async (req, res) => {
         if ("createdAt" in record) {
           record.createdAt = null;
         }
-        console.log(record);
       }
       let value = deconstructRecord(record);
 

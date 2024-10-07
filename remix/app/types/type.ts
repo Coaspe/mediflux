@@ -69,10 +69,10 @@ export type FocusedRow = {
 
 export type PRecordWithFocusedRow = FocusedRow & PRecord;
 
-export interface CustomAgGridReactProps<TData> extends AgGridReact<TData> {
+export type CustomAgGridReactProps<TData> = AgGridReact<TData> & {
   tableType: TableType;
   saveRecord?: (record: PRecord, originRecord: PRecord, api: GridApi<PRecord>) => void;
-}
+};
 
 export type GlobalSnackBark = { open: boolean; msg: string; severity: "error" | "info" | "success" | "warning" };
 

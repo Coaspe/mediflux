@@ -5,7 +5,6 @@ export const deconstructRecord = (record) => {
     for (const s of KEY_OF_CLIENT_PRECORD) {
         newRecord[s] = record[s];
     }
-    console.log(newRecord);
     const values = Object.values(newRecord);
     if (values.length > 0) {
         const id = values.shift();

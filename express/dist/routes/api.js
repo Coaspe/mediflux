@@ -122,7 +122,6 @@ router.post("/insertRecords", (req, res) => __awaiter(void 0, void 0, void 0, fu
                 if ("createdAt" in record) {
                     record.createdAt = null;
                 }
-                console.log(record);
             }
             let value = deconstructRecord(record);
             queryValues.push(...value);

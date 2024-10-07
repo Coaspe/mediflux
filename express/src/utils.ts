@@ -8,8 +8,6 @@ export const deconstructRecord = (record: unknown) => {
     newRecord[s] = (record as PRecord)[s];
   }
 
-  console.log(newRecord);
-
   const values = Object.values(newRecord);
 
   if (values.length > 0) {

@@ -302,10 +302,33 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     lineheight: "1rem" /* 16px */,
   };
 
-  return (
-    <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
-      {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"/assets/sounds/new_record_ready_noti.mp3"} controls />}
-      <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+
+  const handleContextMenu = (e: any) => {
+    e.preventDefault(); // 기본 우클릭 메뉴 차단
+    setMenuPosition({ x: e.pageX, y: e.pageY });
+    setMenuVisible(true);
+  };
+
+  const handleClickOutside = () => {
+    setMenuVisible(false);
+  };
+
+  useEffect(() => {
+    if (menuVisible) {
+      document.addEventListener("click", handleClickOutside);
+    } else {
+      document.removeEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [menuVisible]);
+
+  const MemoizedAgGrid = useMemo(() => {
+    return (
       <AgGridReact
         ref={gridRef}
         onCellEditingStopped={onCellEditingStopped}
@@ -325,8 +348,36 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
         noRowsOverlayComponent={noRowsOverlayComponent}
         className="animate-fadeIn"
       />
+    );
+  }, [rowData, colDefs, isLoading]);
+  return (
+    <div className="ag-theme-quartz" style={{ height: "50%", display: "flex", flexDirection: "column" }}>
+      {tableType === "Ready" && <audio className="hidden" ref={audioRef} src={"/assets/sounds/new_record_ready_noti.mp3"} controls />}
+      <TableAction gridRef={gridRef} tableType={tableType} socket={socket} />
+      <div onContextMenu={handleContextMenu} className="w-full h-full">
+        {MemoizedAgGrid}
+        {menuVisible && <CustomContextMenu x={menuPosition.x} y={menuPosition.y} onClose={() => setMenuVisible(false)} />}
+      </div>
     </div>
   );
 };
 
 export default SchedulingTable;
+
+const CustomContextMenu = ({ x, y, onClose }: { x: any; y: any; onClose: any }) => {
+  return (
+    <div
+      className={`context-menu slide-down`} // 애니메이션 클래스
+      style={{
+        top: y,
+        left: x,
+      }}
+    >
+      <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+        <li onClick={onClose}>Option 1</li>
+        <li onClick={onClose}>Option 2</li>
+        <li onClick={onClose}>Option 3</li>
+      </ul>
+    </div>
+  );
+};
