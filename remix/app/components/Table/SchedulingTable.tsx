@@ -11,7 +11,6 @@ import { useGlobalSnackbar, useGridEvents, useSocket } from "~/utils/hook";
 import { lockOrUnlockRecords } from "~/utils/request.client";
 import { emitUnlockRecord } from "~/utils/Table/socket";
 
-import { TableAction } from "./TableAction";
 import CustomContextMenu from "./CustomContextMenu";
 import LoadingOverlay from "../Loading";
 
@@ -46,6 +45,10 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     () => getColumnDefs(tableType, treatmentSearchHelp, doctorSearchHelp, gridRef, showErrorSnackbar),
     [tableType, treatmentSearchHelp, doctorSearchHelp, showErrorSnackbar]
   );
+  const rowStyle = {
+    fontSize: "0.75rem" /* 12px */,
+    lineheight: "1rem" /* 16px */,
+  };
 
   useEffect(() => {
     if (!socket || !user || !records) return;
@@ -114,30 +117,38 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuVisible]);
 
-  const gridProps = {
-    ref: gridRef,
-    onCellEditingStopped,
-    onCellEditingStarted,
-    defaultColDef,
-    rowData,
-    columnDefs: colDefs,
-    getRowId: (params: { data: PRecord }) => params.data.id,
-    pagination: true,
-    paginationPageSize: 20,
-    getRowStyle,
-    rowSelection: "multiple" as const,
-    rowStyle: { fontSize: "0.75rem", lineHeight: "1rem" },
-    tabToNextCell,
-    loading: isLoading,
-    loadingOverlayComponent: LoadingOverlay,
-    noRowsOverlayComponent: () => <span>차트가 존재하지 않습니다</span>,
-    className: "animate-fadeIn",
+  const noRowsOverlayComponent = () => {
+    return <span>차트가 존재하지 않습니다</span>;
   };
+
+  const MemoizedAgGrid = useMemo(() => {
+    return (
+      <AgGridReact
+        ref={gridRef}
+        onCellEditingStopped={onCellEditingStopped}
+        onCellEditingStarted={onCellEditingStarted}
+        defaultColDef={defaultColDef}
+        rowData={rowData}
+        columnDefs={colDefs}
+        getRowId={(params) => params.data.id}
+        pagination={true}
+        paginationPageSize={20}
+        getRowStyle={getRowStyle}
+        rowSelection={"multiple"}
+        rowStyle={rowStyle}
+        tabToNextCell={tabToNextCell}
+        loading={isLoading}
+        loadingOverlayComponent={LoadingOverlay}
+        noRowsOverlayComponent={noRowsOverlayComponent}
+        className="animate-fadeIn"
+      />
+    );
+  }, [rowData, colDefs, isLoading]);
 
   return (
     <div onContextMenu={handleContextMenu} className="ag-theme-quartz h-1/2 flex flex-col">
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src="/assets/sounds/new_record_ready_noti.mp3" controls />}
-      <AgGridReact {...gridProps} />
+      {MemoizedAgGrid}
       <CustomContextMenu position={menuPosition} onClose={() => setMenuVisible(false)} isOpen={menuVisible} gridRef={gridRef} tableType={tableType} socket={socket} />
     </div>
   );

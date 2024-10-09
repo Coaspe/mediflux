@@ -163,6 +163,7 @@ const CustomContextMenu = ({
       result.body.error && showErrorSnackbar(result.body.error);
     }
   };
+
   return (
     <>
       <Paper
@@ -191,8 +192,15 @@ const CustomContextMenu = ({
             </ListItemIcon>
             <ListItemText>복제</ListItemText>
           </MenuItem>
+          <MenuItem onClick={handleCopyRow}>
+            <ListItemIcon>
+              <ContentCopyIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>복제</ListItemText>
+          </MenuItem>
         </MenuList>
       </Paper>
+
       <Dialog open={openDeleteModal} onClose={handleCloseDeleteModal}>
         <DialogTitle>{"레코드 삭제"}</DialogTitle>
         <DialogContent>
