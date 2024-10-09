@@ -38,9 +38,10 @@ export const emitSaveRecord = async (records: PRecord[] | undefined, tableType: 
   }
 };
 
-export const emitCreateRecords = (records: PRecord[], tableType: TableType, socket: Socket | null, roomId: string) => {
+export const emitCreateRecords = (records: PRecord[], tableType: TableType, socket: Socket | null, roomId: string, index: number = 0) => {
   socket?.emit(CREATE_RECORD, {
     records,
+    index,
     roomId,
     tableType,
   });
@@ -123,12 +124,16 @@ const applyTransactionWithEvent = (gridRef: RefObject<CustomAgGridReactProps<any
   return { id: undefined, columnId: undefined };
 };
 
-export const onCreateRecord = ({ records, tableType }: { records: PRecord[]; tableType: TableType }, gridRef: RefObject<CustomAgGridReactProps<any>>, curTableType: TableType) => {
+export const onCreateRecord = (
+  { records, tableType, index }: { records: PRecord[]; tableType: TableType; index: number },
+  gridRef: RefObject<CustomAgGridReactProps<any>>,
+  curTableType: TableType
+) => {
   if (curTableType !== tableType) return;
   if (gridRef.current) {
     const transaction = {
       add: records,
-      addIndex: 0,
+      addIndex: index ?? 0,
     } as RowDataTransaction<any>;
     const { id, columnId } = applyTransactionWithEvent(gridRef, transaction);
     focusEditingRecord(gridRef, id, columnId);

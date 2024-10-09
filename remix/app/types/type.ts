@@ -93,3 +93,10 @@ export type Member = SearchableType & {
   revenue: number;
   performedTreatments: { [key: string]: number | string };
 };
+
+export type MessageSeverity = "error" | "info" | "success" | "warning";
+
+export type MenuPosition = {
+  x: number;
+  y: number;
+};

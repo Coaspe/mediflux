@@ -14,6 +14,7 @@ type SocketArgs = {
   recordIds?: string[];
   records?: PRecord[];
   clinic?: string;
+  index?: number;
 };
 export const setupSocket = (server: HttpServer) => {
   const io = new Server(server, {
@@ -59,8 +60,8 @@ export const setupSocket = (server: HttpServer) => {
       socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
     });
 
-    socket.on(CREATE_RECORD, ({ records, tableType, roomId }: SocketArgs) => {
-      socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType });
+    socket.on(CREATE_RECORD, ({ records, tableType, roomId, index }: SocketArgs) => {
+      socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType, index });
     });
   });
 };

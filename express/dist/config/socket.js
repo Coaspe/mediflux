@@ -36,8 +36,8 @@ export const setupSocket = (server) => {
         socket.on(UNLOCK_RECORD, ({ recordId, tableType, roomId }) => {
             socket.broadcast.to(roomId).emit(UNLOCK_RECORD, { recordId, tableType });
         });
-        socket.on(CREATE_RECORD, ({ records, tableType, roomId }) => {
-            socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType });
+        socket.on(CREATE_RECORD, ({ records, tableType, roomId, index }) => {
+            socket.broadcast.to(roomId).emit(CREATE_RECORD, { records, tableType, index });
         });
     });
 };

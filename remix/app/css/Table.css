@@ -7,28 +7,12 @@
 }
 .context-menu {
   position: absolute;
-  width: 150px;
   background: white;
   border: 1px solid #ccc;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   opacity: 0;
   z-index: 9999;
-}
-
-.context-menu ul {
-  list-style: none;
-  margin: 0;
-  padding: 10px;
-}
-
-.context-menu li {
-  padding: 8px;
-  cursor: pointer;
-}
-
-.context-menu li:hover {
-  background-color: #f0f0f0;
 }
 
 @keyframes slideDown {

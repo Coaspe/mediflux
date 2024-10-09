@@ -49,7 +49,8 @@ import {
   DELETE,
   DELETE_H,
 } from "~/constants/constant";
-import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps } from "~/types/type";
+import { TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H, LOCKING_USER } from "~/constants/constant";
+import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps, MessageSeverity } from "~/types/type";
 import { ColDef } from "ag-grid-community";
 import { CustomCellEditorProps, CustomCellRendererProps } from "ag-grid-react";
 import { findCanCompleteTreatmentNumber, formatNumberWithCommas } from "../utils";
@@ -146,7 +147,7 @@ const personComparator = (searchHelp: SearchHelp[], valueA: string | null | unde
     return -1;
   }
 };
-export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[], setGlobalSnackbar?: SetterOrUpdater<GlobalSnackBark>): ColDef<PRecord, string> => {
+export const personColumn = (field: string, headerName: string, searchHelp: SearchHelp[], showErrorSnackbar?: (mesage: string, severity: MessageSeverity) => void): ColDef<PRecord, string> => {
   const isDoctor = field === DOCTOR;
   return {
     field,
@@ -154,7 +155,7 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
     headerName,
     width: LONG_COLUMN_LENGTH,
     editable: !isDoctor,
-    onCellDoubleClicked: () => setGlobalSnackbar?.({ open: true, msg: "시술을 시작하면 자동으로 입력됩니다.", severity: "warning" }),
+    onCellDoubleClicked: () => showErrorSnackbar?.("시술을 시작하면 자동으로 입력됩니다.", "warning"),
     comparator: (valueA, valueB) => personComparator(searchHelp, valueA, valueB),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
     cellRenderer: ({ value, colDef, data }: CustomCellRendererProps) => {
@@ -167,8 +168,8 @@ export const personColumn = (field: string, headerName: string, searchHelp: Sear
   };
 };
 
-export const doctorColumn = (doctorSearchHelp: SearchHelp[], setGlobalSnackbar?: SetterOrUpdater<GlobalSnackBark>): ColDef<PRecord, string> =>
-  personColumn(DOCTOR, DOCTOR_H, doctorSearchHelp, setGlobalSnackbar);
+export const doctorColumn = (doctorSearchHelp: SearchHelp[], showErrorSnackbar?: (mesage: string, severity: MessageSeverity) => void): ColDef<PRecord, string> =>
+  personColumn(DOCTOR, DOCTOR_H, doctorSearchHelp, showErrorSnackbar);
 export const anesthesiaNoteColumn: ColDef<PRecord, string> = { field: ANESTHESIA_NOTE, headerName: ANESTHESIA_NOTE_H, width: MEDIUM_COLUMN_LENGTH };
 export const skincareSpecialist1Column: ColDef<PRecord, string> = personColumn(SKINCARE_SPECIALIST1, SKINCARE_SPECIALIST1_H, DOCTOR_SEARCH_HELP);
 export const skincareSpecialist2Column: ColDef<PRecord, string> = personColumn(SKINCARE_SPECIALIST2, SKINCARE_SPECIALIST2_H, DOCTOR_SEARCH_HELP);
@@ -227,4 +228,37 @@ export const treatementDeleteColumn = (setGlobalSnackbar: SetterOrUpdater<Global
     },
     cellRenderer: ({ data, api }: CustomCellRendererProps) => deleteCell(data, setGlobalSnackbar, api, clinic),
   };
+};
+
+export const getColumnDefs = (
+  tableType: TableType,
+  treatmentSearchHelp: SearchHelp[],
+  doctorSearchHelp: SearchHelp[],
+  gridRef: React.RefObject<CustomAgGridReactProps<PRecord>>,
+  showErrorSnackbar: (message: string) => void
+): ColDef<PRecord, any>[] => {
+  return [
+    { field: "id", headerName: "id", hide: true },
+    createdAtColumn,
+    chartNumberColumn,
+    patientNameColumn,
+    opReadinessColumn,
+    treatmentColumn(TREATMENT1, TREATMENT1_H, tableType, treatmentSearchHelp, gridRef),
+    treatmentColumn(TREATMENT2, TREATMENT2_H, tableType, treatmentSearchHelp, gridRef),
+    treatmentColumn(TREATMENT3, TREATMENT3_H, tableType, treatmentSearchHelp, gridRef),
+    treatmentColumn(TREATMENT4, TREATMENT4_H, tableType, treatmentSearchHelp, gridRef),
+    treatmentColumn(TREATMENT5, TREATMENT5_H, tableType, treatmentSearchHelp, gridRef),
+    quantitytreat1Column,
+    treatmentRoomColumn,
+    doctorColumn(doctorSearchHelp, showErrorSnackbar),
+    anesthesiaNoteColumn,
+    skincareSpecialist1Column,
+    skincareSpecialist2Column,
+    nursingStaff1Column,
+    nursingStaff2Column,
+    coordinatorColumn,
+    consultantColumn,
+    commentCautionColumn,
+    { field: LOCKING_USER, headerName: "", hide: true },
+  ];
 };
