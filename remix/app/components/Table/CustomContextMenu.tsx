@@ -48,6 +48,8 @@ const CustomContextMenu = ({
     if (!gridRef.current || !user) return;
 
     const focusedRow = gridRef.current.api.getFocusedCell();
+    console.log(focusedRow);
+
     const index = focusedRow?.rowIndex ?? 0;
 
     const newRecord = { opReadiness: tableType === "ExceptReady" ? OpReadiness.N : OpReadiness.Y } as PRecord;
