@@ -88,7 +88,7 @@ export const REVENUE = "revenue";
 export const REVENUE_H = "매출";
 
 export const TREATMENT_NAME_COLUMN = 250;
-export const LONG_COLUMN_LENGTH = 150;
+export const LONG_COLUMN_LENGTH = 200;
 export const MEDIUM_COLUMN_LENGTH = 100;
 export const POINT_COLUMN_LENGTH = 80;
 export const SHORT_COLUMN_LENGTH = 70;

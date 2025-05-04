@@ -48,6 +48,7 @@ import {
   PRICE_H,
   DELETE,
   DELETE_H,
+  TREATMENT_NAME_COLUMN,
 } from "~/constants/constant";
 import { TREATMENT1, TREATMENT1_H, TREATMENT2, TREATMENT2_H, TREATMENT3, TREATMENT3_H, TREATMENT4, TREATMENT4_H, TREATMENT5, TREATMENT5_H, LOCKING_USER } from "~/constants/constant";
 import { SearchHelp, TableType, GlobalSnackBark, Treatment, CustomAgGridReactProps, MessageSeverity } from "~/types/type";
@@ -110,7 +111,7 @@ export const treatmentColumn = (field: string, headerName: string, tableType: Ta
     headerName,
     cellRenderer: (arg: CustomCellRendererProps) => treatmentCell(arg, gridRef, tableType),
     cellEditor: (arg: CustomCellEditorProps) => autoCompleteEdit(arg, searchHelp),
-    width: LONG_COLUMN_LENGTH,
+    width: TREATMENT_NAME_COLUMN,
     editable: (params) => {
       const number = params.colDef.field?.charAt(params.colDef.field?.length - 1);
       return !(params.data && params.data[`${TREATMENT_END}${number}`]);
@@ -243,13 +244,13 @@ export const getColumnDefs = (
     chartNumberColumn,
     patientNameColumn,
     opReadinessColumn,
+    treatmentRoomColumn,
     treatmentColumn(TREATMENT1, TREATMENT1_H, tableType, treatmentSearchHelp, gridRef),
     treatmentColumn(TREATMENT2, TREATMENT2_H, tableType, treatmentSearchHelp, gridRef),
     treatmentColumn(TREATMENT3, TREATMENT3_H, tableType, treatmentSearchHelp, gridRef),
     treatmentColumn(TREATMENT4, TREATMENT4_H, tableType, treatmentSearchHelp, gridRef),
     treatmentColumn(TREATMENT5, TREATMENT5_H, tableType, treatmentSearchHelp, gridRef),
     quantitytreat1Column,
-    treatmentRoomColumn,
     doctorColumn(doctorSearchHelp, showErrorSnackbar),
     anesthesiaNoteColumn,
     skincareSpecialist1Column,

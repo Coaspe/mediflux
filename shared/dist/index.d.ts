@@ -156,5 +156,6 @@ declare module "shared" {
     N = "N",
     C = "C",
     P = "P",
+    D = "D",
   }
 }
