@@ -1,3 +1,5 @@
+/** @format */
+
 import { OverridableStringUnion } from "@mui/types";
 import { ChipPropsColorOverrides } from "@mui/joy/Chip/ChipProps";
 import { ServerUser, Role, PRecord } from "shared";
@@ -84,6 +86,8 @@ export type ChartData = {
 export type TreatmentRoom = {
   room: string;
   roomChartNum?: string;
+  availableTreatments: string;
+  equitments: string;
 };
 
 export type Member = SearchableType & {
