@@ -28,6 +28,15 @@ export const getAllTreatments = async (tag: string, baseURL: string | undefined)
     return handleError(error);
   }
 };
+export const getAllRooms = async (tag: string, baseURL: string | undefined) => {
+  try {
+    // const result = await axios.get(`${baseURL}/api/getAllRooms`, { params: { tag } });
+    // return { statusCode: result.status, body: { data: result.data } } as CustomResponse;
+    return { statusCode: 200, body: { data: [] } } as CustomResponse;
+  } catch (error) {
+    return handleError(error);
+  }
+};
 
 export const handleError = (axiosError: any): CustomResponse => {
   const error = axiosError.response;

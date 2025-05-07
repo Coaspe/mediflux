@@ -78,6 +78,21 @@ router.get("/getAllVacantRooms", async (req, res) => {
   }
 });
 
+router.get("/getAllRooms", async (req, res) => {
+  const tag = req.query.tag;
+  if (!tag) {
+    res.status(400).json({ message: "Invalid params" });
+    return;
+  }
+  try {
+    const q = `select * from ${tag}.TREATMENT_ROOM_INFO`;
+    const result = await pool.query(q);
+    res.status(200).json(result.rows);
+  } catch (error) {
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
+  }
+});
+
 router.post("/getRecords", async (req, res) => {
   const where = req.body.where;
   const tag = req.body.tag;

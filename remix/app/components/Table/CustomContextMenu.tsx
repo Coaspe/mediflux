@@ -52,7 +52,8 @@ const CustomContextMenu = ({
 
     const index = focusedRow?.rowIndex ?? 0;
 
-    const newRecord = { opReadiness: tableType === "ExceptReady" ? OpReadiness.N : OpReadiness.Y } as PRecord;
+    // const newRecord = { opReadiness: tableType === "ExceptReady" ? OpReadiness.N : OpReadiness.Y } as PRecord;
+    const newRecord = { opReadiness: OpReadiness.N } as PRecord;
     const {
       statusCode,
       body: { data, error },

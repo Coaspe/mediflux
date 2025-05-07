@@ -292,7 +292,7 @@ export const treatmentCell = ({ data, value, colDef }: CustomCellRendererProps, 
         <div>
           <span
             className={`${end && "line-through"} ${tableType === "Ready" && (canBeAssigned ? "font-black" : "text-gray-400")} ${
-              tableType === "ExceptReady" && data.opReadiness === OpReadiness.P && (isInProgressTreatment ? "font-black" : "text-gray-400")
+              tableType === "Ready" && data.opReadiness === OpReadiness.P && (isInProgressTreatment ? "font-black" : "text-gray-400")
             }`}
           >
             {getValueWithId(searchHelp, value).title}

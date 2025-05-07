@@ -125,7 +125,8 @@ export const moveRecord = (gridRef: RefObject<CustomAgGridReactProps<PRecord>>, 
 export const checkIsInvalidRecord = (tableType: TableType, record: PRecord) => {
   const etrCondition = tableType === "ExceptReady" && record.opReadiness === OpReadiness.Y;
   const rteCondition = tableType === "Ready" && record.opReadiness !== OpReadiness.Y;
-  return { etrCondition, rteCondition };
+  // return { etrCondition, rteCondition };
+  return { etrCondition: false, rteCondition: false };
 };
 
 export const autoCompleteKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>, onValueChange: (value?: string) => void, optionRef: MutableRefObject<SearchHelp | null>) => {

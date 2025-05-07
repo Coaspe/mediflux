@@ -32,6 +32,7 @@ export type Treatment = SearchHelp &
     duration?: number;
     point?: number;
     price?: number;
+    equipments?: Set<number>;
     [key: string]: any;
   };
 export type TableType = "Ready" | "ExceptReady" | "Archive";
@@ -83,12 +84,17 @@ export type ChartData = {
   numOfPRecords: number;
 };
 
-export type TreatmentRoom = {
-  room: string;
-  roomChartNum?: string;
-  availableTreatments: string;
-  equitments: string;
-};
+export type TreatmentRoomStatus = "사용 중" | "사용 가능" | "점검 중" | "예약 됨";
+export type TreatmentRoom = SearchHelp &
+  SearchableType & {
+    name: string;
+    roomChartNum?: string;
+    status: TreatmentRoomStatus;
+    equitmentsNumber?: Set<number>;
+    equitments?: string[];
+    treatmentTypeNumber?: number[];
+    treatmentType?: string[];
+  };
 
 export type Member = SearchableType & {
   id: string;

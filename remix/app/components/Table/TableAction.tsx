@@ -44,7 +44,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
   const onAddRecord = async () => {
     if (!gridRef.current || !user) return;
 
-    const newRecord = { opReadiness: tableType === "ExceptReady" ? OpReadiness.N : OpReadiness.Y } as PRecord;
+    const newRecord = { opReadiness: OpReadiness.N } as PRecord;
     const {
       statusCode,
       body: { data, error },
@@ -148,7 +148,7 @@ export const TableAction: FC<TableActionHeader> = ({ gridRef, socket, tableType 
 
   return (
     <>
-      {tableType === "ExceptReady" && (
+      {tableType === "Ready" && (
         <>
           <Box className="flex gap-2 items-center justify-between w-fit">
             <IconButton onClick={onAddRecord}>

@@ -1,5 +1,5 @@
 import { atom } from "recoil";
-import { GlobalSnackBark, SearchHelp, Treatment, User } from "./types/type";
+import { GlobalSnackBark, SearchHelp, Treatment, TreatmentRoom, User } from "./types/type";
 
 export const userState = atom<User | undefined>({
   key: "userState", // unique ID (with respect to other atoms/selectors)
@@ -23,5 +23,10 @@ export const treatmentSearchHelpState = atom<Treatment[]>({
 
 export const doctorSearchHelpState = atom<SearchHelp[]>({
   key: "doctorSearchHelp",
+  default: [],
+});
+
+export const roomSearchHelpState = atom<TreatmentRoom[]>({
+  key: "roomSearchHelpState",
   default: [],
 });

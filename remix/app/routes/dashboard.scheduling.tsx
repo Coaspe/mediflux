@@ -5,17 +5,18 @@ import { useLoaderData } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import SchedulingTable from "~/components/Table/SchedulingTable";
-import { doctorSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
-import { CustomAgGridReactProps, SearchHelp, Treatment, User } from "~/types/type";
+import { doctorSearchHelpState, roomSearchHelpState, treatmentSearchHelpState, userState } from "~/recoil_state";
+import { CustomAgGridReactProps, SearchHelp, Treatment, TreatmentRoom, User } from "~/types/type";
 import { getUserByID } from "~/utils/request.server";
-import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, ServerPRecord, OpReadiness, Role, ServerUser } from "shared";
+import { CONNECT, JOIN_ROOM, SCHEDULING_ROOM_ID, CONNECTED_USERS, PRecord, OpReadiness, Role, ServerUser } from "shared";
 import { Socket, io } from "socket.io-client";
 import { DEFAULT_REDIRECT } from "~/constants/constant";
-import { convertServerPRecordToPRecord, convertServerUserToClientUser, getDoctorSearchHelp, getTreatmentSearchHelp } from "~/utils/utils";
+import { convertServerPRecordToPRecord, convertServerUserToClientUser } from "~/utils/utils";
 import { destoryBrowserSession, getSessionId } from "~/services/session.server";
-import { getAllRoleEmployees, getAllTreatments, getRecords } from "~/utils/request";
+import { getAllRoleEmployees, getAllRooms, getAllTreatments, getRecords } from "~/utils/request";
 import { SerializeFrom } from "@remix-run/node";
 import dayjs from "dayjs";
+import TreatmentRoomManager from "~/components/TreatmentRoomManager/TreatmentRoomManager";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const sessionData = await getSessionId(request);
@@ -23,10 +24,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   if (sessionData.id) {
     const { statusCode, body: { data: user = {}, error = null } = {} } = await getUserByID(sessionData.id);
     if (statusCode === 200 && user) {
-      const [doctorsResponse, recordsResponse, treatmentsResponse] = await Promise.all([
+      const [doctorsResponse, recordsResponse, treatmentsResponse, roomsResponse] = await Promise.all([
         getAllRoleEmployees(Role.DOCTOR, user.clinic, process.env.SERVER_BASE_URL),
         getRecords([`and created_at >= '${dayjs().startOf("day").toISOString()}'`, `and created_at <= '${dayjs().endOf("day").toISOString()}'`], user.clinic, process.env.SERVER_BASE_URL),
         getAllTreatments(user.clinic, process.env.SERVER_BASE_URL),
+        getAllRooms(user.clinic, process.env.SERVER_BASE_URL),
       ]);
 
       const {
@@ -48,8 +50,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         },
       } = treatmentsResponse;
 
-      if (s1 === 200 && s2 === 200 && s3 === 200) {
-        return json({ user, records, doctors, treatments: treatmentsData });
+      const {
+        statusCode: s4,
+        body: {
+          data: { rows: rooms },
+        },
+      } = roomsResponse;
+
+      if (s1 === 200 && s2 === 200 && s3 === 200 && s4 === 200) {
+        return json({ user, records, doctors, treatments: treatmentsData, rooms });
       } else {
         return await destoryBrowserSession(DEFAULT_REDIRECT, request);
       }
@@ -92,6 +101,7 @@ const useUpdateLoaderData = (
     records: any;
     doctors: any;
     treatments: any;
+    rooms: any;
   }> | null
 ) => {
   const setUser = useSetRecoilState(userState);
@@ -99,14 +109,16 @@ const useUpdateLoaderData = (
   const [exceptReadyData, setExceptReadyData] = useState<PRecord[]>([]);
   const [treatmentSearchHelp, setTreatmentSearchHelp] = useRecoilState(treatmentSearchHelpState);
   const [doctorSearchHelp, setDoctorSearchHelp] = useRecoilState(doctorSearchHelpState);
+  const [roomSearchHelp, setRoomSearchHelp] = useRecoilState(roomSearchHelpState);
 
   useEffect(() => {
     if (!loaderData) return;
-    const { user, doctors, treatments, records } = loaderData;
+    const { user, doctors, treatments, records, rooms } = loaderData;
     setUser(user);
 
     setTreatmentSearchHelp(treatments.map((treatment: Treatment) => treatment as SearchHelp));
     setDoctorSearchHelp(doctors.map((user: ServerUser) => convertServerUserToClientUser(user)).map((user: User) => ({ id: user.id, title: user.name, group: "" } as SearchHelp)));
+    // setRoomSearchHelp(rooms.map((room: any) => ({ id: room.id, title: room.name, name: room.name, group: "", equitments: new Set(room.equitments || []) } as TreatmentRoom)));
 
     if (user) {
       const recordsData: PRecord[] = records.map(convertServerPRecordToPRecord);
@@ -118,12 +130,12 @@ const useUpdateLoaderData = (
     }
   }, [loaderData]);
 
-  return { readyData, exceptReadyData, treatmentSearchHelp, doctorSearchHelp };
+  return { readyData, exceptReadyData, treatmentSearchHelp, doctorSearchHelp, roomSearchHelp };
 };
 
 export default function Scheduling() {
   const loaderData = useLoaderData<typeof loader>();
-  const { readyData, exceptReadyData, treatmentSearchHelp, doctorSearchHelp } = useUpdateLoaderData(loaderData);
+  const { readyData, exceptReadyData, treatmentSearchHelp, doctorSearchHelp, roomSearchHelp } = useUpdateLoaderData(loaderData);
   const socket = useInitializeSocket();
 
   const readyRef = useRef<CustomAgGridReactProps<PRecord>>(null);
@@ -139,18 +151,19 @@ export default function Scheduling() {
   }, []);
 
   return (
-    <div className="flex flex-col w-full h-full gap-5 pb-5">
+    <div className="grid grid-cols-1 grid-rows-2 w-full h-full gap-5 pb-5">
+      <TreatmentRoomManager treatmentRooms={roomSearchHelp} />
       <SchedulingTable
         tableType="Ready"
         gridRef={readyRef}
-        theOtherGridRef={exceptReadyRef}
+        // theOtherGridRef={exceptReadyRef}
         socket={socket}
         roomId={SCHEDULING_ROOM_ID}
-        records={readyData}
+        records={[...readyData, ...exceptReadyData]}
         treatmentSearchHelp={treatmentSearchHelp}
         doctorSearchHelp={doctorSearchHelp}
       />
-      <SchedulingTable
+      {/* <SchedulingTable
         tableType="ExceptReady"
         gridRef={exceptReadyRef}
         theOtherGridRef={readyRef}
@@ -159,7 +172,7 @@ export default function Scheduling() {
         records={exceptReadyData}
         treatmentSearchHelp={treatmentSearchHelp}
         doctorSearchHelp={doctorSearchHelp}
-      />
+      /> */}
     </div>
   );
 }

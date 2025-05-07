@@ -146,7 +146,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   }, [rowData, colDefs, isLoading]);
 
   return (
-    <div onContextMenu={handleContextMenu} className="ag-theme-quartz h-1/2 flex flex-col">
+    <div onContextMenu={handleContextMenu} className="ag-theme-quartz flex flex-col">
       {tableType === "Ready" && <audio className="hidden" ref={audioRef} src="/assets/sounds/new_record_ready_noti.mp3" controls />}
       {MemoizedAgGrid}
       <CustomContextMenu position={menuPosition} onClose={() => setMenuVisible(false)} isOpen={menuVisible} gridRef={gridRef} tableType={tableType} socket={socket} />
