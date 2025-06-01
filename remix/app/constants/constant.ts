@@ -1,3 +1,4 @@
+import { OpReadiness } from "shared";
 import { SearchHelp } from "~/types/type";
 
 export const DEFAULT_REDIRECT = "/";
@@ -115,3 +116,11 @@ export const EMPTY_SEARCHHELP: SearchHelp = {
 export const TREATMENT_NUMBERS = Array.from({ length: 5 }, (_, k) => k + 1);
 
 export const ON_LINE_CHANGING_TRANSACTION_APPLIED = "onLineChangingTransactionApplied";
+
+export const OP_READINESS_TO_TEXT: Record<OpReadiness, string> = {
+  [OpReadiness.P]: "시술진행",
+  [OpReadiness.Y]: "준비완료",
+  [OpReadiness.N]: "시술예정",
+  [OpReadiness.C]: "퇴원처리",
+  [OpReadiness.D]: "",
+};

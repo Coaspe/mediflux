@@ -95,7 +95,7 @@ export const opReadinessColumn = {
   headerName: OP_READINESS_H,
   cellRenderer: opReadinessCell,
   editable: false,
-  width: SHORT_COLUMN_LENGTH,
+  width: MEDIUM_COLUMN_LENGTH,
   cellStyle: () => {
     return {
       alignItems: "center",

@@ -82,7 +82,20 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
     processData();
   }, [user, socket, records, showErrorSnackbar, tableType, roomId]);
 
-  const defaultColDef = useMemo<ColDef>(() => ({ editable: true }), []);
+  const defaultColDef = useMemo<ColDef>(
+    () => ({
+      editable: true,
+      suppressKeyboardEvent: (params) => {
+        const event = params.event as KeyboardEvent;
+        if (event.key === "Tab" && isComposing) {
+          // 한글 조합 중이면 Tab 키 무시
+          return true;
+        }
+        return false;
+      },
+    }),
+    []
+  );
 
   const getRowStyle = ({ data }: RowClassParams<PRecord>): RowStyle | undefined => {
     const baseStyle = { transition: "all 0.2s ease, color 0.2s ease" };
@@ -102,6 +115,7 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState<MenuPosition>({ x: 0, y: 0 });
+  let isComposing = false;
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -120,6 +134,24 @@ const SchedulingTable: React.FC<SchedulingTableProps> = ({ socket, gridRef, theO
   const noRowsOverlayComponent = () => {
     return <span>차트가 존재하지 않습니다</span>;
   };
+
+  useEffect(() => {
+    const handleCompositionStart = () => {
+      isComposing = true;
+    };
+
+    const handleCompositionEnd = () => {
+      isComposing = false;
+    };
+
+    document.addEventListener("compositionstart", handleCompositionStart);
+    document.addEventListener("compositionend", handleCompositionEnd);
+
+    return () => {
+      document.removeEventListener("compositionstart", handleCompositionStart);
+      document.removeEventListener("compositionend", handleCompositionEnd);
+    };
+  }, []);
 
   const MemoizedAgGrid = useMemo(() => {
     return (

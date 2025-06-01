@@ -4,7 +4,7 @@ import { ChipColor, CustomAgGridReactProps, GlobalSnackBark, SearchHelp, TableTy
 import { Autocomplete, TextField } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import { INTERNAL_SERVER_ERROR, OpReadiness, PRecord, Role } from "shared";
-import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constants/constant";
+import { DOCTOR, FIELDS_DOCTOR, FIELDS_NURSE, FIELDS_PAITENT, OP_READINESS_TO_TEXT, TREATMENT_END, TREATMENT_READY, TREATMENT_START } from "~/constants/constant";
 import dayjs, { Dayjs } from "dayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -56,8 +56,8 @@ export const createdAtEdit = (value: string, onValueChange: (value: string) => v
   );
 };
 
-export const getStatusChipColor = (label: ReactNode): ChipColor => {
-  switch (label) {
+export const getStatusChipColor = (opReadiness: OpReadiness): ChipColor => {
+  switch (opReadiness) {
     case OpReadiness.N:
       return "error";
     case OpReadiness.P:
@@ -73,10 +73,11 @@ export const getStatusChipColor = (label: ReactNode): ChipColor => {
 
 export const opReadinessCell = ({ value }: { value: OpReadiness }) => {
   const size: OverridableStringUnion<"small" | "medium", ChipPropsSizeOverrides> = "small";
-  const label: ReactNode = value;
-  const color: ChipColor = getStatusChipColor(label);
+  const label: ReactNode = OP_READINESS_TO_TEXT[value];
+  const color: ChipColor = getStatusChipColor(value);
   return value && <Chip size={size} label={label} color={color} />;
 };
+
 const DoctorAssignmentTooltip: React.FC<TreatmentTooltipProps> = ({ record, gridRef, treatmentNumber, closeTooltip }) => {
   const user = useRecoilValue(userState);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
