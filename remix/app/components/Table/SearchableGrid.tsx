@@ -45,17 +45,17 @@ type SearchGridHeaderProps = {
   api: GridApi<any> | undefined;
   addButton: boolean;
 };
+
 const SearchGridHeader: FC<SearchGridHeaderProps> = ({ searchTerm, setSearchTerm, api, addButton }) => {
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);
   const user = useRecoilValue(userState);
+
   const onClick = async () => {
     if (!user) return;
-    const {
-      statusCode,
-      body: { data: { rows = [] } = {}, error = null },
-    } = await insertTreatment(user?.clinic, window.ENV.FRONT_BASE_URL);
 
-    if (statusCode === 200) {
+    const { statusCode, body: { data: rows = [], error = null } = {} } = await insertTreatment(user?.clinic, window.ENV.FRONT_BASE_URL);
+
+    if (statusCode === 200 && rows) {
       const row = rows[0];
       if (row && api) {
         api.applyTransaction({

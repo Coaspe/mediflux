@@ -170,12 +170,12 @@ router.post("/insertTreatment", async (req, res) => {
     let maxId = maxIdResult.rows[0].max_id || 0;
     maxId += 1;
     const insertQuery = `
-      INSERT INTO ${tag}.TREATENTS (id) VALUES (${maxId}) RETURNING *;
+      INSERT INTO ${tag}.TREATMENTS (id) VALUES (${maxId}) RETURNING *;
     `;
     const insertResult = await pool.query(insertQuery);
-    res.status(200).json(insertResult);
+    res.status(200).json({ body: { data: insertResult.rows } });
   } catch (error) {
-    res.status(500).json({ message: INTERNAL_SERVER_ERROR });
+    res.status(500).json({ message: INTERNAL_SERVER_ERROR, error });
   }
 });
 
