@@ -1,6 +1,6 @@
 /** @format */
 
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { CustomResponse, Treatment } from "~/types/type";
 import { handleError } from "./request";
 import { PRecord } from "shared";
@@ -62,7 +62,7 @@ export const deleteTreatement = async (id: string, tag: string, baseURL: string 
 export const insertTreatment = async (tag: string, baseURL: string | undefined) => {
   try {
     const result = await axios.post(`${baseURL}/api/insertTreatment`, { tag });
-    return { statusCode: result.status } as CustomResponse;
+    return { statusCode: result.status, body: result.data.body } as CustomResponse;
   } catch (error: any) {
     return handleError(error);
   }

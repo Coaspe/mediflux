@@ -16,6 +16,7 @@ import { getAllTreatments } from "~/utils/request";
 import SearchableGrid from "~/components/Table/SearchableGrid";
 import { getSession } from "~/services/session.server";
 import { useLoaderData } from "@remix-run/react";
+
 export async function loader({ request }: { request: Request }) {
   const clinic = (await getSession(request)).get("clinic");
   const treatmentsResponse = await getAllTreatments(clinic, process.env.SERVER_BASE_URL);
@@ -31,6 +32,7 @@ export async function loader({ request }: { request: Request }) {
   }
   return null;
 }
+
 const Treatments: React.FC = () => {
   const gridRef = useRef<CustomAgGridReactProps<Treatment>>(null);
   const setGlobalSnackBar = useSetRecoilState(globalSnackbarState);

@@ -258,5 +258,6 @@ export const getRevenueForPeriod = (doctors: ServerUser[], data: ServerPRecord[]
 };
 
 export const formatNumberWithCommas = (number: number) => {
+  if (number === undefined || number === null) return "";
   return `${number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}원`;
 };
