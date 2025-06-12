@@ -293,6 +293,7 @@ router.put("/updateTreatment", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(200).json(result);
     }
     catch (error) {
+        console.log(error);
         res.status(500).json({ message: INTERNAL_SERVER_ERROR });
     }
 }));

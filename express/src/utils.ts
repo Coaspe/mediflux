@@ -25,7 +25,7 @@ export const updateQuery = (tableName: string, keys: string[], idfieldName: stri
   let baseQuery = `UPDATE ${tableName} SET `;
   for (let i = 1; i < keys.length; i++) {
     const field = keys[i];
-    baseQuery += `${field}=$${i}`;
+    baseQuery += `"${field}"=$${i}`;
     if (i !== keys.length - 1) {
       baseQuery += ", ";
     }

@@ -106,6 +106,8 @@ const Treatments: React.FC = () => {
     const copyTreatment: Treatment = JSON.parse(JSON.stringify(treatment));
     const result = await updateTreatment(treatment, user?.clinic, window.ENV.FRONT_BASE_URL);
 
+    console.log(treatment);
+
     if (result.statusCode !== 200) {
       if (field in copyTreatment) {
         copyTreatment[field] = oldValue;

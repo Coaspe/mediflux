@@ -26,7 +26,7 @@ const SearchableGrid: React.FC<SearchableGridProps> = ({ originalData, gridProps
   const [rowData, setRowData] = useState<any[]>([]);
 
   useEffect(() => {
-    setRowData(originalData.filter((data) => data.searchTitle?.toLowerCase().includes(searchTerm.replace(/\s/g, "").toLowerCase())));
+    setRowData(originalData);
   }, [searchTerm, originalData]);
 
   return (
